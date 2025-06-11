@@ -1,98 +1,109 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Serveurs - Cartographie Kalya</title>
-  
-  <!-- Tailwind CSS + DaisyUI -->
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.24/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen bg-base-200">
-  <div class="navbar bg-primary text-primary-content">
-    <div class="flex-1">
-      <a href="{{ route('dashboard.index') }}" class="btn btn-ghost text-xl">🗺️ Cartographie Services</a>
+@layout('layouts/dashboard')
+
+@section('title')
+  Serveurs
+@end
+
+@section('main')
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold">🖥️ Serveurs</h1>
+      <p class="text-base-content/70 mt-1">Gérez vos serveurs et leur infrastructure</p>
     </div>
-    <div class="flex-none">
-      <ul class="menu menu-horizontal px-1">
-        <li><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
-        <li><a href="{{ route('servers.index') }}" class="active">Serveurs</a></li>
-        <li><a href="{{ route('services.index') }}">Services</a></li>
-        <li>
-          <details>
-            <summary>{{ user?.fullName || user?.email || 'User' }}</summary>
-            <ul class="bg-base-100 rounded-t-none p-2">
-              <li><a href="{{ route('auth.logout') }}">Déconnexion</a></li>
-            </ul>
-          </details>
-        </li>
-      </ul>
-    </div>
+    @include('components/action-button', { 
+      href: route('servers.create'), 
+      type: 'primary', 
+      icon: '➕', 
+      text: 'Nouveau serveur' 
+    })
   </div>
 
-  <main class="container mx-auto p-4">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold">🖥️ Serveurs</h1>
-      <a href="{{ route('servers.create') }}" class="btn btn-primary">Ajouter un serveur</a>
+  @if(servers.length === 0)
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body text-center py-16">
+        <div class="text-6xl mb-4">🖥️</div>
+        <h2 class="text-2xl font-bold mb-2">Aucun serveur configuré</h2>
+        <p class="text-base-content/70 mb-6">Commencez par ajouter votre premier serveur pour organiser vos services.</p>
+        @include('components/action-button', { 
+          href: route('servers.create'), 
+          type: 'primary', 
+          icon: '➕', 
+          text: 'Ajouter un serveur' 
+        })
+      </div>
     </div>
-
-    @if(flashMessages.has('success'))
-      <div class="alert alert-success mb-4">
-        <span>{{ flashMessages.get('success') }}</span>
-      </div>
-    @endif
-
-    @if(flashMessages.has('error'))
-      <div class="alert alert-error mb-4">
-        <span>{{ flashMessages.get('error') }}</span>
-      </div>
-    @endif
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      @each(server in servers)
-        <div class="card bg-base-100 shadow-xl">
-          <div class="card-body">
-            <h2 class="card-title">🖥️ {{ server.nom }}</h2>
-            <div class="space-y-1 text-sm">
-              <p><strong>IP:</strong> <code>{{ server.ip }}</code></p>
-              <p><strong>Hébergeur:</strong> {{ server.hebergeur }}</p>
-              <p><strong>Localisation:</strong> {{ server.localisation }}</p>
-              <p><strong>Services:</strong> {{ server.services.length }}</p>
-            </div>
-            
-            @if(server.services.length > 0)
-              <div class="divider my-2"></div>
-              <div class="space-y-1">
-                <p class="font-semibold text-xs">Services hébergés:</p>
-                <div class="flex flex-wrap gap-1">
-                  @each(service in server.services)
-                    <span class="badge badge-secondary badge-sm">{{ service.nom }}</span>
-                  @end
-                </div>
-              </div>
-            @endif
-            
-            <div class="card-actions justify-end">
-              <a href="{{ route('servers.show', { id: server.id }) }}" class="btn btn-primary btn-sm">Voir</a>
-              <a href="{{ route('servers.edit', { id: server.id }) }}" class="btn btn-secondary btn-sm">Modifier</a>
-            </div>
+  @else
+    <!-- Filtres et recherche -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+      <div class="card-body py-4">
+        <div class="flex flex-wrap gap-4 items-center">
+          <div class="form-control">
+            <input type="text" id="search-servers" placeholder="Rechercher un serveur..." class="input input-bordered input-sm w-64">
+          </div>
+          <div class="form-control">
+            <select id="filter-hebergeur" class="select select-bordered select-sm">
+              <option value="">Tous les hébergeurs</option>
+              @each(hebergeur in servers.map(s => s.hebergeur).filter((v, i, a) => a.indexOf(v) === i))
+                <option value="{{ hebergeur }}">{{ hebergeur }}</option>
+              @end
+            </select>
+          </div>
+          <div class="flex-1"></div>
+          <div class="stats stats-horizontal shadow">
+            @include('components/stats-card', { 
+              title: 'Total serveurs', 
+              value: servers.length, 
+              color: 'primary' 
+            })
+            @include('components/stats-card', { 
+              title: 'Services actifs', 
+              value: servers.reduce((acc, s) => acc + (s.services?.length || 0), 0),
+              color: 'secondary' 
+            })
           </div>
         </div>
-      @else
-        <div class="col-span-full">
-          <div class="card bg-base-100 shadow-xl">
-            <div class="card-body text-center">
-              <h2 class="card-title justify-center">Aucun serveur trouvé</h2>
-              <p>Commencez par ajouter votre premier serveur à la cartographie.</p>
-              <div class="card-actions justify-center">
-                <a href="{{ route('servers.create') }}" class="btn btn-primary">Ajouter un serveur</a>
-              </div>
-            </div>
-          </div>
+      </div>
+    </div>
+
+    <!-- Grille des serveurs -->
+    <div id="servers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @each(server in servers)
+        <div class="server-card" data-name="{{ server.nom.toLowerCase() }}" data-hebergeur="{{ server.hebergeur }}">
+          @include('components/server-card', { server })
         </div>
       @end
     </div>
-  </main>
-</body>
-</html>
+  @endif
+@end
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('search-servers');
+  const hebergeurFilter = document.getElementById('filter-hebergeur');
+  const serverCards = document.querySelectorAll('.server-card');
+  
+  function filterServers() {
+    const searchTerm = searchInput?.value.toLowerCase() || '';
+    const selectedHebergeur = hebergeurFilter?.value || '';
+    
+    serverCards.forEach(card => {
+      const name = card.dataset.name || '';
+      const hebergeur = card.dataset.hebergeur || '';
+      
+      const matchesSearch = name.includes(searchTerm);
+      const matchesHebergeur = !selectedHebergeur || hebergeur === selectedHebergeur;
+      
+      if (matchesSearch && matchesHebergeur) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+  }
+  
+  searchInput?.addEventListener('input', filterServers);
+  hebergeurFilter?.addEventListener('change', filterServers);
+});
+</script>
+@end

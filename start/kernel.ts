@@ -17,34 +17,29 @@ import server from '@adonisjs/core/services/server'
  */
 server.errorHandler(() => import('#exceptions/handler'))
 
-/**
- * The server middleware stack runs middleware on all the HTTP
- * requests, even if there is no route registered for
- * the request URL.
- */
+/*
+|--------------------------------------------------------------------------
+| Middleware global
+|--------------------------------------------------------------------------
+|
+| ⚠️ ORDRE CRITIQUE : session AVANT container_bindings !
+|
+*/
 server.use([
-  () => import('#middleware/container_bindings_middleware'),
-  () => import('@adonisjs/static/static_middleware'),
-  () => import('@adonisjs/vite/vite_middleware'),
-])
-
-/**
- * The router middleware stack runs middleware on all the HTTP
- * requests with a registered route.
- */
-router.use([
-  () => import('@adonisjs/core/bodyparser_middleware'),
+  // ✅ SESSION EN PREMIER (pour injecter ctx.session)
   () => import('@adonisjs/session/session_middleware'),
-  () => import('@adonisjs/shield/shield_middleware'),
-  () => import('@adonisjs/auth/initialize_auth_middleware')
+
+  // ✅ PUIS container bindings (pour debug et bindings généraux)
+  () => import('#middleware/container_bindings_middleware'),
 ])
 
-/**
- * Named middleware collection must be explicitly assigned to
- * the routes or the routes group.
- */
+/*
+|--------------------------------------------------------------------------
+| Middleware nommés
+|--------------------------------------------------------------------------
+*/
 export const middleware = router.named({
   guest: () => import('#middleware/guest_middleware'),
   auth: () => import('#middleware/auth_middleware'),
-  oauth: () => import('#middleware/oauth_middleware')
+  oauth: () => import('#middleware/oauth_middleware'),
 })

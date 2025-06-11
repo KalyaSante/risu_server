@@ -1,0 +1,267 @@
+@layout('layouts/dashboard')
+
+@section('title')
+  {{ service.nom }}
+@end
+
+@section('main')
+  <!-- En-tête -->
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <div class="breadcrumbs text-sm">
+        <ul>
+          <li><a href="{{ route('services.index') }}">Services</a></li>
+          <li>{{ service.nom }}</li>
+        </ul>
+      </div>
+      <h1 class="text-3xl font-bold mt-2 flex items-center gap-3">
+        @if(service.icon)
+          <img src="/icons/{{ service.icon }}" alt="{{ service.nom }}" class="w-8 h-8" onerror="this.style.display='none'">
+        @else
+          ⚙️
+        @endif
+        {{ service.nom }}
+      </h1>
+      <p class="text-base-content/70 mt-1">
+        📍 Hébergé sur <a href="{{ route('servers.show', { id: service.server.id }) }}" class="link">{{ service.server.nom }}</a>
+      </p>
+    </div>
+    <div class="flex gap-2">
+      @include('components/action-button', { 
+        href: route('services.edit', { id: service.id }), 
+        type: 'secondary', 
+        icon: '✏️', 
+        text: 'Modifier' 
+      })
+      @if(service.repoUrl)
+        @include('components/action-button', { 
+          href: service.repoUrl, 
+          type: 'accent', 
+          icon: '🔗', 
+          text: 'Code source',
+          class: 'target="_blank"'
+        })
+      @endif
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Informations du service -->
+    <div class="lg:col-span-1 space-y-6">
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">📋 Informations</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="label-text font-semibold">Serveur</label>
+              <div class="flex items-center gap-2 mt-1">
+                <a href="{{ route('servers.show', { id: service.server.id }) }}" class="link link-primary">
+                  {{ service.server.nom }}
+                </a>
+                <div class="badge badge-sm">{{ service.server.ip }}</div>
+              </div>
+            </div>
+            
+            @if(service.path)
+              <div>
+                <label class="label-text font-semibold">Chemin d'installation</label>
+                <div class="flex items-center gap-2 mt-1">
+                  <code class="bg-base-200 px-3 py-2 rounded text-sm flex-1 truncate">{{ service.path }}</code>
+                  <button class="btn btn-sm btn-square btn-outline" onclick="copyToClipboard('{{ service.path }}')">
+                    📋
+                  </button>
+                </div>
+              </div>
+            @endif
+            
+            @if(service.repoUrl)
+              <div>
+                <label class="label-text font-semibold">Repository</label>
+                <div class="mt-1">
+                  <a href="{{ service.repoUrl }}" target="_blank" class="link link-primary text-sm">
+                    {{ service.repoUrl.replace('https://github.com/', '') }}
+                  </a>
+                </div>
+              </div>
+            @endif
+            
+            @if(service.docPath)
+              <div>
+                <label class="label-text font-semibold">Documentation</label>
+                <p class="mt-1 text-sm">{{ service.docPath }}</p>
+              </div>
+            @endif
+            
+            <div>
+              <label class="label-text font-semibold">Dernière maintenance</label>
+              @if(service.lastMaintenanceAt)
+                @set('daysSinceMaintenance', Math.floor((Date.now() - new Date(service.lastMaintenanceAt).getTime()) / (1000 * 60 * 60 * 24)))
+                <div class="flex items-center gap-2 mt-1">
+                  <time class="text-sm" datetime="{{ service.lastMaintenanceAt.toISO() }}">
+                    {{ service.lastMaintenanceAt.toFormat('dd/MM/yyyy à HH:mm') }}
+                  </time>
+                  @if(daysSinceMaintenance <= 7)
+                    <div class="badge badge-success badge-sm">Récent</div>
+                  @elseif(daysSinceMaintenance <= 30)
+                    <div class="badge badge-warning badge-sm">{{ daysSinceMaintenance }}j</div>
+                  @else
+                    <div class="badge badge-error badge-sm">{{ daysSinceMaintenance }}j</div>
+                  @endif
+                </div>
+              @else
+                <p class="mt-1 text-sm text-base-content/50">Jamais</p>
+              @endif
+            </div>
+            
+            <div>
+              <label class="label-text font-semibold">Créé le</label>
+              <p class="mt-1 text-sm">{{ service.createdAt.toFormat('dd/MM/yyyy à HH:mm') }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistiques -->
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">📊 Statistiques</h2>
+          <div class="stats stats-vertical">
+            @include('components/stats-card', { 
+              title: 'Dépendances', 
+              value: service.dependencies?.length || 0, 
+              icon: '⬇️', 
+              color: 'primary',
+              subtitle: 'Services requis'
+            })
+            @include('components/stats-card', { 
+              title: 'Dépendants', 
+              value: service.dependents?.length || 0,
+              icon: '⬆️', 
+              color: 'secondary',
+              subtitle: 'Services clients'
+            })
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Dépendances et relations -->
+    <div class="lg:col-span-2 space-y-6">
+      <!-- Dépendances (services dont dépend ce service) -->
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="card-title">⬇️ Dépendances</h2>
+            @if(service.dependencies && service.dependencies.length > 0)
+              <div class="badge badge-primary">{{ service.dependencies.length }} dépendance{{ service.dependencies.length > 1 ? 's' : '' }}</div>
+            @endif
+          </div>
+          
+          @if(!service.dependencies || service.dependencies.length === 0)
+            <div class="text-center py-8">
+              <div class="text-4xl mb-4">🎯</div>
+              <h3 class="text-lg font-bold mb-2">Aucune dépendance</h3>
+              <p class="text-base-content/70">Ce service fonctionne de manière autonome.</p>
+            </div>
+          @else
+            <div class="space-y-3">
+              @each(dependency in service.dependencies)
+                <div class="card bg-base-200 compact">
+                  <div class="card-body">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        @if(dependency.icon)
+                          <img src="/icons/{{ dependency.icon }}" alt="{{ dependency.nom }}" class="w-6 h-6" onerror="this.style.display='none'">
+                        @else
+                          ⚙️
+                        @endif
+                        <div>
+                          <h4 class="font-semibold">
+                            <a href="{{ route('services.show', { id: dependency.id }) }}" class="link">{{ dependency.nom }}</a>
+                          </h4>
+                          <p class="text-sm text-base-content/70">{{ dependency.server.nom }}</p>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <div class="badge badge-sm">{{ dependency.$extras.pivot_label }}</div>
+                        @if(dependency.$extras.pivot_type === 'required')
+                          <div class="badge badge-error badge-sm">Critique</div>
+                        @elseif(dependency.$extras.pivot_type === 'optional')
+                          <div class="badge badge-warning badge-sm">Optionnel</div>
+                        @else
+                          <div class="badge badge-success badge-sm">Fallback</div>
+                        @endif
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              @end
+            </div>
+          @endif
+        </div>
+      </div>
+
+      <!-- Services dépendants (services qui dépendent de ce service) -->
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="card-title">⬆️ Services dépendants</h2>
+            @if(service.dependents && service.dependents.length > 0)
+              <div class="badge badge-secondary">{{ service.dependents.length }} dépendant{{ service.dependents.length > 1 ? 's' : '' }}</div>
+            @endif
+          </div>
+          
+          @if(!service.dependents || service.dependents.length === 0)
+            <div class="text-center py-8">
+              <div class="text-4xl mb-4">🏝️</div>
+              <h3 class="text-lg font-bold mb-2">Aucun service dépendant</h3>
+              <p class="text-base-content/70">Aucun autre service ne dépend de celui-ci.</p>
+            </div>
+          @else
+            <div class="space-y-3">
+              @each(dependent in service.dependents)
+                <div class="card bg-base-200 compact">
+                  <div class="card-body">
+                    <div class="flex items-center justify-between">
+                      <div class="flex items-center gap-3">
+                        @if(dependent.icon)
+                          <img src="/icons/{{ dependent.icon }}" alt="{{ dependent.nom }}" class="w-6 h-6" onerror="this.style.display='none'">
+                        @else
+                          ⚙️
+                        @endif
+                        <div>
+                          <h4 class="font-semibold">
+                            <a href="{{ route('services.show', { id: dependent.id }) }}" class="link">{{ dependent.nom }}</a>
+                          </h4>
+                          <p class="text-sm text-base-content/70">{{ dependent.server.nom }}</p>
+                        </div>
+                      </div>
+                      <div class="flex items-center gap-2">
+                        <div class="badge badge-sm">{{ dependent.$extras.pivot_label }}</div>
+                        @if(dependent.$extras.pivot_type === 'required')
+                          <div class="badge badge-error badge-sm">Critique</div>
+                        @elseif(dependent.$extras.pivot_type === 'optional')
+                          <div class="badge badge-warning badge-sm">Optionnel</div>
+                        @else
+                          <div class="badge badge-success badge-sm">Fallback</div>
+                        @endif
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              @end
+            </div>
+          @endif
+        </div>
+      </div>
+    </div>
+  </div>
+@end
+
+@section('scripts')
+<script>
+function copyToClipboard(text) {
+  AppUtils.copyToClipboard(text);
+}
+</script>
+@end

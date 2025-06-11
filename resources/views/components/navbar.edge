@@ -1,0 +1,46 @@
+<nav class="navbar bg-primary text-primary-content shadow-lg">
+  <div class="navbar-start">
+    <a href="{{ route('dashboard.index') }}" class="btn btn-ghost text-xl">
+      🗺️ Cartographie Services
+    </a>
+  </div>
+  
+  <div class="navbar-center hidden lg:flex">
+    <ul class="menu menu-horizontal px-1">
+      <li><a href="{{ route('dashboard.index') }}" class="@if(request.matchesRoute('dashboard.*')) active @endif">Dashboard</a></li>
+      <li><a href="{{ route('servers.index') }}" class="@if(request.matchesRoute('servers.*')) active @endif">Serveurs</a></li>
+      <li><a href="{{ route('services.index') }}" class="@if(request.matchesRoute('services.*')) active @endif">Services</a></li>
+    </ul>
+  </div>
+  
+  <div class="navbar-end">
+    <!-- Mobile menu -->
+    <div class="dropdown dropdown-end lg:hidden">
+      <div tabindex="0" role="button" class="btn btn-ghost">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+        </svg>
+      </div>
+      <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 text-base-content rounded-box z-[1] mt-3 w-52 p-2 shadow">
+        <li><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
+        <li><a href="{{ route('servers.index') }}">Serveurs</a></li>
+        <li><a href="{{ route('services.index') }}">Services</a></li>
+      </ul>
+    </div>
+    
+    <!-- User menu -->
+    <div class="dropdown dropdown-end">
+      <div tabindex="0" role="button" class="btn btn-ghost">
+        <div class="avatar placeholder">
+          <div class="bg-neutral text-neutral-content rounded-full w-8">
+            <span class="text-xs">{{ auth.user?.fullName ? auth.user.fullName.charAt(0).toUpperCase() : 'U' }}</span>
+          </div>
+        </div>
+      </div>
+      <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 text-base-content rounded-box z-[1] mt-3 w-52 p-2 shadow">
+        <li class="menu-title">{{ auth.user?.email || 'Utilisateur' }}</li>
+        <li><a href="{{ route('auth.logout') }}">Déconnexion</a></li>
+      </ul>
+    </div>
+  </div>
+</nav>

@@ -1,0 +1,20 @@
+{{-- 
+  @param title - Titre de la statistique
+  @param value - Valeur numérique
+  @param icon - Icône (emoji ou classe)
+  @param color - Couleur (primary, secondary, accent, etc.)
+  @param subtitle - Sous-titre optionnel
+--}}
+
+<div class="stat">
+  <div class="stat-figure text-{{ color || 'primary' }}">
+    @if(icon)
+      <span class="text-3xl">{{ icon }}</span>
+    @endif
+  </div>
+  <div class="stat-title">{{ title }}</div>
+  <div class="stat-value text-{{ color || 'primary' }}">{{ value }}</div>
+  @if(subtitle)
+    <div class="stat-desc">{{ subtitle }}</div>
+  @endif
+</div>

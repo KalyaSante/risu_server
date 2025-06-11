@@ -1,0 +1,45 @@
+{{-- 
+  @param server - L'objet serveur
+  @param showActions - Afficher les actions (par défaut: true)
+--}}
+
+<div class="card bg-base-100 shadow-xl">
+  <div class="card-body">
+    <h2 class="card-title">
+      🖥️ {{ server.nom }}
+      @if(server.hebergeur === 'Local')
+        <div class="badge badge-secondary">Local</div>
+      @else
+        <div class="badge badge-primary">{{ server.hebergeur }}</div>
+      @endif
+    </h2>
+    
+    <div class="space-y-2 text-sm">
+      <div class="flex items-center gap-2">
+        <span class="font-semibold">IP:</span>
+        <code class="text-xs bg-base-200 px-2 py-1 rounded">{{ server.ip }}</code>
+      </div>
+      <div class="flex items-center gap-2">
+        <span class="font-semibold">Localisation:</span>
+        <span>{{ server.localisation }}</span>
+      </div>
+      @if(server.services && server.services.length > 0)
+        <div class="flex items-center gap-2">
+          <span class="font-semibold">Services:</span>
+          <div class="badge badge-accent">{{ server.services.length }}</div>
+        </div>
+      @endif
+    </div>
+    
+    @if(showActions !== false)
+      <div class="card-actions justify-end mt-4">
+        <a href="{{ route('servers.show', { id: server.id }) }}" class="btn btn-primary btn-sm">
+          Voir détails
+        </a>
+        <a href="{{ route('servers.edit', { id: server.id }) }}" class="btn btn-secondary btn-sm">
+          Modifier
+        </a>
+      </div>
+    @endif
+  </div>
+</div>

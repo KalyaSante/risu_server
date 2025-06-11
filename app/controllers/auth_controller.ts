@@ -8,21 +8,25 @@ export default class AuthController {
    */
   async login({ response, request }: HttpContext) {
     const state = Math.random().toString(36).substring(2, 15)
-    
+
     // Stocker le state en session pour vérification
     request.ctx?.session?.put('oauth_state', state)
-    
+
     // Construire l'URL d'autorisation
     const params = new URLSearchParams({
       client_id: oauthConfig.clientId,
       redirect_uri: oauthConfig.redirectUri,
       response_type: 'code',
-      scope: oauthConfig.scopes.join(' '),
       state: state
     })
-    
+
+    // Ajouter les scopes seulement s'ils existent
+    if (oauthConfig.scopes.length > 0) {
+      params.append('scope', oauthConfig.scopes.join(' '))
+    }
+
     const authorizeUrl = `${oauthConfig.baseUrl}${oauthConfig.endpoints.authorize}?${params}`
-    
+
     return response.redirect(authorizeUrl)
   }
 
@@ -31,20 +35,20 @@ export default class AuthController {
    */
   async callback({ request, response, session }: HttpContext) {
     const { code, state, error } = request.qs()
-    
+
     // Vérifier les erreurs
     if (error) {
       session.flash('error', `Erreur OAuth: ${error}`)
       return response.redirect('/login')
     }
-    
+
     // Vérifier le state pour éviter les attaques CSRF
     const sessionState = session.get('oauth_state')
     if (!state || state !== sessionState) {
       session.flash('error', 'État OAuth invalide')
       return response.redirect('/login')
     }
-    
+
     try {
       // Échanger le code contre un token
       const tokenResponse = await fetch(`${oauthConfig.baseUrl}${oauthConfig.endpoints.token}`, {
@@ -61,13 +65,13 @@ export default class AuthController {
           code: code
         })
       })
-      
+
       if (!tokenResponse.ok) {
         throw new Error(`Token exchange failed: ${tokenResponse.status}`)
       }
-      
+
       const tokenData = await tokenResponse.json()
-      
+
       // Récupérer les infos utilisateur
       const userResponse = await fetch(`${oauthConfig.baseUrl}${oauthConfig.endpoints.userInfo}`, {
         headers: {
@@ -75,13 +79,13 @@ export default class AuthController {
           'Accept': 'application/json'
         }
       })
-      
+
       if (!userResponse.ok) {
         throw new Error(`User info fetch failed: ${userResponse.status}`)
       }
-      
+
       const userData = await userResponse.json()
-      
+
       // Créer ou mettre à jour l'utilisateur local
       const user = await User.updateOrCreate(
         { id: userData.id }, // UUID du serveur OAuth
@@ -92,16 +96,16 @@ export default class AuthController {
           password: null // Pas de password local avec OAuth
         }
       )
-      
+
       // Stocker les tokens en session
       session.put('access_token', tokenData.access_token)
       session.put('refresh_token', tokenData.refresh_token)
       session.put('token_expires_at', Date.now() + (tokenData.expires_in * 1000))
       session.put('user_id', user.id)
-      
+
       session.flash('success', `Bienvenue ${user.fullName || user.email} !`)
       return response.redirect('/')
-      
+
     } catch (error) {
       console.error('OAuth callback error:', error)
       session.flash('error', 'Erreur lors de l\'authentification OAuth')
@@ -128,7 +132,7 @@ export default class AuthController {
         console.error('Token revocation failed:', error)
       }
     }
-    
+
     // Nettoyer la session
     session.clear()
     session.flash('success', 'Déconnexion réussie')
@@ -148,7 +152,7 @@ export default class AuthController {
   async refreshToken(session: any): Promise<boolean> {
     const refreshToken = session.get('refresh_token')
     if (!refreshToken) return false
-    
+
     try {
       const response = await fetch(`${oauthConfig.baseUrl}${oauthConfig.endpoints.token}`, {
         method: 'POST',
@@ -163,18 +167,18 @@ export default class AuthController {
           client_secret: oauthConfig.clientSecret
         })
       })
-      
+
       if (!response.ok) return false
-      
+
       const tokenData = await response.json()
-      
+
       // Mettre à jour les tokens en session
       session.put('access_token', tokenData.access_token)
       if (tokenData.refresh_token) {
         session.put('refresh_token', tokenData.refresh_token)
       }
       session.put('token_expires_at', Date.now() + (tokenData.expires_in * 1000))
-      
+
       return true
     } catch (error) {
       console.error('Token refresh failed:', error)

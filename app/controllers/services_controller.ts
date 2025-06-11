@@ -1,55 +1,67 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Service from '#models/service'
 import Server from '#models/server'
+import { createServiceValidator, updateServiceValidator } from '#validators/service'
 
 export default class ServicesController {
   /**
-   * Liste de tous les services
+   * Liste tous les services
    */
   async index({ view, request }: HttpContext) {
-    const user = request.ctx?.user
-    
-    const services = await Service.query()
-      .preload('server')
-      .preload('dependencies', (query) => {
-        query.pivotColumns(['label', 'type'])
-      })
-      .orderBy('nom')
+    const page = request.input('page', 1)
+    const search = request.input('search', '')
+    const serverId = request.input('server_id')
 
-    return view.render('services/index', { user, services })
+    let query = Service.query()
+      .preload('server')
+      .preload('dependencies', (q) => q.pivotColumns(['label', 'type']))
+
+    if (search) {
+      query = query.where('nom', 'LIKE', `%${search}%`)
+    }
+
+    if (serverId) {
+      query = query.where('server_id', serverId)
+    }
+
+    const services = await query
+      .orderBy('nom', 'asc')
+      .paginate(page, 20)
+
+    const servers = await Server.query().orderBy('nom', 'asc')
+
+    return view.render('services/index', {
+      services,
+      servers,
+      search,
+      selectedServerId: serverId
+    })
   }
 
   /**
-   * Formulaire de création d'un service
+   * Affiche le formulaire de création
    */
   async create({ view, request }: HttpContext) {
-    const user = request.ctx?.user
-    const servers = await Server.all()
-    const services = await Service.all() // Pour les dépendances
-    
-    return view.render('services/create', { user, servers, services })
+    const serverId = request.input('server_id')
+    const servers = await Server.query().orderBy('nom', 'asc')
+    const selectedServer = serverId ? await Server.find(serverId) : null
+
+    return view.render('services/create', {
+      servers,
+      selectedServer
+    })
   }
 
   /**
-   * Enregistrement d'un nouveau service
+   * Stocke un nouveau service
    */
   async store({ request, response, session }: HttpContext) {
-    const data = request.only([
-      'server_id', 'nom', 'icon', 'path', 'repo_url', 'doc_path', 'last_maintenance_at'
-    ])
-    
     try {
-      const service = await Service.create({
-        serverId: data.server_id,
-        nom: data.nom,
-        icon: data.icon,
-        path: data.path,
-        repoUrl: data.repo_url,
-        docPath: data.doc_path,
-        lastMaintenanceAt: data.last_maintenance_at ? new Date(data.last_maintenance_at) : null
-      })
-      
-      session.flash('success', `Service "${service.nom}" créé avec succès !`)
+      const payload = await request.validateUsing(createServiceValidator)
+
+      const service = await Service.create(payload)
+
+      session.flash('success', `Service "${service.nom}" créé avec succès!`)
       return response.redirect().toRoute('services.show', { id: service.id })
     } catch (error) {
       session.flash('error', 'Erreur lors de la création du service')
@@ -58,11 +70,9 @@ export default class ServicesController {
   }
 
   /**
-   * Vue détaillée d'un service (remplace dashboard.serviceDetail)
+   * Affiche les détails d'un service
    */
-  async show({ params, view, request }: HttpContext) {
-    const user = request.ctx?.user
-    
+  async show({ params, view }: HttpContext) {
     const service = await Service.query()
       .where('id', params.id)
       .preload('server')
@@ -74,50 +84,34 @@ export default class ServicesController {
       })
       .firstOrFail()
 
-    return view.render('services/show', { user, service })
+    return view.render('services/show', { service })
   }
 
   /**
-   * Formulaire d'édition d'un service
+   * Affiche le formulaire d'édition
    */
-  async edit({ params, view, request }: HttpContext) {
-    const user = request.ctx?.user
-    
+  async edit({ params, view }: HttpContext) {
     const service = await Service.query()
       .where('id', params.id)
-      .preload('dependencies', (query) => {
-        query.pivotColumns(['label', 'type'])
-      })
+      .preload('server')
       .firstOrFail()
-      
-    const servers = await Server.all()
-    const allServices = await Service.query().whereNot('id', service.id) // Exclure le service actuel des dépendances
-    
-    return view.render('services/edit', { user, service, servers, allServices })
+
+    const servers = await Server.query().orderBy('nom', 'asc')
+
+    return view.render('services/edit', { service, servers })
   }
 
   /**
-   * Mise à jour d'un service
+   * Met à jour un service
    */
   async update({ params, request, response, session }: HttpContext) {
-    const service = await Service.findOrFail(params.id)
-    
-    const data = request.only([
-      'server_id', 'nom', 'icon', 'path', 'repo_url', 'doc_path', 'last_maintenance_at'
-    ])
-    
     try {
-      await service.merge({
-        serverId: data.server_id,
-        nom: data.nom,
-        icon: data.icon,
-        path: data.path,
-        repoUrl: data.repo_url,
-        docPath: data.doc_path,
-        lastMaintenanceAt: data.last_maintenance_at ? new Date(data.last_maintenance_at) : null
-      }).save()
-      
-      session.flash('success', `Service "${service.nom}" mis à jour avec succès !`)
+      const service = await Service.findOrFail(params.id)
+      const payload = await request.validateUsing(updateServiceValidator)
+
+      await service.merge(payload).save()
+
+      session.flash('success', `Service "${service.nom}" mis à jour avec succès!`)
       return response.redirect().toRoute('services.show', { id: service.id })
     } catch (error) {
       session.flash('error', 'Erreur lors de la mise à jour du service')
@@ -126,57 +120,28 @@ export default class ServicesController {
   }
 
   /**
-   * Suppression d'un service
+   * Supprime un service
    */
   async destroy({ params, response, session }: HttpContext) {
     try {
-      const service = await Service.findOrFail(params.id)
+      const service = await Service.query()
+        .where('id', params.id)
+        .preload('dependencies')
+        .preload('dependents')
+        .firstOrFail()
+
       const serviceName = service.nom
-      
+      const dependenciesCount = service.dependencies.length + service.dependents.length
+
       await service.delete()
-      
-      session.flash('success', `Service "${serviceName}" supprimé avec succès !`)
+
+      session.flash('success',
+        `Service "${serviceName}" supprimé avec succès` +
+        (dependenciesCount > 0 ? ` (${dependenciesCount} relations supprimées)` : '')
+      )
       return response.redirect().toRoute('services.index')
     } catch (error) {
       session.flash('error', 'Erreur lors de la suppression du service')
-      return response.redirect().back()
-    }
-  }
-
-  /**
-   * API: Ajouter une dépendance entre services
-   */
-  async addDependency({ params, request, response, session }: HttpContext) {
-    const service = await Service.findOrFail(params.id)
-    const { depends_on_service_id, label, type } = request.only(['depends_on_service_id', 'label', 'type'])
-    
-    try {
-      await service.related('dependencies').attach({
-        [depends_on_service_id]: { label, type: type || 'required' }
-      })
-      
-      session.flash('success', 'Dépendance ajoutée avec succès !')
-      return response.redirect().back()
-    } catch (error) {
-      session.flash('error', 'Erreur lors de l\'ajout de la dépendance')
-      return response.redirect().back()
-    }
-  }
-
-  /**
-   * API: Supprimer une dépendance entre services
-   */
-  async removeDependency({ params, request, response, session }: HttpContext) {
-    const service = await Service.findOrFail(params.id)
-    const { depends_on_service_id } = request.only(['depends_on_service_id'])
-    
-    try {
-      await service.related('dependencies').detach([depends_on_service_id])
-      
-      session.flash('success', 'Dépendance supprimée avec succès !')
-      return response.redirect().back()
-    } catch (error) {
-      session.flash('error', 'Erreur lors de la suppression de la dépendance')
       return response.redirect().back()
     }
   }

@@ -1,0 +1,205 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  // Données du graphique passées depuis le controller
+  const graphData = {{{ graphData }}};
+  
+  // Configuration Vis.js
+  const options = {
+    groups: {
+      servers: {
+        shape: 'box',
+        color: { 
+          background: 'oklch(var(--p))', 
+          border: 'oklch(var(--pc))' 
+        },
+        font: { color: 'oklch(var(--pc))' },
+        size: 30,
+        borderWidth: 2
+      },
+      services: {
+        shape: 'circle',
+        color: { 
+          background: 'oklch(var(--s))', 
+          border: 'oklch(var(--sc))' 
+        },
+        font: { color: 'oklch(var(--sc))' },
+        size: 20,
+        borderWidth: 2
+      }
+    },
+    edges: {
+      arrows: 'to',
+      color: {
+        color: 'oklch(var(--bc))',
+        highlight: 'oklch(var(--ac))'
+      },
+      width: 2
+    },
+    physics: {
+      enabled: true,
+      stabilization: { iterations: 100 },
+      barnesHut: {
+        gravitationalConstant: -2000,
+        centralGravity: 0.3,
+        springLength: 95,
+        springConstant: 0.04,
+        damping: 0.09
+      }
+    },
+    interaction: {
+      hover: true,
+      selectConnectedEdges: false,
+      tooltipDelay: 300
+    },
+    layout: {
+      improvedLayout: true
+    }
+  };
+
+  // Créer le réseau
+  const container = document.getElementById('network-container');
+  const network = new vis.Network(container, graphData, options);
+  
+  // Variables pour les contrôles
+  let physicsEnabled = true;
+  
+  // Contrôles du réseau
+  document.getElementById('fit-network')?.addEventListener('click', () => {
+    network.fit();
+  });
+  
+  document.getElementById('physics-toggle')?.addEventListener('click', (e) => {
+    physicsEnabled = !physicsEnabled;
+    network.setOptions({ physics: { enabled: physicsEnabled } });
+    e.target.textContent = physicsEnabled ? 'Désactiver physique' : 'Activer physique';
+  });
+  
+  // Fermer les détails
+  document.getElementById('close-details')?.addEventListener('click', () => {
+    document.getElementById('service-details').classList.add('hidden');
+  });
+
+  // Event handlers pour les interactions
+  network.on("click", function (params) {
+    if (params.nodes.length > 0) {
+      const nodeId = params.nodes[0];
+      if (nodeId.startsWith('service_')) {
+        const serviceId = nodeId.replace('service_', '');
+        showServiceDetails(serviceId);
+      } else if (nodeId.startsWith('server_')) {
+        const serverId = nodeId.replace('server_', '');
+        showServerDetails(serverId);
+      }
+    } else {
+      // Clic dans le vide, masquer les détails
+      document.getElementById('service-details').classList.add('hidden');
+    }
+  });
+  
+  network.on("hoverNode", function (params) {
+    network.canvas.body.container.style.cursor = 'pointer';
+  });
+  
+  network.on("blurNode", function (params) {
+    network.canvas.body.container.style.cursor = 'default';
+  });
+
+  // Fonctions pour afficher les détails
+  function showServiceDetails(serviceId) {
+    const serviceNode = graphData.nodes.find(n => n.id === `service_${serviceId}`);
+    
+    if (serviceNode) {
+      const detailsDiv = document.getElementById('service-details');
+      const contentDiv = document.getElementById('service-content');
+      
+      const lastMaintenance = serviceNode.last_maintenance_at ? 
+        new Date(serviceNode.last_maintenance_at).toLocaleDateString('fr-FR') : 'Inconnue';
+      
+      contentDiv.innerHTML = `
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="space-y-4">
+            <div>
+              <h4 class="font-bold text-lg flex items-center gap-2">
+                ${serviceNode.icon ? `<img src="/icons/${serviceNode.icon}" alt="${serviceNode.label}" class="w-6 h-6">` : '⚙️'}
+                ${serviceNode.label}
+              </h4>
+              <p class="text-base-content/70">Service sur ${serviceNode.server_name || 'serveur inconnu'}</p>
+            </div>
+            
+            <div class="space-y-2 text-sm">
+              ${serviceNode.path ? `
+                <div>
+                  <span class="font-semibold">Chemin:</span>
+                  <code class="ml-2 text-xs bg-base-200 px-2 py-1 rounded">${serviceNode.path}</code>
+                </div>
+              ` : ''}
+              
+              ${serviceNode.repo_url ? `
+                <div>
+                  <span class="font-semibold">Repository:</span>
+                  <a href="${serviceNode.repo_url}" target="_blank" class="ml-2 link link-primary text-xs">${serviceNode.repo_url}</a>
+                </div>
+              ` : ''}
+              
+              ${serviceNode.doc_path ? `
+                <div>
+                  <span class="font-semibold">Documentation:</span>
+                  <span class="ml-2 text-xs">${serviceNode.doc_path}</span>
+                </div>
+              ` : ''}
+              
+              <div>
+                <span class="font-semibold">Dernière maintenance:</span>
+                <span class="ml-2 text-xs">${lastMaintenance}</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="space-y-4">
+            <div>
+              <h5 class="font-semibold mb-2">Actions</h5>
+              <div class="flex flex-wrap gap-2">
+                <a href="/services/${serviceId}" class="btn btn-primary btn-sm">Voir détails</a>
+                <a href="/services/${serviceId}/edit" class="btn btn-secondary btn-sm">Modifier</a>
+                ${serviceNode.repo_url ? `<a href="${serviceNode.repo_url}" target="_blank" class="btn btn-accent btn-sm">Code source</a>` : ''}
+              </div>
+            </div>
+            
+            <div>
+              <h5 class="font-semibold mb-2">Réseau</h5>
+              <div class="text-xs space-y-1">
+                <div>Dépendances: <span class="badge badge-sm">${getDependenciesCount(serviceId)}</span></div>
+                <div>Dépendants: <span class="badge badge-sm">${getDependentsCount(serviceId)}</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      `;
+      
+      detailsDiv.classList.remove('hidden');
+    }
+  }
+  
+  function showServerDetails(serverId) {
+    const serverNode = graphData.nodes.find(n => n.id === `server_${serverId}`);
+    
+    if (serverNode) {
+      window.location.href = `/servers/${serverId.replace('server_', '')}`;
+    }
+  }
+  
+  // Fonctions utilitaires
+  function getDependenciesCount(serviceId) {
+    return graphData.edges.filter(edge => edge.from === `service_${serviceId}`).length;
+  }
+  
+  function getDependentsCount(serviceId) {
+    return graphData.edges.filter(edge => edge.to === `service_${serviceId}`).length;
+  }
+  
+  // Stabilisation du réseau
+  network.on('stabilizationIterationsDone', function() {
+    console.log('Network stabilized');
+  });
+});
+</script>

@@ -1,40 +1,36 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Server from '#models/server'
+import { createServerValidator, updateServerValidator } from '#validators/server'
 
 export default class ServersController {
   /**
-   * Liste de tous les serveurs
+   * Liste tous les serveurs
    */
-  async index({ view, request }: HttpContext) {
-    const user = request.ctx?.user
-    
+  async index({ view }: HttpContext) {
     const servers = await Server.query()
-      .preload('services', (query) => {
-        query.select('id', 'nom', 'server_id')
-      })
-      .orderBy('nom')
+      .preload('services')
+      .orderBy('nom', 'asc')
 
-    return view.render('servers/index', { user, servers })
+    return view.render('servers/index', { servers })
   }
 
   /**
-   * Formulaire de création d'un serveur
+   * Affiche le formulaire de création
    */
-  async create({ view, request }: HttpContext) {
-    const user = request.ctx?.user
-    return view.render('servers/create', { user })
+  async create({ view }: HttpContext) {
+    return view.render('servers/create')
   }
 
   /**
-   * Enregistrement d'un nouveau serveur
+   * Stocke un nouveau serveur
    */
   async store({ request, response, session }: HttpContext) {
-    const data = request.only(['nom', 'ip', 'hebergeur', 'localisation'])
-    
     try {
-      const server = await Server.create(data)
-      
-      session.flash('success', `Serveur "${server.nom}" créé avec succès !`)
+      const payload = await request.validateUsing(createServerValidator)
+
+      const server = await Server.create(payload)
+
+      session.flash('success', `Serveur "${server.nom}" créé avec succès!`)
       return response.redirect().toRoute('servers.show', { id: server.id })
     } catch (error) {
       session.flash('error', 'Erreur lors de la création du serveur')
@@ -43,47 +39,41 @@ export default class ServersController {
   }
 
   /**
-   * Vue détaillée d'un serveur
+   * Affiche les détails d'un serveur
    */
-  async show({ params, view, request }: HttpContext) {
-    const user = request.ctx?.user
-    
+  async show({ params, view }: HttpContext) {
     const server = await Server.query()
       .where('id', params.id)
       .preload('services', (query) => {
         query.preload('dependencies', (depQuery) => {
           depQuery.pivotColumns(['label', 'type'])
         })
-        query.preload('dependents', (depQuery) => {
-          depQuery.pivotColumns(['label', 'type'])
-        })
+        query.orderBy('nom', 'asc')
       })
       .firstOrFail()
 
-    return view.render('servers/show', { user, server })
+    return view.render('servers/show', { server })
   }
 
   /**
-   * Formulaire d'édition d'un serveur
+   * Affiche le formulaire d'édition
    */
-  async edit({ params, view, request }: HttpContext) {
-    const user = request.ctx?.user
+  async edit({ params, view }: HttpContext) {
     const server = await Server.findOrFail(params.id)
-    
-    return view.render('servers/edit', { user, server })
+    return view.render('servers/edit', { server })
   }
 
   /**
-   * Mise à jour d'un serveur
+   * Met à jour un serveur
    */
   async update({ params, request, response, session }: HttpContext) {
-    const server = await Server.findOrFail(params.id)
-    const data = request.only(['nom', 'ip', 'hebergeur', 'localisation'])
-    
     try {
-      await server.merge(data).save()
-      
-      session.flash('success', `Serveur "${server.nom}" mis à jour avec succès !`)
+      const server = await Server.findOrFail(params.id)
+      const payload = await request.validateUsing(updateServerValidator)
+
+      await server.merge(payload).save()
+
+      session.flash('success', `Serveur "${server.nom}" mis à jour avec succès!`)
       return response.redirect().toRoute('servers.show', { id: server.id })
     } catch (error) {
       session.flash('error', 'Erreur lors de la mise à jour du serveur')
@@ -92,7 +82,7 @@ export default class ServersController {
   }
 
   /**
-   * Suppression d'un serveur
+   * Supprime un serveur
    */
   async destroy({ params, response, session }: HttpContext) {
     try {
@@ -100,17 +90,16 @@ export default class ServersController {
         .where('id', params.id)
         .preload('services')
         .firstOrFail()
-      
-      // Vérifier qu'il n'y a pas de services rattachés
-      if (server.services.length > 0) {
-        session.flash('error', `Impossible de supprimer le serveur "${server.nom}" : ${server.services.length} service(s) y sont rattachés`)
-        return response.redirect().back()
-      }
-      
+
       const serverName = server.nom
+      const servicesCount = server.services.length
+
       await server.delete()
-      
-      session.flash('success', `Serveur "${serverName}" supprimé avec succès !`)
+
+      session.flash('success',
+        `Serveur "${serverName}" supprimé avec succès` +
+        (servicesCount > 0 ? ` (${servicesCount} services supprimés)` : '')
+      )
       return response.redirect().toRoute('servers.index')
     } catch (error) {
       session.flash('error', 'Erreur lors de la suppression du serveur')

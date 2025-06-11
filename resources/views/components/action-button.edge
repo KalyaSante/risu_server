@@ -1,0 +1,15 @@
+{{-- 
+  @param href - URL du lien
+  @param type - Type de bouton (primary, secondary, accent, etc.)
+  @param size - Taille (sm, md, lg)
+  @param icon - Icône optionnelle
+  @param text - Texte du bouton
+  @param class - Classes CSS additionnelles
+--}}
+
+<a href="{{ href }}" class="btn btn-{{ type || 'primary' }} btn-{{ size || 'md' }} {{ class || '' }}">
+  @if(icon)
+    <span>{{ icon }}</span>
+  @endif
+  {{ text }}
+</a>

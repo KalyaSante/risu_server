@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrfToken }}">
+  
+  <title>@!section('title') - Cartographie Services Kalya</title>
+  
+  <!-- Vite CSS -->
+  @vite(['resources/css/app.css'])
+  
+  @!section('head')
+</head>
+<body class="h-full bg-base-200">
+  <div class="min-h-full">
+    @!section('content')
+  </div>
+
+  <!-- Vite JS -->
+  @vite(['resources/js/app.js'])
+  
+  @!section('scripts')
+</body>
+</html>

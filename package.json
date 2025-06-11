@@ -39,13 +39,16 @@
     "@japa/assert": "^4.0.1",
     "@japa/plugin-adonisjs": "^4.0.0",
     "@japa/runner": "^4.2.0",
+    "@sveltejs/vite-plugin-svelte": "^5.1.0",
     "@swc/core": "1.11.24",
     "@types/luxon": "^3.6.2",
     "@types/node": "^22.15.18",
+    "daisyui": "^5.0.43",
     "eslint": "^9.26.0",
     "hot-hook": "^0.4.0",
     "pino-pretty": "^13.0.0",
     "prettier": "^3.5.3",
+    "svelte": "^5.33.19",
     "ts-node-maintained": "^10.9.5",
     "typescript": "~5.8",
     "vite": "^6.3.5"
@@ -53,16 +56,19 @@
   "dependencies": {
     "@adonisjs/auth": "^9.4.0",
     "@adonisjs/core": "^6.18.0",
+    "@adonisjs/cors": "^2.2.1",
     "@adonisjs/lucid": "^21.6.1",
     "@adonisjs/session": "^7.5.1",
     "@adonisjs/shield": "^8.2.0",
     "@adonisjs/static": "^1.1.1",
     "@adonisjs/vite": "^4.0.0",
+    "@tailwindcss/vite": "^4.1.8",
     "@vinejs/vine": "^3.0.1",
     "better-sqlite3": "^11.10.0",
     "edge.js": "^6.2.1",
     "luxon": "^3.6.1",
-    "reflect-metadata": "^0.2.2"
+    "reflect-metadata": "^0.2.2",
+    "tailwindcss": "^4.1.8"
   },
   "hotHook": {
     "boundaries": [

@@ -1,98 +1,183 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Services - Cartographie Kalya</title>
-  
-  <!-- Tailwind CSS + DaisyUI -->
-  <link href="https://cdn.jsdelivr.net/npm/daisyui@4.4.24/dist/full.min.css" rel="stylesheet" type="text/css" />
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="min-h-screen bg-base-200">
-  <div class="navbar bg-primary text-primary-content">
-    <div class="flex-1">
-      <a href="{{ route('dashboard.index') }}" class="btn btn-ghost text-xl">🗺️ Cartographie Services</a>
+@layout('layouts/dashboard')
+
+@section('title')
+  Services
+@end
+
+@section('main')
+  <div class="flex justify-between items-center mb-6">
+    <div>
+      <h1 class="text-3xl font-bold">⚙️ Services</h1>
+      <p class="text-base-content/70 mt-1">Gérez vos services et leurs dépendances</p>
     </div>
-    <div class="flex-none">
-      <ul class="menu menu-horizontal px-1">
-        <li><a href="{{ route('dashboard.index') }}">Dashboard</a></li>
-        <li><a href="{{ route('servers.index') }}" class="active">Serveurs</a></li>
-        <li><a href="{{ route('services.index') }}">Services</a></li>
-        <li>
-          <details>
-            <summary>{{ user?.fullName || user?.email || 'User' }}</summary>
-            <ul class="bg-base-100 rounded-t-none p-2">
-              <li><a href="{{ route('auth.logout') }}">Déconnexion</a></li>
-            </ul>
-          </details>
-        </li>
-      </ul>
-    </div>
+    @include('components/action-button', { 
+      href: route('services.create'), 
+      type: 'primary', 
+      icon: '➕', 
+      text: 'Nouveau service' 
+    })
   </div>
 
-  <main class="container mx-auto p-4">
-    <div class="flex justify-between items-center mb-6">
-      <h1 class="text-3xl font-bold">⚙️ Services</h1>
-      <a href="{{ route('services.create') }}" class="btn btn-primary">Ajouter un service</a>
+  @if(services.length === 0)
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body text-center py-16">
+        <div class="text-6xl mb-4">⚙️</div>
+        <h2 class="text-2xl font-bold mb-2">Aucun service configuré</h2>
+        <p class="text-base-content/70 mb-6">Commencez par ajouter votre premier service pour organiser votre infrastructure.</p>
+        @include('components/action-button', { 
+          href: route('services.create'), 
+          type: 'primary', 
+          icon: '➕', 
+          text: 'Ajouter un service' 
+        })
+      </div>
     </div>
-
-    @if(flashMessages.has('success'))
-      <div class="alert alert-success mb-4">
-        <span>{{ flashMessages.get('success') }}</span>
-      </div>
-    @endif
-
-    @if(flashMessages.has('error'))
-      <div class="alert alert-error mb-4">
-        <span>{{ flashMessages.get('error') }}</span>
-      </div>
-    @endif
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-      @each(service in services)
-        <div class="card bg-base-100 shadow-xl">
-          <div class="card-body">
-            <h2 class="card-title">
-              @if(service.icon)
-                <img src="{{ service.icon }}" alt="Icon" class="w-6 h-6">
-              @else
-                ⚙️
-              @endif
-              {{ service.nom }}
-            </h2>
-            <div class="space-y-1 text-sm">
-              <p><strong>Serveur:</strong> {{ service.server.nom }}</p>
-              @if(service.path)
-                <p><strong>Chemin:</strong> <code class="text-xs">{{ service.path }}</code></p>
-              @endif
-              @if(service.repoUrl)
-                <p><strong>Repository:</strong> <a href="{{ service.repoUrl }}" target="_blank" class="link">Voir le code</a></p>
-              @endif
-              @if(service.lastMaintenanceAt)
-                <p><strong>Dernière maintenance:</strong> {{ service.lastMaintenanceAt.toFormat('dd/MM/yyyy') }}</p>
-              @endif
-            </div>
-            <div class="card-actions justify-end">
-              <a href="{{ route('services.show', { id: service.id }) }}" class="btn btn-primary btn-sm">Voir</a>
-              <a href="{{ route('services.edit', { id: service.id }) }}" class="btn btn-secondary btn-sm">Modifier</a>
-            </div>
+  @else
+    <!-- Filtres et recherche -->
+    <div class="card bg-base-100 shadow-xl mb-6">
+      <div class="card-body py-4">
+        <div class="flex flex-wrap gap-4 items-center">
+          <div class="form-control">
+            <input 
+              type="text" 
+              id="search-services" 
+              placeholder="Rechercher un service..." 
+              class="input input-bordered input-sm w-64"
+              value="{{ search || '' }}"
+            >
+          </div>
+          <div class="form-control">
+            <select id="filter-server" class="select select-bordered select-sm">
+              <option value="">Tous les serveurs</option>
+              @each(server in servers)
+                <option value="{{ server.id }}" {{ selectedServerId == server.id ? 'selected' : '' }}>
+                  {{ server.nom }}
+                </option>
+              @end
+            </select>
+          </div>
+          <div class="form-control">
+            <select id="filter-maintenance" class="select select-bordered select-sm">
+              <option value="">Toutes les maintenances</option>
+              <option value="recent">Récente (< 7 jours)</option>
+              <option value="warning">Ancienne (7-30 jours)</option>
+              <option value="critical">Critique (> 30 jours)</option>
+            </select>
+          </div>
+          <div class="flex-1"></div>
+          <div class="stats stats-horizontal shadow">
+            @include('components/stats-card', { 
+              title: 'Total services', 
+              value: services.length, 
+              color: 'primary' 
+            })
+            @include('components/stats-card', { 
+              title: 'Dépendances', 
+              value: services.reduce((acc, s) => acc + (s.dependencies?.length || 0), 0),
+              color: 'secondary' 
+            })
           </div>
         </div>
-      @else
-        <div class="col-span-full">
-          <div class="card bg-base-100 shadow-xl">
-            <div class="card-body text-center">
-              <h2 class="card-title justify-center">Aucun service trouvé</h2>
-              <p>Commencez par ajouter votre premier service à la cartographie.</p>
-              <div class="card-actions justify-center">
-                <a href="{{ route('services.create') }}" class="btn btn-primary">Ajouter un service</a>
-              </div>
-            </div>
-          </div>
+      </div>
+    </div>
+
+    <!-- Grille des services -->
+    <div id="services-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      @each(service in services)
+        @set('daysSinceMaintenance', service.lastMaintenanceAt ? Math.floor((Date.now() - new Date(service.lastMaintenanceAt).getTime()) / (1000 * 60 * 60 * 24)) : 999)
+        @set('maintenanceStatus', daysSinceMaintenance <= 7 ? 'recent' : daysSinceMaintenance <= 30 ? 'warning' : 'critical')
+        
+        <div class="service-card" 
+             data-name="{{ service.nom.toLowerCase() }}" 
+             data-server="{{ service.serverId }}"
+             data-maintenance="{{ maintenanceStatus }}">
+          @include('components/service-card', { service, showServer: true })
         </div>
       @end
     </div>
-  </main>
-</body>
-</html>
+
+    <!-- Pagination -->
+    @if(services.hasPages)
+      <div class="flex justify-center mt-8">
+        <div class="btn-group">
+          @if(services.hasPreviousPage)
+            <a href="{{ services.previousPageUrl }}" class="btn">« Précédent</a>
+          @endif
+          
+          @each(page in services.getUrlsForRange(1, services.lastPage))
+            <a href="{{ page.url }}" class="btn {{ page.isActive ? 'btn-active' : '' }}">
+              {{ page.page }}
+            </a>
+          @end
+          
+          @if(services.hasNextPage)
+            <a href="{{ services.nextPageUrl }}" class="btn">Suivant »</a>
+          @endif
+        </div>
+      </div>
+    @endif
+  @endif
+@end
+
+@section('scripts')
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const searchInput = document.getElementById('search-services');
+  const serverFilter = document.getElementById('filter-server');
+  const maintenanceFilter = document.getElementById('filter-maintenance');
+  const serviceCards = document.querySelectorAll('.service-card');
+  
+  // Fonction de filtrage
+  function filterServices() {
+    const searchTerm = searchInput?.value.toLowerCase() || '';
+    const selectedServer = serverFilter?.value || '';
+    const selectedMaintenance = maintenanceFilter?.value || '';
+    
+    serviceCards.forEach(card => {
+      const name = card.dataset.name || '';
+      const server = card.dataset.server || '';
+      const maintenance = card.dataset.maintenance || '';
+      
+      const matchesSearch = name.includes(searchTerm);
+      const matchesServer = !selectedServer || server === selectedServer;
+      const matchesMaintenance = !selectedMaintenance || maintenance === selectedMaintenance;
+      
+      if (matchesSearch && matchesServer && matchesMaintenance) {
+        card.style.display = 'block';
+      } else {
+        card.style.display = 'none';
+      }
+    });
+    
+    // Compter les résultats visibles
+    const visibleCards = Array.from(serviceCards).filter(card => card.style.display !== 'none');
+    updateResultsCount(visibleCards.length, serviceCards.length);
+  }
+  
+  // Fonction pour mettre à jour le compteur de résultats
+  function updateResultsCount(visible, total) {
+    let counter = document.getElementById('results-counter');
+    if (!counter) {
+      counter = document.createElement('div');
+      counter.id = 'results-counter';
+      counter.className = 'text-sm text-base-content/70 mt-2';
+      document.getElementById('services-grid').parentNode.insertBefore(counter, document.getElementById('services-grid'));
+    }
+    
+    if (visible === total) {
+      counter.textContent = `${total} service${total > 1 ? 's' : ''}`;
+    } else {
+      counter.textContent = `${visible} sur ${total} service${total > 1 ? 's' : ''}`;
+    }
+  }
+  
+  // Écouteurs d'événements avec debounce pour la recherche
+  searchInput?.addEventListener('input', AppUtils.debounce(filterServices, 300));
+  serverFilter?.addEventListener('change', filterServices);
+  maintenanceFilter?.addEventListener('change', filterServices);
+  
+  // Initialiser le compteur
+  updateResultsCount(serviceCards.length, serviceCards.length);
+});
+</script>
+@end

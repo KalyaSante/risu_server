@@ -1,0 +1,152 @@
+@layout('layouts/dashboard')
+
+@section('title')
+  {{ server.nom }}
+@end
+
+@section('main')
+  <!-- En-tête -->
+  <div class="flex justify-between items-start mb-6">
+    <div>
+      <div class="breadcrumbs text-sm">
+        <ul>
+          <li><a href="{{ route('servers.index') }}">Serveurs</a></li>
+          <li>{{ server.nom }}</li>
+        </ul>
+      </div>
+      <h1 class="text-3xl font-bold mt-2">🖥️ {{ server.nom }}</h1>
+    </div>
+    <div class="flex gap-2">
+      @include('components/action-button', { 
+        href: route('servers.edit', { id: server.id }), 
+        type: 'secondary', 
+        icon: '✏️', 
+        text: 'Modifier' 
+      })
+      @include('components/action-button', { 
+        href: route('services.create', { server_id: server.id }), 
+        type: 'primary', 
+        icon: '➕', 
+        text: 'Ajouter un service' 
+      })
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <!-- Informations du serveur -->
+    <div class="lg:col-span-1 space-y-6">
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">📋 Informations</h2>
+          <div class="space-y-4">
+            <div>
+              <label class="label-text font-semibold">Adresse IP</label>
+              <div class="flex items-center gap-2 mt-1">
+                <code class="bg-base-200 px-3 py-2 rounded text-sm flex-1">{{ server.ip }}</code>
+                <button class="btn btn-sm btn-square btn-outline" onclick="copyToClipboard('{{ server.ip }}')">
+                  📋
+                </button>
+              </div>
+            </div>
+            
+            <div>
+              <label class="label-text font-semibold">Hébergeur</label>
+              <div class="mt-1">
+                <div class="badge badge-primary">{{ server.hebergeur }}</div>
+              </div>
+            </div>
+            
+            <div>
+              <label class="label-text font-semibold">Localisation</label>
+              <p class="mt-1 text-sm">{{ server.localisation }}</p>
+            </div>
+            
+            <div>
+              <label class="label-text font-semibold">Créé le</label>
+              <p class="mt-1 text-sm">{{ server.createdAt.toFormat('dd/MM/yyyy à HH:mm') }}</p>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Statistiques -->
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <h2 class="card-title">📊 Statistiques</h2>
+          <div class="stats stats-vertical">
+            @include('components/stats-card', { 
+              title: 'Services', 
+              value: server.services?.length || 0, 
+              icon: '⚙️', 
+              color: 'primary' 
+            })
+            @include('components/stats-card', { 
+              title: 'Dépendances', 
+              value: server.services?.reduce((acc, s) => acc + (s.dependencies?.length || 0), 0) || 0,
+              icon: '🔗', 
+              color: 'secondary' 
+            })
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Services du serveur -->
+    <div class="lg:col-span-2">
+      <div class="card bg-base-100 shadow-xl">
+        <div class="card-body">
+          <div class="flex justify-between items-center mb-4">
+            <h2 class="card-title">⚙️ Services hébergés</h2>
+            @if(server.services && server.services.length > 0)
+              <div class="badge badge-accent">{{ server.services.length }} service{{ server.services.length > 1 ? 's' : '' }}</div>
+            @endif
+          </div>
+          
+          @if(!server.services || server.services.length === 0)
+            <div class="text-center py-16">
+              <div class="text-4xl mb-4">⚙️</div>
+              <h3 class="text-xl font-bold mb-2">Aucun service configuré</h3>
+              <p class="text-base-content/70 mb-6">Ce serveur n'héberge aucun service pour le moment.</p>
+              @include('components/action-button', { 
+                href: route('services.create', { server_id: server.id }), 
+                type: 'primary', 
+                icon: '➕', 
+                text: 'Ajouter le premier service' 
+              })
+            </div>
+          @else
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              @each(service in server.services)
+                @include('components/service-card', { service, showServer: false })
+              @end
+            </div>
+          @endif
+        </div>
+      </div>
+    </div>
+  </div>
+@end
+
+@section('scripts')
+<script>
+function copyToClipboard(text) {
+  navigator.clipboard.writeText(text).then(() => {
+    // Feedback visuel
+    const button = event.target;
+    const originalText = button.textContent;
+    button.textContent = '✅';
+    setTimeout(() => {
+      button.textContent = originalText;
+    }, 1000);
+  }).catch(() => {
+    // Fallback pour les navigateurs plus anciens
+    const textarea = document.createElement('textarea');
+    textarea.value = text;
+    document.body.appendChild(textarea);
+    textarea.select();
+    document.execCommand('copy');
+    document.body.removeChild(textarea);
+  });
+}
+</script>
+@end
