@@ -7,4 +7,6 @@
   export let errors = {};
 </script>
 
-<Form {user} {flash} {errors} />
+export let servers = [];
+
+<Form {user} {flash} {errors} {servers} />

@@ -1,6 +1,6 @@
 import { DateTime } from 'luxon'
-import { BaseModel, column, hasMany } from '@adonisjs/lucid/orm'
-import type { HasMany } from '@adonisjs/lucid/types/relations'
+import { BaseModel, column, hasMany, belongsTo } from '@adonisjs/lucid/orm'
+import type { HasMany, BelongsTo } from '@adonisjs/lucid/types/relations'
 import Service from './service.js'
 
 export default class Server extends BaseModel {
@@ -19,6 +19,9 @@ export default class Server extends BaseModel {
   @column()
   declare localisation: string
 
+  @column({ columnName: 'parent_server_id' })
+  declare parentServerId: number | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 
@@ -27,4 +30,10 @@ export default class Server extends BaseModel {
 
   @hasMany(() => Service)
   declare services: HasMany<typeof Service>
+
+  @belongsTo(() => Server, { foreignKey: 'parentServerId' })
+  declare parent?: BelongsTo<typeof Server>
+
+  @hasMany(() => Server, { foreignKey: 'parentServerId' })
+  declare children: HasMany<typeof Server>
 }

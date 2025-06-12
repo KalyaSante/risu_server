@@ -8,6 +8,7 @@
   export let user = {};
   export let flash = {};
   export let errors = {};
+  export let servers = [];
 
   // Data
   const hebergeurs = ['OVH', 'Scaleway', 'AWS', 'Azure', 'Google Cloud', 'DigitalOcean', 'Hetzner', 'Local', 'Autre'];
@@ -17,7 +18,8 @@
     nom: server?.nom || '',
     ip: server?.ip || '',
     hebergeur: server?.hebergeur || '',
-    localisation: server?.localisation || ''
+    localisation: server?.localisation || '',
+    parentServerId: server?.parentServerId || null
   };
 
   // Reactive variables
@@ -28,7 +30,7 @@
   // Functions
   function handleSubmit() {
     const options = {
-      data: form,
+      data: { ...form, parentServerId: form.parentServerId ? Number(form.parentServerId) : null },
       preserveScroll: true,
       onError: (errors) => {
         console.log('Form errors:', errors);
@@ -177,6 +179,27 @@
                 {#if errors.localisation}
                   <label class="label">
                     <span class="label-text-alt text-error">{errors.localisation}</span>
+                  </label>
+                {/if}
+              </div>
+
+              <!-- Serveur parent -->
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Hébergé dans</span>
+                </label>
+                <select
+                  bind:value={form.parentServerId}
+                  class="select select-bordered"
+                >
+                  <option value="">Aucun</option>
+                  {#each servers as s}
+                    <option value={s.id}>{s.name}</option>
+                  {/each}
+                </select>
+                {#if errors.parentServerId}
+                  <label class="label">
+                    <span class="label-text-alt text-error">{errors.parentServerId}</span>
                   </label>
                 {/if}
               </div>

@@ -10,6 +10,7 @@ export default class ServersController {
   async index({ inertia, session }: HttpContext) {
     const servers = await Server.query()
       .preload('services')
+      .preload('parent')
       .orderBy('nom', 'asc')
 
     // Formater les données pour Svelte
@@ -22,6 +23,9 @@ export default class ServersController {
       hebergeur: server.hebergeur,
       localisation: server.localisation,
       description: server.description || '',
+      parentServer: server.parent
+        ? { id: server.parent.id, name: server.parent.nom }
+        : null,
       services: server.services?.map(service => ({
         id: service.id,
         name: service.nom,
@@ -55,8 +59,12 @@ export default class ServersController {
       fullName: session.get('user_name') || 'Admin Kalya'
     }
 
+    const servers = await Server.query().orderBy('nom', 'asc')
+    const serverOptions = servers.map((s) => ({ id: s.id, name: s.nom }))
+
     return inertia.render('Servers/Create', {
       user,
+      servers: serverOptions,
       errors: {},
       flash: {
         success: session.flashMessages.get('success'),
@@ -96,6 +104,7 @@ export default class ServersController {
         })
         query.orderBy('nom', 'asc')
       })
+      .preload('parent')
       .firstOrFail()
 
     // Formater les données pour Svelte
@@ -107,6 +116,9 @@ export default class ServersController {
       hebergeur: server.hebergeur,
       localisation: server.localisation,
       description: server.description || '',
+      parentServer: server.parent
+        ? { id: server.parent.id, name: server.parent.nom }
+        : null,
       services: server.services?.map(service => ({
         id: service.id,
         name: service.nom,
@@ -140,13 +152,17 @@ export default class ServersController {
   async edit({ params, inertia, session }: HttpContext) {
     const server = await Server.findOrFail(params.id)
 
+    const servers = await Server.query().whereNot('id', params.id).orderBy('nom', 'asc')
+    const serverOptions = servers.map((s) => ({ id: s.id, name: s.nom }))
+
     const formattedServer = {
       id: server.id,
       nom: server.nom,
       ip: server.ip,
       hebergeur: server.hebergeur,
       localisation: server.localisation,
-      description: server.description || ''
+      description: server.description || '',
+      parentServerId: server.parentServerId
     }
 
     const user = {
@@ -156,6 +172,7 @@ export default class ServersController {
 
     return inertia.render('Servers/Edit', {
       server: formattedServer,
+      servers: serverOptions,
       user,
       errors: {},
       flash: {

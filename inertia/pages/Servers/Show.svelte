@@ -132,6 +132,19 @@
               <p class="mt-1 text-sm">{server.localisation}</p>
             </div>
 
+            {#if server.parentServer}
+              <div>
+                <label class="label-text font-semibold">Hébergé dans</label>
+                <a
+                  href={`/servers/${server.parentServer.id}`}
+                  class="link mt-1 block"
+                  on:click|preventDefault={() => router.visit(`/servers/${server.parentServer.id}`)}
+                >
+                  {server.parentServer.name}
+                </a>
+              </div>
+            {/if}
+
             <div>
               <label class="label-text font-semibold">Créé le</label>
               <p class="mt-1 text-sm">{formatDate(server.createdAt)}</p>

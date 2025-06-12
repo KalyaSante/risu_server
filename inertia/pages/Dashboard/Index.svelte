@@ -116,6 +116,18 @@
       }
     },
     {
+      selector: 'edge[type = "server"]',
+      style: {
+        'width': 2,
+        'line-color': '#6366f1',
+        'target-arrow-color': '#6366f1',
+        'target-arrow-shape': 'triangle',
+        'curve-style': 'bezier',
+        'arrow-scale': 1,
+        'line-style': 'dashed'
+      }
+    },
+    {
       selector: 'edge:selected',
       style: {
         'width': 3,

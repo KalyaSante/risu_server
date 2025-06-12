@@ -15,6 +15,8 @@ export default class DashboardController {
           depQuery.pivotColumns(['label', 'type'])
         })
       })
+      .preload('parent')
+      .preload('parent')
 
     const services = await Service.query()
       .preload('server')
@@ -139,6 +141,7 @@ export default class DashboardController {
           id: `server_${server.id}`,
           label: server.nom,
           type: 'server',
+          parent: server.parentServerId ? `server_${server.parentServerId}` : undefined,
           // Données supplémentaires pour les détails
           server_id: server.id,
           ip: server.ip,
@@ -166,6 +169,19 @@ export default class DashboardController {
         }
       })),
       
+      // Edges d'hébergement entre serveurs
+      ...servers
+        .filter((s) => s.parentServerId)
+        .map((s) => ({
+          data: {
+            id: `server_${s.parentServerId}_child_${s.id}`,
+            source: `server_${s.parentServerId}`,
+            target: `server_${s.id}`,
+            type: 'server',
+            color: '#6366f1'
+          }
+        })),
+
       // Edges de dépendances entre services
       ...services.flatMap(service =>
         service.dependencies.map(dep => ({
