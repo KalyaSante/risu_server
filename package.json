@@ -66,6 +66,8 @@
     "@tailwindcss/vite": "^4.1.10",
     "@vinejs/vine": "^3.0.1",
     "better-sqlite3": "^11.10.0",
+    "cytoscape": "^3.32.0",
+    "cytoscape-cola": "^2.5.1",
     "edge.js": "^6.2.1",
     "luxon": "^3.6.1",
     "reflect-metadata": "^0.2.2",

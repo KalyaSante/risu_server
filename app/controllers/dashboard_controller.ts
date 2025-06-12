@@ -25,14 +25,14 @@ export default class DashboardController {
         query.pivotColumns(['label', 'type'])
       })
 
-    // Construire les données pour le graphique Vis.js
+    // Construire les données pour le graphique Cytoscape.js
     const graphData = this.buildGraphData(servers, services)
 
     // Stats pour les cards
     const stats = {
       totalServers: servers.length,
       totalServices: services.length,
-      totalDependencies: graphData.edges.length,
+      totalDependencies: graphData.elements.filter(el => el.data?.type === 'dependency').length,
       uptime: 98 // Tu peux calculer ça dynamiquement plus tard
     }
 
@@ -123,66 +123,67 @@ export default class DashboardController {
       meta: {
         serversCount: servers.length,
         servicesCount: services.length,
-        dependenciesCount: graphData.edges.length
+        dependenciesCount: graphData.elements.filter(el => el.data?.type === 'dependency').length
       }
     })
   }
 
   /**
-   * Construire les données du graphique pour Vis.js
+   * Construire les données du graphique pour Cytoscape.js avec nœuds composés
    */
   private buildGraphData(servers: any[], services: any[]) {
-    const nodes = [
-      // Serveurs comme nœuds de groupe
+    const elements = [
+      // Serveurs comme nœuds parents
       ...servers.map(server => ({
-        id: `server_${server.id}`,
-        label: server.nom,
-        group: 'servers',
-        title: `${server.ip} (${server.hebergeur})`,
-        level: 0,
-        physics: false,
-        // Données supplémentaires pour les détails
-        server_id: server.id,
-        ip: server.ip,
-        hebergeur: server.hebergeur,
-        localisation: server.localisation,
-        services_count: server.services?.length || 0
+        data: {
+          id: `server_${server.id}`,
+          label: server.nom,
+          type: 'server',
+          // Données supplémentaires pour les détails
+          server_id: server.id,
+          ip: server.ip,
+          hebergeur: server.hebergeur,
+          localisation: server.localisation,
+          services_count: server.services?.length || 0
+        }
       })),
 
-      // Services comme nœuds
+      // Services comme nœuds enfants (avec parent = serveur)
       ...services.map(service => ({
-        id: `service_${service.id}`,
-        label: service.nom,
-        group: 'services',
-        title: `${service.nom}\nServeur: ${service.server.nom}`,
-        level: 1,
-        // Données supplémentaires pour les détails
-        server_id: service.serverId,
-        server_name: service.server.nom,
-        icon: service.icon,
-        path: service.path,
-        repo_url: service.repoUrl,
-        doc_path: service.docPath,
-        last_maintenance_at: service.lastMaintenanceAt?.toISO()
-      }))
+        data: {
+          id: `service_${service.id}`,
+          label: service.nom,
+          type: 'service',
+          parent: `server_${service.serverId}`, // 🎯 Clé magique pour les nœuds composés !
+          // Données supplémentaires pour les détails
+          server_id: service.serverId,
+          server_name: service.server.nom,
+          icon: service.icon,
+          path: service.path,
+          repo_url: service.repoUrl,
+          doc_path: service.docPath,
+          last_maintenance_at: service.lastMaintenanceAt?.toISO()
+        }
+      })),
+      
+      // Edges de dépendances entre services
+      ...services.flatMap(service =>
+        service.dependencies.map(dep => ({
+          data: {
+            id: `dep_${service.id}_${dep.id}`,
+            source: `service_${service.id}`,
+            target: `service_${dep.id}`,
+            type: 'dependency',
+            label: dep.$extras.pivot_label,
+            color: this.getEdgeColor(dep.$extras.pivot_type),
+            dependency_type: dep.$extras.pivot_type,
+            dependency_label: dep.$extras.pivot_label
+          }
+        }))
+      )
     ]
 
-    const edges = services.flatMap(service =>
-      service.dependencies.map(dep => ({
-        from: `service_${service.id}`,
-        to: `service_${dep.id}`,
-        label: dep.$extras.pivot_label,
-        title: `${service.nom} → ${dep.nom}\n${dep.$extras.pivot_label}`,
-        color: this.getEdgeColor(dep.$extras.pivot_type),
-        arrows: 'to',
-        smooth: { type: 'continuous' },
-        // Données supplémentaires
-        type: dep.$extras.pivot_type,
-        dependency_label: dep.$extras.pivot_label
-      }))
-    )
-
-    return { nodes, edges }
+    return { elements }
   }
 
   /**
