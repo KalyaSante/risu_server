@@ -234,7 +234,9 @@
                 {/if}
               </div>
               {#if service.icon}
-                <div class="text-3xl">{service.icon}</div>
+                <div class="w-12 h-12 bg-base-content p-2 rounded-full">
+                  <img src="/icons/{service.icon}" />
+                </div>
               {/if}
             </div>
 

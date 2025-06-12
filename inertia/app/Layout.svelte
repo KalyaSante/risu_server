@@ -35,7 +35,7 @@
   <meta name="csrf-token" content={$page.props.csrfToken}>
 </svelte:head>
 
-<div class="min-h-screen bg-base-200">
+<div class="min-h-screen bg-base-300">
   <!-- Navigation Bar -->
   <div class="navbar bg-base-100 shadow-lg sticky top-0 z-50">
     <div class="navbar-start">

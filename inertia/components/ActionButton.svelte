@@ -9,8 +9,8 @@
 </script>
 
 <!-- Action Button Component -->
-<button 
-  class="action-button action-button--{variant} action-button--{size}"
+<button
+  class="action-button btn btn-soft btn-{variant} btn-{size}"
   {type}
   {disabled}
   class:loading
@@ -24,31 +24,31 @@
   .action-button {
     /* Base button styles */
   }
-  
+
   .action-button--primary {
     /* Primary variant styles */
   }
-  
+
   .action-button--secondary {
     /* Secondary variant styles */
   }
-  
+
   .action-button--danger {
     /* Danger variant styles */
   }
-  
+
   .action-button--sm {
     /* Small size styles */
   }
-  
+
   .action-button--md {
     /* Medium size styles */
   }
-  
+
   .action-button--lg {
     /* Large size styles */
   }
-  
+
   .loading {
     /* Loading state styles */
   }
