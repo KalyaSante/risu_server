@@ -139,11 +139,15 @@ export default class AuthController {
     return response.redirect('/login')
   }
 
-  /**
-   * Page de login (simple redirection)
-   */
-  async showLogin({ view }: HttpContext) {
-    return view.render('auth/login')
+  async showLogin({ inertia, session }: HttpContext) {
+    console.log('🎯 Inertia Login - nouvelle version !')
+
+    return inertia.render('Auth/Login', {
+      flashMessages: {
+        error: session.flashMessages.get('error'),
+        success: session.flashMessages.get('success'),
+      }
+    })
   }
 
   /**

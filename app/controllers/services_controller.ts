@@ -6,8 +6,9 @@ import { createServiceValidator, updateServiceValidator } from '#validators/serv
 export default class ServicesController {
   /**
    * Liste tous les services
+   * ✅ MIGRÉ VERS INERTIA
    */
-  async index({ view, request }: HttpContext) {
+  async index({ inertia, request, session }: HttpContext) {
     const page = request.input('page', 1)
     const search = request.input('search', '')
     const serverId = request.input('server_id')
@@ -30,30 +31,99 @@ export default class ServicesController {
 
     const servers = await Server.query().orderBy('nom', 'asc')
 
-    return view.render('services/index', {
-      services,
-      servers,
-      search,
-      selectedServerId: serverId
+    // Formater les données pour Svelte
+    const formattedServices = services.serialize().data.map(service => ({
+      id: service.id,
+      name: service.nom,
+      status: 'running', // Tu peux calculer ça dynamiquement
+      port: service.port,
+      path: service.path,
+      icon: service.icon,
+      description: service.description || '',
+      server: service.server ? {
+        id: service.server.id,
+        name: service.server.nom,
+        ip: service.server.ip
+      } : null,
+      dependenciesCount: service.dependencies?.length || 0,
+      repoUrl: service.repoUrl,
+      docPath: service.docPath,
+      lastMaintenanceAt: service.lastMaintenanceAt
+    }))
+
+    const formattedServers = servers.map(server => ({
+      id: server.id,
+      name: server.nom,
+      ip: server.ip
+    }))
+
+    const user = {
+      email: session.get('user_email') || 'admin@kalya.com',
+      fullName: session.get('user_name') || 'Admin Kalya'
+    }
+
+    return inertia.render('Services/Index', {
+      services: formattedServices,
+      servers: formattedServers,
+      pagination: {
+        currentPage: services.currentPage,
+        lastPage: services.lastPage,
+        total: services.total,
+        perPage: services.perPage
+      },
+      filters: {
+        search: search,
+        selectedServerId: serverId
+      },
+      user,
+      flash: {
+        success: session.flashMessages.get('success'),
+        error: session.flashMessages.get('error')
+      }
     })
   }
 
   /**
    * Affiche le formulaire de création
+   * ✅ MIGRÉ VERS INERTIA
    */
-  async create({ view, request }: HttpContext) {
+  async create({ inertia, request, session }: HttpContext) {
     const serverId = request.input('server_id')
     const servers = await Server.query().orderBy('nom', 'asc')
     const selectedServer = serverId ? await Server.find(serverId) : null
 
-    return view.render('services/create', {
-      servers,
-      selectedServer
+    const formattedServers = servers.map(server => ({
+      id: server.id,
+      name: server.nom,
+      ip: server.ip
+    }))
+
+    const formattedSelectedServer = selectedServer ? {
+      id: selectedServer.id,
+      name: selectedServer.nom,
+      ip: selectedServer.ip
+    } : null
+
+    const user = {
+      email: session.get('user_email') || 'admin@kalya.com',
+      fullName: session.get('user_name') || 'Admin Kalya'
+    }
+
+    return inertia.render('Services/Create', {
+      servers: formattedServers,
+      selectedServer: formattedSelectedServer,
+      user,
+      errors: {},
+      flash: {
+        success: session.flashMessages.get('success'),
+        error: session.flashMessages.get('error')
+      }
     })
   }
 
   /**
    * Stocke un nouveau service
+   * ✅ OPTIMISÉ POUR INERTIA
    */
   async store({ request, response, session }: HttpContext) {
     try {
@@ -71,8 +141,9 @@ export default class ServicesController {
 
   /**
    * Affiche les détails d'un service
+   * ✅ MIGRÉ VERS INERTIA
    */
-  async show({ params, view }: HttpContext) {
+  async show({ params, inertia, session }: HttpContext) {
     const service = await Service.query()
       .where('id', params.id)
       .preload('server')
@@ -84,13 +155,63 @@ export default class ServicesController {
       })
       .firstOrFail()
 
-    return view.render('services/show', { service })
+    // Formater les données pour Svelte
+    const formattedService = {
+      id: service.id,
+      nom: service.nom,
+      status: 'running', // Tu peux calculer ça dynamiquement
+      port: service.port,
+      path: service.path,
+      icon: service.icon,
+      description: service.description || '',
+      repoUrl: service.repoUrl,
+      docPath: service.docPath,
+      lastMaintenanceAt: service.lastMaintenanceAt?.toISO(),
+      server: service.server ? {
+        id: service.server.id,
+        nom: service.server.nom,
+        ip: service.server.ip
+      } : null
+    }
+
+    const formattedDependencies = service.dependencies.map(dep => ({
+      id: dep.id,
+      name: dep.nom,
+      type: dep.$extras.pivot_type,
+      label: dep.$extras.pivot_label,
+      server: dep.server?.nom
+    }))
+
+    const formattedDependents = service.dependents.map(dep => ({
+      id: dep.id,
+      name: dep.nom,
+      type: dep.$extras.pivot_type,
+      label: dep.$extras.pivot_label,
+      server: dep.server?.nom
+    }))
+
+    const user = {
+      email: session.get('user_email') || 'admin@kalya.com',
+      fullName: session.get('user_name') || 'Admin Kalya'
+    }
+
+    return inertia.render('Services/Show', {
+      service: formattedService,
+      dependencies: formattedDependencies,
+      dependents: formattedDependents,
+      user,
+      flash: {
+        success: session.flashMessages.get('success'),
+        error: session.flashMessages.get('error')
+      }
+    })
   }
 
   /**
    * Affiche le formulaire d'édition
+   * ✅ MIGRÉ VERS INERTIA
    */
-  async edit({ params, view }: HttpContext) {
+  async edit({ params, inertia, session }: HttpContext) {
     const service = await Service.query()
       .where('id', params.id)
       .preload('server')
@@ -98,11 +219,44 @@ export default class ServicesController {
 
     const servers = await Server.query().orderBy('nom', 'asc')
 
-    return view.render('services/edit', { service, servers })
+    const formattedService = {
+      id: service.id,
+      nom: service.nom,
+      port: service.port,
+      path: service.path,
+      icon: service.icon,
+      description: service.description || '',
+      repoUrl: service.repoUrl,
+      docPath: service.docPath,
+      serverId: service.serverId
+    }
+
+    const formattedServers = servers.map(server => ({
+      id: server.id,
+      name: server.nom,
+      ip: server.ip
+    }))
+
+    const user = {
+      email: session.get('user_email') || 'admin@kalya.com',
+      fullName: session.get('user_name') || 'Admin Kalya'
+    }
+
+    return inertia.render('Services/Edit', {
+      service: formattedService,
+      servers: formattedServers,
+      user,
+      errors: {},
+      flash: {
+        success: session.flashMessages.get('success'),
+        error: session.flashMessages.get('error')
+      }
+    })
   }
 
   /**
    * Met à jour un service
+   * ✅ OPTIMISÉ POUR INERTIA
    */
   async update({ params, request, response, session }: HttpContext) {
     try {
@@ -121,6 +275,7 @@ export default class ServicesController {
 
   /**
    * Supprime un service
+   * ✅ OPTIMISÉ POUR INERTIA
    */
   async destroy({ params, response, session }: HttpContext) {
     try {

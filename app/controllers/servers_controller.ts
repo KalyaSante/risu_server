@@ -5,24 +5,69 @@ import { createServerValidator, updateServerValidator } from '#validators/server
 export default class ServersController {
   /**
    * Liste tous les serveurs
+   * ✅ MIGRÉ VERS INERTIA
    */
-  async index({ view }: HttpContext) {
+  async index({ inertia, session }: HttpContext) {
     const servers = await Server.query()
       .preload('services')
       .orderBy('nom', 'asc')
 
-    return view.render('servers/index', { servers })
+    // Formater les données pour Svelte
+    const formattedServers = servers.map(server => ({
+      id: server.id,
+      name: server.nom,
+      ip: server.ip,
+      status: 'online', // Tu peux calculer ça dynamiquement
+      servicesCount: server.services?.length || 0,
+      hebergeur: server.hebergeur,
+      localisation: server.localisation,
+      description: server.description || '',
+      services: server.services?.map(service => ({
+        id: service.id,
+        name: service.nom,
+        path: service.path,
+        icon: service.icon
+      })) || []
+    }))
+
+    const user = {
+      email: session.get('user_email') || 'admin@kalya.com',
+      fullName: session.get('user_name') || 'Admin Kalya'
+    }
+
+    return inertia.render('Servers/Index', {
+      servers: formattedServers,
+      user,
+      flash: {
+        success: session.flashMessages.get('success'),
+        error: session.flashMessages.get('error')
+      }
+    })
   }
 
   /**
    * Affiche le formulaire de création
+   * ✅ MIGRÉ VERS INERTIA
    */
-  async create({ view }: HttpContext) {
-    return view.render('servers/create')
+  async create({ inertia, session }: HttpContext) {
+    const user = {
+      email: session.get('user_email') || 'admin@kalya.com',
+      fullName: session.get('user_name') || 'Admin Kalya'
+    }
+
+    return inertia.render('Servers/Create', {
+      user,
+      errors: {},
+      flash: {
+        success: session.flashMessages.get('success'),
+        error: session.flashMessages.get('error')
+      }
+    })
   }
 
   /**
    * Stocke un nouveau serveur
+   * ✅ OPTIMISÉ POUR INERTIA
    */
   async store({ request, response, session }: HttpContext) {
     try {
@@ -40,8 +85,9 @@ export default class ServersController {
 
   /**
    * Affiche les détails d'un serveur
+   * ✅ MIGRÉ VERS INERTIA
    */
-  async show({ params, view }: HttpContext) {
+  async show({ params, inertia, session }: HttpContext) {
     const server = await Server.query()
       .where('id', params.id)
       .preload('services', (query) => {
@@ -52,19 +98,76 @@ export default class ServersController {
       })
       .firstOrFail()
 
-    return view.render('servers/show', { server })
+    // Formater les données pour Svelte
+    const formattedServer = {
+      id: server.id,
+      name: server.nom,
+      ip: server.ip,
+      status: 'online', // Tu peux calculer ça dynamiquement
+      hebergeur: server.hebergeur,
+      localisation: server.localisation,
+      description: server.description || '',
+      services: server.services?.map(service => ({
+        id: service.id,
+        name: service.nom,
+        path: service.path,
+        icon: service.icon,
+        dependenciesCount: service.dependencies?.length || 0,
+        repoUrl: service.repoUrl,
+        lastMaintenanceAt: service.lastMaintenanceAt?.toISO()
+      })) || []
+    }
+
+    const user = {
+      email: session.get('user_email') || 'admin@kalya.com',
+      fullName: session.get('user_name') || 'Admin Kalya'
+    }
+
+    return inertia.render('Servers/Show', {
+      server: formattedServer,
+      user,
+      flash: {
+        success: session.flashMessages.get('success'),
+        error: session.flashMessages.get('error')
+      }
+    })
   }
 
   /**
    * Affiche le formulaire d'édition
+   * ✅ MIGRÉ VERS INERTIA
    */
-  async edit({ params, view }: HttpContext) {
+  async edit({ params, inertia, session }: HttpContext) {
     const server = await Server.findOrFail(params.id)
-    return view.render('servers/edit', { server })
+
+    const formattedServer = {
+      id: server.id,
+      nom: server.nom,
+      ip: server.ip,
+      hebergeur: server.hebergeur,
+      localisation: server.localisation,
+      description: server.description || ''
+    }
+
+    const user = {
+      email: session.get('user_email') || 'admin@kalya.com',
+      fullName: session.get('user_name') || 'Admin Kalya'
+    }
+
+    return inertia.render('Servers/Edit', {
+      server: formattedServer,
+      user,
+      errors: {},
+      flash: {
+        success: session.flashMessages.get('success'),
+        error: session.flashMessages.get('error')
+      }
+    })
   }
 
   /**
    * Met à jour un serveur
+   * ✅ OPTIMISÉ POUR INERTIA
    */
   async update({ params, request, response, session }: HttpContext) {
     try {
@@ -83,6 +186,7 @@ export default class ServersController {
 
   /**
    * Supprime un serveur
+   * ✅ OPTIMISÉ POUR INERTIA
    */
   async destroy({ params, response, session }: HttpContext) {
     try {

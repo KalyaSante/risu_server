@@ -17,18 +17,14 @@
       <h1 class="text-3xl font-bold mt-2">🖥️ {{ server.nom }}</h1>
     </div>
     <div class="flex gap-2">
-      @include('components/action-button', { 
-        href: route('servers.edit', { id: server.id }), 
-        type: 'secondary', 
-        icon: '✏️', 
-        text: 'Modifier' 
-      })
-      @include('components/action-button', { 
-        href: route('services.create', { server_id: server.id }), 
-        type: 'primary', 
-        icon: '➕', 
-        text: 'Ajouter un service' 
-      })
+      <a href="{{ route('servers.edit', { id: server.id }) }}" class="btn btn-secondary">
+        <span>✏️</span>
+        Modifier
+      </a>
+      <a href="{{ route('services.create', { server_id: server.id }) }}" class="btn btn-primary">
+        <span>➕</span>
+        Ajouter un service
+      </a>
     </div>
   </div>
 
@@ -48,19 +44,19 @@
                 </button>
               </div>
             </div>
-            
+
             <div>
               <label class="label-text font-semibold">Hébergeur</label>
               <div class="mt-1">
                 <div class="badge badge-primary">{{ server.hebergeur }}</div>
               </div>
             </div>
-            
+
             <div>
               <label class="label-text font-semibold">Localisation</label>
               <p class="mt-1 text-sm">{{ server.localisation }}</p>
             </div>
-            
+
             <div>
               <label class="label-text font-semibold">Créé le</label>
               <p class="mt-1 text-sm">{{ server.createdAt.toFormat('dd/MM/yyyy à HH:mm') }}</p>
@@ -74,18 +70,22 @@
         <div class="card-body">
           <h2 class="card-title">📊 Statistiques</h2>
           <div class="stats stats-vertical">
-            @include('components/stats-card', { 
-              title: 'Services', 
-              value: server.services?.length || 0, 
-              icon: '⚙️', 
-              color: 'primary' 
-            })
-            @include('components/stats-card', { 
-              title: 'Dépendances', 
-              value: server.services?.reduce((acc, s) => acc + (s.dependencies?.length || 0), 0) || 0,
-              icon: '🔗', 
-              color: 'secondary' 
-            })
+            {{-- Stats services --}}
+            <div class="stat">
+              <div class="stat-figure text-primary">
+                <span class="text-3xl">⚙️</span>
+              </div>
+              <div class="stat-title">Services</div>
+              <div class="stat-value text-primary">{{ server.services?.length || 0 }}</div>
+            </div>
+            {{-- Stats dépendances --}}
+            <div class="stat">
+              <div class="stat-figure text-secondary">
+                <span class="text-3xl">🔗</span>
+              </div>
+              <div class="stat-title">Dépendances</div>
+              <div class="stat-value text-secondary">{{ server.services?.reduce((acc, s) => acc + (s.dependencies?.length || 0), 0) || 0 }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -101,23 +101,47 @@
               <div class="badge badge-accent">{{ server.services.length }} service{{ server.services.length > 1 ? 's' : '' }}</div>
             @endif
           </div>
-          
+
           @if(!server.services || server.services.length === 0)
             <div class="text-center py-16">
               <div class="text-4xl mb-4">⚙️</div>
               <h3 class="text-xl font-bold mb-2">Aucun service configuré</h3>
               <p class="text-base-content/70 mb-6">Ce serveur n'héberge aucun service pour le moment.</p>
-              @include('components/action-button', { 
-                href: route('services.create', { server_id: server.id }), 
-                type: 'primary', 
-                icon: '➕', 
-                text: 'Ajouter le premier service' 
-              })
+              <a href="{{ route('services.create', { server_id: server.id }) }}" class="btn btn-primary">
+                <span>➕</span>
+                Ajouter le premier service
+              </a>
             </div>
           @else
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               @each(service in server.services)
-                @include('components/service-card', { service, showServer: false })
+                {{-- Carte service inline --}}
+                <div class="card bg-base-200 shadow-md hover:shadow-lg transition-shadow">
+                  <div class="card-body p-4">
+                    <div class="flex justify-between items-start">
+                      <div>
+                        <h3 class="card-title text-base">{{ service.nom }}</h3>
+                        @if(service.path)
+                          <p class="text-sm text-base-content/70">{{ service.path }}</p>
+                        @endif
+                      </div>
+                      @if(service.icon)
+                        <div class="text-2xl">{{ service.icon }}</div>
+                      @endif
+                    </div>
+
+                    @if(service.lastMaintenanceAt)
+                      <div class="text-xs text-base-content/50 mt-2">
+                        Maintenance: {{ service.lastMaintenanceAt.toFormat('dd/MM/yyyy') }}
+                      </div>
+                    @endif
+
+                    <div class="card-actions justify-end mt-3">
+                      <a href="{{ route('services.show', { id: service.id }) }}" class="btn btn-primary btn-xs">Voir</a>
+                      <a href="{{ route('services.edit', { id: service.id }) }}" class="btn btn-secondary btn-xs">Modifier</a>
+                    </div>
+                  </div>
+                </div>
               @end
             </div>
           @endif

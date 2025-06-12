@@ -14,7 +14,7 @@ import { Env } from '@adonisjs/core/env'
 export default await Env.create(new URL('../', import.meta.url), {
   NODE_ENV: Env.schema.enum(['development', 'production', 'test'] as const),
   PORT: Env.schema.number(),
-  APP_KEY: Env.schema.string(), // ← Manquait cette ligne cruciale !
+  APP_KEY: Env.schema.string(),
   HOST: Env.schema.string({ format: 'host' }),
   LOG_LEVEL: Env.schema.string(),
 
@@ -24,14 +24,4 @@ export default await Env.create(new URL('../', import.meta.url), {
   |----------------------------------------------------------
   */
   SESSION_DRIVER: Env.schema.enum(['cookie', 'memory'] as const),
-
-  /*
-  |----------------------------------------------------------
-  | Variables for configuring OAuth
-  |----------------------------------------------------------
-  */
-  OAUTH_BASE_URL: Env.schema.string(),
-  OAUTH_CLIENT_ID: Env.schema.string(),
-  OAUTH_CLIENT_SECRET: Env.schema.string(),
-  OAUTH_REDIRECT_URI: Env.schema.string(),
 })

@@ -4,9 +4,10 @@ import Service from '#models/service'
 
 export default class DashboardController {
   /**
-   * Page principale avec la cartographie interactive
+   * 🎯 Page principale avec la cartographie interactive
+   * MIGRATION INERTIA: view.render() → inertia.render()
    */
-  async index({ view }: HttpContext) {
+  async index({ inertia, session }: HttpContext) {
     // Récupérer toutes les données nécessaires
     const servers = await Server.query()
       .preload('services', (servicesQuery) => {
@@ -27,17 +28,43 @@ export default class DashboardController {
     // Construire les données pour le graphique Vis.js
     const graphData = this.buildGraphData(servers, services)
 
-    return view.render('dashboard/index', {
-      servers,
+    // Stats pour les cards
+    const stats = {
+      totalServers: servers.length,
+      totalServices: services.length,
+      totalDependencies: graphData.edges.length,
+      uptime: 98 // Tu peux calculer ça dynamiquement plus tard
+    }
+
+    // Utilisateur connecté
+    const user = {
+      email: session.get('user_email') || 'admin@kalya.com',
+      fullName: session.get('user_name') || 'Admin Kalya'
+    }
+
+    // ✅ INERTIA: Rendu avec Svelte
+    return inertia.render('Dashboard/Index', {
+      servers: servers.map(server => ({
+        id: server.id,
+        name: server.nom,
+        ip: server.ip,
+        status: 'online', // Tu peux calculer ça dynamiquement
+        servicesCount: server.services?.length || 0,
+        hebergeur: server.hebergeur,
+        localisation: server.localisation
+      })),
       services,
-      graphData: JSON.stringify(graphData)
+      stats,
+      user,
+      graphData // Pour la cartographie interactive si tu veux la garder
     })
   }
 
   /**
-   * Vue détaillée d'un service
+   * 🎯 Vue détaillée d'un service
+   * MIGRATION INERTIA: view.render() → inertia.render()
    */
-  async serviceDetail({ params, view }: HttpContext) {
+  async serviceDetail({ params, inertia }: HttpContext) {
     const service = await Service.query()
       .where('id', params.id)
       .preload('server')
@@ -49,11 +76,30 @@ export default class DashboardController {
       })
       .firstOrFail()
 
-    return view.render('dashboard/service_detail', { service })
+    // ✅ INERTIA: Rendu avec Svelte
+    return inertia.render('Dashboard/ServiceDetail', {
+      service,
+      // Données formatées pour Svelte
+      dependencies: service.dependencies.map(dep => ({
+        id: dep.id,
+        name: dep.nom,
+        type: dep.$extras.pivot_type,
+        label: dep.$extras.pivot_label,
+        server: dep.server?.nom
+      })),
+      dependents: service.dependents.map(dep => ({
+        id: dep.id,
+        name: dep.nom,
+        type: dep.$extras.pivot_type,
+        label: dep.$extras.pivot_label,
+        server: dep.server?.nom
+      }))
+    })
   }
 
   /**
    * API endpoint pour récupérer les données du réseau
+   * (Garde ça pour AJAX si besoin)
    */
   async networkData({ response }: HttpContext) {
     const servers = await Server.query()

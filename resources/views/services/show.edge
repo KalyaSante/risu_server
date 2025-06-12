@@ -27,20 +27,15 @@
       </p>
     </div>
     <div class="flex gap-2">
-      @include('components/action-button', { 
-        href: route('services.edit', { id: service.id }), 
-        type: 'secondary', 
-        icon: '✏️', 
-        text: 'Modifier' 
-      })
+      <a href="{{ route('services.edit', { id: service.id }) }}" class="btn btn-secondary">
+        <span>✏️</span>
+        Modifier
+      </a>
       @if(service.repoUrl)
-        @include('components/action-button', { 
-          href: service.repoUrl, 
-          type: 'accent', 
-          icon: '🔗', 
-          text: 'Code source',
-          class: 'target="_blank"'
-        })
+        <a href="{{ service.repoUrl }}" target="_blank" class="btn btn-accent">
+          <span>🔗</span>
+          Code source
+        </a>
       @endif
     </div>
   </div>
@@ -61,7 +56,7 @@
                 <div class="badge badge-sm">{{ service.server.ip }}</div>
               </div>
             </div>
-            
+
             @if(service.path)
               <div>
                 <label class="label-text font-semibold">Chemin d'installation</label>
@@ -73,7 +68,7 @@
                 </div>
               </div>
             @endif
-            
+
             @if(service.repoUrl)
               <div>
                 <label class="label-text font-semibold">Repository</label>
@@ -84,14 +79,14 @@
                 </div>
               </div>
             @endif
-            
+
             @if(service.docPath)
               <div>
                 <label class="label-text font-semibold">Documentation</label>
                 <p class="mt-1 text-sm">{{ service.docPath }}</p>
               </div>
             @endif
-            
+
             <div>
               <label class="label-text font-semibold">Dernière maintenance</label>
               @if(service.lastMaintenanceAt)
@@ -112,7 +107,7 @@
                 <p class="mt-1 text-sm text-base-content/50">Jamais</p>
               @endif
             </div>
-            
+
             <div>
               <label class="label-text font-semibold">Créé le</label>
               <p class="mt-1 text-sm">{{ service.createdAt.toFormat('dd/MM/yyyy à HH:mm') }}</p>
@@ -126,20 +121,24 @@
         <div class="card-body">
           <h2 class="card-title">📊 Statistiques</h2>
           <div class="stats stats-vertical">
-            @include('components/stats-card', { 
-              title: 'Dépendances', 
-              value: service.dependencies?.length || 0, 
-              icon: '⬇️', 
-              color: 'primary',
-              subtitle: 'Services requis'
-            })
-            @include('components/stats-card', { 
-              title: 'Dépendants', 
-              value: service.dependents?.length || 0,
-              icon: '⬆️', 
-              color: 'secondary',
-              subtitle: 'Services clients'
-            })
+            {{-- Stats dépendances --}}
+            <div class="stat">
+              <div class="stat-figure text-primary">
+                <span class="text-3xl">⬇️</span>
+              </div>
+              <div class="stat-title">Dépendances</div>
+              <div class="stat-value text-primary">{{ service.dependencies?.length || 0 }}</div>
+              <div class="stat-desc">Services requis</div>
+            </div>
+            {{-- Stats dépendants --}}
+            <div class="stat">
+              <div class="stat-figure text-secondary">
+                <span class="text-3xl">⬆️</span>
+              </div>
+              <div class="stat-title">Dépendants</div>
+              <div class="stat-value text-secondary">{{ service.dependents?.length || 0 }}</div>
+              <div class="stat-desc">Services clients</div>
+            </div>
           </div>
         </div>
       </div>
@@ -156,7 +155,7 @@
               <div class="badge badge-primary">{{ service.dependencies.length }} dépendance{{ service.dependencies.length > 1 ? 's' : '' }}</div>
             @endif
           </div>
-          
+
           @if(!service.dependencies || service.dependencies.length === 0)
             <div class="text-center py-8">
               <div class="text-4xl mb-4">🎯</div>
@@ -210,7 +209,7 @@
               <div class="badge badge-secondary">{{ service.dependents.length }} dépendant{{ service.dependents.length > 1 ? 's' : '' }}</div>
             @endif
           </div>
-          
+
           @if(!service.dependents || service.dependents.length === 0)
             <div class="text-center py-8">
               <div class="text-4xl mb-4">🏝️</div>
@@ -261,7 +260,13 @@
 @section('scripts')
 <script>
 function copyToClipboard(text) {
-  AppUtils.copyToClipboard(text);
+  navigator.clipboard.writeText(text).then(() => {
+    // Feedback visuel simple
+    console.log('Copied:', text);
+  }).catch(() => {
+    // Fallback
+    console.log('Copy failed');
+  });
 }
 </script>
 @end

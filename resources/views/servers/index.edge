@@ -10,12 +10,10 @@
       <h1 class="text-3xl font-bold">🖥️ Serveurs</h1>
       <p class="text-base-content/70 mt-1">Gérez vos serveurs et leur infrastructure</p>
     </div>
-    @include('components/action-button', { 
-      href: route('servers.create'), 
-      type: 'primary', 
-      icon: '➕', 
-      text: 'Nouveau serveur' 
-    })
+    <a href="{{ route('servers.create') }}" class="btn btn-primary">
+      <span>➕</span>
+      Nouveau serveur
+    </a>
   </div>
 
   @if(servers.length === 0)
@@ -24,12 +22,10 @@
         <div class="text-6xl mb-4">🖥️</div>
         <h2 class="text-2xl font-bold mb-2">Aucun serveur configuré</h2>
         <p class="text-base-content/70 mb-6">Commencez par ajouter votre premier serveur pour organiser vos services.</p>
-        @include('components/action-button', { 
-          href: route('servers.create'), 
-          type: 'primary', 
-          icon: '➕', 
-          text: 'Ajouter un serveur' 
-        })
+        <a href="{{ route('servers.create') }}" class="btn btn-primary">
+          <span>➕</span>
+          Ajouter un serveur
+        </a>
       </div>
     </div>
   @else
@@ -50,16 +46,16 @@
           </div>
           <div class="flex-1"></div>
           <div class="stats stats-horizontal shadow">
-            @include('components/stats-card', { 
-              title: 'Total serveurs', 
-              value: servers.length, 
-              color: 'primary' 
-            })
-            @include('components/stats-card', { 
-              title: 'Services actifs', 
-              value: servers.reduce((acc, s) => acc + (s.services?.length || 0), 0),
-              color: 'secondary' 
-            })
+            {{-- Stats total serveurs --}}
+            <div class="stat">
+              <div class="stat-title">Total serveurs</div>
+              <div class="stat-value text-primary">{{ servers.length }}</div>
+            </div>
+            {{-- Stats services actifs --}}
+            <div class="stat">
+              <div class="stat-title">Services actifs</div>
+              <div class="stat-value text-secondary">{{ servers.reduce((acc, s) => acc + (s.services?.length || 0), 0) }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -69,7 +65,41 @@
     <div id="servers-grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       @each(server in servers)
         <div class="server-card" data-name="{{ server.nom.toLowerCase() }}" data-hebergeur="{{ server.hebergeur }}">
-          @include('components/server-card', { server })
+          {{-- Carte serveur inline --}}
+          <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
+            <div class="card-body">
+              <div class="flex justify-between items-start">
+                <div>
+                  <h2 class="card-title">{{ server.nom }}</h2>
+                  <p class="text-sm text-base-content/70">{{ server.ip }}</p>
+                </div>
+                <div class="badge badge-primary">{{ server.hebergeur }}</div>
+              </div>
+
+              @if(server.localisation)
+                <p class="text-sm">📍 {{ server.localisation }}</p>
+              @endif
+
+              @if(server.services && server.services.length > 0)
+                <div class="mt-4">
+                  <p class="text-sm font-medium">Services ({{ server.services.length }})</p>
+                  <div class="flex flex-wrap gap-1 mt-2">
+                    @each(service in server.services.slice(0, 3))
+                      <span class="badge badge-secondary badge-sm">{{ service.nom }}</span>
+                    @end
+                    @if(server.services.length > 3)
+                      <span class="badge badge-ghost badge-sm">+{{ server.services.length - 3 }}</span>
+                    @endif
+                  </div>
+                </div>
+              @endif
+
+              <div class="card-actions justify-end mt-4">
+                <a href="{{ route('servers.show', { id: server.id }) }}" class="btn btn-primary btn-sm">Voir</a>
+                <a href="{{ route('servers.edit', { id: server.id }) }}" class="btn btn-secondary btn-sm">Modifier</a>
+              </div>
+            </div>
+          </div>
         </div>
       @end
     </div>
@@ -82,18 +112,18 @@ document.addEventListener('DOMContentLoaded', function() {
   const searchInput = document.getElementById('search-servers');
   const hebergeurFilter = document.getElementById('filter-hebergeur');
   const serverCards = document.querySelectorAll('.server-card');
-  
+
   function filterServers() {
     const searchTerm = searchInput?.value.toLowerCase() || '';
     const selectedHebergeur = hebergeurFilter?.value || '';
-    
+
     serverCards.forEach(card => {
       const name = card.dataset.name || '';
       const hebergeur = card.dataset.hebergeur || '';
-      
+
       const matchesSearch = name.includes(searchTerm);
       const matchesHebergeur = !selectedHebergeur || hebergeur === selectedHebergeur;
-      
+
       if (matchesSearch && matchesHebergeur) {
         card.style.display = 'block';
       } else {
@@ -101,7 +131,7 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  
+
   searchInput?.addEventListener('input', filterServers);
   hebergeurFilter?.addEventListener('change', filterServers);
 });

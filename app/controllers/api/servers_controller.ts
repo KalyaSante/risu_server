@@ -66,4 +66,38 @@ export default class ServersApiController {
       })
     }
   }
+
+  /**
+   * Statut temps réel des serveurs (pour NetworkScript)
+   * ✅ NOUVEAU POUR INERTIA
+   */
+  async status({ response }: HttpContext) {
+    try {
+      const servers = await Server.query()
+        .preload('services')
+        .select(['id', 'nom', 'ip', 'hebergeur'])
+        .orderBy('nom', 'asc')
+
+      // Simuler le statut pour l'instant (tu peux implémenter ping/health check plus tard)
+      const serversWithStatus = servers.map(server => ({
+        id: server.id,
+        name: server.nom,
+        ip: server.ip,
+        status: Math.random() > 0.05 ? 'online' : 'offline', // 95% online
+        hebergeur: server.hebergeur,
+        servicesCount: server.services?.length || 0
+      }))
+
+      return response.json({
+        success: true,
+        data: serversWithStatus,
+        timestamp: new Date().toISOString()
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        error: 'Erreur lors de la vérification du statut des serveurs'
+      })
+    }
+  }
 }

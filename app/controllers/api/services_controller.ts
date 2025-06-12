@@ -102,4 +102,70 @@ export default class ServicesApiController {
       })
     }
   }
+
+  /**
+   * Statut temps réel des services (pour NetworkScript)
+   * ✅ NOUVEAU POUR INERTIA
+   */
+  async status({ response }: HttpContext) {
+    try {
+      const services = await Service.query()
+        .preload('server')
+        .select(['id', 'nom', 'server_id'])
+        .orderBy('nom', 'asc')
+
+      // Simuler le statut pour l'instant (tu peux implémenter la vraie logique plus tard)
+      const servicesWithStatus = services.map(service => ({
+        id: service.id,
+        name: service.nom,
+        status: Math.random() > 0.1 ? 'running' : 'stopped', // 90% running
+        serverId: service.serverId,
+        serverName: service.server?.nom
+      }))
+
+      return response.json({
+        success: true,
+        data: servicesWithStatus,
+        timestamp: new Date().toISOString()
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        error: 'Erreur lors de la vérification du statut des services'
+      })
+    }
+  }
+
+  /**
+   * Toggle start/stop d'un service (pour les actions des cartes)
+   * ✅ NOUVEAU POUR INERTIA
+   */
+  async toggle({ params, response, session }: HttpContext) {
+    try {
+      const service = await Service.findOrFail(params.id)
+
+      // Ici tu peux implémenter la vraie logique de start/stop
+      // Pour l'instant, on simule juste un toggle
+      const newStatus = Math.random() > 0.5 ? 'running' : 'stopped'
+
+      session.flash('success',
+        `Service "${service.nom}" ${newStatus === 'running' ? 'démarré' : 'arrêté'} avec succès!`
+      )
+
+      return response.json({
+        success: true,
+        data: {
+          id: service.id,
+          name: service.nom,
+          status: newStatus
+        },
+        message: `Service ${newStatus === 'running' ? 'démarré' : 'arrêté'}`
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        error: 'Erreur lors du toggle du service'
+      })
+    }
+  }
 }
