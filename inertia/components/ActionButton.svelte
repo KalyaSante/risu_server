@@ -20,9 +20,11 @@
 </button>
 
 <style>
+  @reference '../css/app.css';
+
   /* Button styles will go here */
   .action-button {
-    /* Base button styles */
+    @apply btn btn-soft;
   }
 
   .action-button--primary {
