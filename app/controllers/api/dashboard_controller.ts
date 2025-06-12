@@ -88,7 +88,7 @@ export default class DashboardApiController {
         localisation: server.localisation,
         services_count: server.services?.length || 0
       })),
-      
+
       ...services.map(service => ({
         id: `service_${service.id}`,
         label: service.nom,
@@ -106,16 +106,7 @@ export default class DashboardApiController {
     ]
 
     const edges = [
-      // liaison serveur -> serveur
-      ...servers
-        .filter((s) => s.parentServerId)
-        .map((s) => ({
-          from: `server_${s.parentServerId}`,
-          to: `server_${s.id}`,
-          color: '#6366f1',
-          arrows: 'to',
-          type: 'server'
-        })),
+      // ❌ Liaison serveur -> serveur supprimée (redondant avec l'imbrication visuelle)
 
       // dépendances de services
       ...services.flatMap((service) =>

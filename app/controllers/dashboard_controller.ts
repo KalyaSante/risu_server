@@ -168,19 +168,8 @@ export default class DashboardController {
           last_maintenance_at: service.lastMaintenanceAt?.toISO()
         }
       })),
-      
-      // Edges d'hébergement entre serveurs
-      ...servers
-        .filter((s) => s.parentServerId)
-        .map((s) => ({
-          data: {
-            id: `server_${s.parentServerId}_child_${s.id}`,
-            source: `server_${s.parentServerId}`,
-            target: `server_${s.id}`,
-            type: 'server',
-            color: '#6366f1'
-          }
-        })),
+
+      // ❌ Edges d'hébergement entre serveurs supprimés (redondant avec parent/child)
 
       // Edges de dépendances entre services
       ...services.flatMap(service =>
