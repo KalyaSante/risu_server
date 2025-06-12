@@ -30,7 +30,14 @@ export const createServerValidator = vine.compile(
       .trim()
       .minLength(2)
       .maxLength(100)
-      .transform((value) => value.trim())
+      .transform((value) => value.trim()),
+
+    parentServerId: vine
+      .number()
+      .positive()
+      .withoutDecimals()
+      .nullable()
+      .optional(),
   })
 )
 
@@ -64,6 +71,13 @@ export const updateServerValidator = vine.compile(
       .trim()
       .minLength(2)
       .maxLength(100)
-      .transform((value) => value.trim())
+      .transform((value) => value.trim()),
+
+    parentServerId: vine
+      .number()
+      .positive()
+      .withoutDecimals()
+      .nullable()
+      .optional(),
   })
 )

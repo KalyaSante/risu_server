@@ -33,7 +33,7 @@
     pixelRatio: 'auto',
     motionBlur: true,
     textureOnViewport: false,
-    wheelSensitivity: 0.2,
+    wheelSensitivity: 1.0, // ⚡ Augmenté de 0.2 à 1.0 pour un zoom plus réactif !
   });
 
   const getCytoscapeStyles = () => [
@@ -115,6 +115,7 @@
         'color': '#374151'
       }
     },
+    // ❌ Section edge[type = "server"] supprimée - Plus de liens en pointillés inutiles !
     {
       selector: 'edge:selected',
       style: {
