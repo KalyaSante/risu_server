@@ -17,7 +17,8 @@
     nom: server?.nom || '',
     ip: server?.ip || '',
     hebergeur: server?.hebergeur || '',
-    localisation: server?.localisation || ''
+    localisation: server?.localisation || '',
+    description: server?.description || ''
   };
 
   // Reactive variables
@@ -177,6 +178,23 @@
                 {#if errors.localisation}
                   <label class="label">
                     <span class="label-text-alt text-error">{errors.localisation}</span>
+                  </label>
+                {/if}
+              </div>
+
+              <!-- Description -->
+              <div class="form-control">
+                <label class="label">
+                  <span class="label-text font-semibold">Description</span>
+                </label>
+                <textarea
+                  rows="3"
+                  bind:value={form.description}
+                  class="textarea textarea-bordered"
+                ></textarea>
+                {#if errors.description}
+                  <label class="label">
+                    <span class="label-text-alt text-error">{errors.description}</span>
                   </label>
                 {/if}
               </div>

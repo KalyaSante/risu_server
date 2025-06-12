@@ -19,6 +19,9 @@ export default class Server extends BaseModel {
   @column()
   declare localisation: string
 
+  @column()
+  declare description: string | null
+
   @column.dateTime({ autoCreate: true })
   declare createdAt: DateTime
 

@@ -30,6 +30,12 @@ export const createServerValidator = vine.compile(
       .trim()
       .minLength(2)
       .maxLength(100)
+      .transform((value) => value.trim()),
+
+    description: vine
+      .string()
+      .trim()
+      .maxLength(255)
       .transform((value) => value.trim())
   })
 )
@@ -64,6 +70,12 @@ export const updateServerValidator = vine.compile(
       .trim()
       .minLength(2)
       .maxLength(100)
+      .transform((value) => value.trim()),
+
+    description: vine
+      .string()
+      .trim()
+      .maxLength(255)
       .transform((value) => value.trim())
   })
 )
