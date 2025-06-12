@@ -1,0 +1,15 @@
+@import "tailwindcss";
+@plugin "daisyui";
+
+body{
+  @apply bg-base-300 text-base-content;
+}
+
+main{
+  @apply p-4 pb-7;
+}
+
+.active {
+  @apply bg-primary text-primary-content;
+}
+
