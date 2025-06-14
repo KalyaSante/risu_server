@@ -31,6 +31,8 @@ router.group(() => {
   router.get('/login', '#controllers/auth_controller.showLogin').as('auth.login.show')
   router.get('/auth/login', '#controllers/auth_controller.login').as('auth.login')
   router.get('/auth/callback', '#controllers/auth_controller.callback').as('auth.callback')
+  // ✅ FIX: Ajouter route POST pour logout (garde GET pour compatibilité)
+  router.post('/logout', '#controllers/auth_controller.logout').as('auth.logout.post')
   router.get('/logout', '#controllers/auth_controller.logout').as('auth.logout')
 })
 

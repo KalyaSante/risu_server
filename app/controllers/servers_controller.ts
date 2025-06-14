@@ -5,6 +5,26 @@ import { createServerValidator, updateServerValidator } from '#validators/server
 
 export default class ServersController {
   /**
+   * ✅ FIX: Méthode helper pour récupérer l'utilisateur authentifié
+   */
+  private getAuthenticatedUser(session: any): any {
+    const sessionUserId = session.get('user_id')
+    const sessionUserEmail = session.get('user_email')
+    const sessionUserName = session.get('user_name')
+
+    const user = {
+      id: sessionUserId,
+      email: sessionUserEmail || 'email-non-defini@kalya.com',
+      fullName: sessionUserName || 'Utilisateur non défini'
+    }
+
+    // Debug
+    console.log('👤 Utilisateur récupéré servers_controller:', user)
+
+    return user
+  }
+
+  /**
    * Liste tous les serveurs
    * ✅ MIGRÉ VERS INERTIA
    */
@@ -35,10 +55,7 @@ export default class ServersController {
       })) || []
     }))
 
-    const user = {
-      email: session.get('user_email') || 'admin@kalya.com',
-      fullName: session.get('user_name') || 'Admin Kalya'
-    }
+    const user = this.getAuthenticatedUser(session)
 
     return inertia.render('Servers/Index', {
       servers: formattedServers,
@@ -55,10 +72,7 @@ export default class ServersController {
    * ✅ MIGRÉ VERS INERTIA
    */
   async create({ inertia, session }: HttpContext) {
-    const user = {
-      email: session.get('user_email') || 'admin@kalya.com',
-      fullName: session.get('user_name') || 'Admin Kalya'
-    }
+    const user = this.getAuthenticatedUser(session)
 
     const servers = await Server.query().orderBy('nom', 'asc')
     const serverOptions = servers.map((s) => ({ id: s.id, name: s.nom }))
@@ -156,10 +170,7 @@ export default class ServersController {
       })) || []
     }
 
-    const user = {
-      email: session.get('user_email') || 'admin@kalya.com',
-      fullName: session.get('user_name') || 'Admin Kalya'
-    }
+    const user = this.getAuthenticatedUser(session)
 
     return inertia.render('Servers/Show', {
       server: formattedServer,
@@ -191,10 +202,7 @@ export default class ServersController {
       parentServerId: server.parentServerId
     }
 
-    const user = {
-      email: session.get('user_email') || 'admin@kalya.com',
-      fullName: session.get('user_name') || 'Admin Kalya'
-    }
+    const user = this.getAuthenticatedUser(session)
 
     return inertia.render('Servers/Edit', {
       server: formattedServer,
@@ -216,23 +224,12 @@ export default class ServersController {
     try {
       const server = await Server.findOrFail(params.id)
 
-      // 🔍 DEBUG: Log des données reçues
       const rawData = request.all()
-      console.log('📥 Données reçues pour update serveur:', rawData)
-
-      // 🔧 FIX: Extraire les données du wrapper Inertia
       const formData = rawData.data || rawData
-      console.log('📊 Données extraites pour validation:', formData)
-
-      // 🔍 DEBUG: Validation avec la méthode correcte VineJS
       let payload
       try {
         payload = await updateServerValidator.validate(formData) // ✅ Méthode .validate()
-        console.log('✅ Validation réussie:', payload)
       } catch (validationError) {
-        console.log('❌ Erreur de validation complète:', validationError)
-        console.log('❌ Messages d\'erreur:', validationError?.messages || 'Pas de message disponible')
-
         // Gestion des erreurs VineJS
         let errorMessage = 'Erreur de validation'
         if (validationError?.messages && Array.isArray(validationError.messages)) {
@@ -245,11 +242,7 @@ export default class ServersController {
         return response.redirect().back()
       }
 
-      // 🔍 DEBUG: Tentative de sauvegarde
-      console.log('💾 Tentative de mise à jour du serveur ID:', server.id)
       await server.merge(payload).save()
-      console.log('✅ Serveur mis à jour avec succès')
-
       session.flash('success', `Serveur "${server.nom}" mis à jour avec succès!`)
       return response.redirect().toRoute('servers.show', { id: server.id })
 

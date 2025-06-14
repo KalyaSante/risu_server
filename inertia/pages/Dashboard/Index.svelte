@@ -1,4 +1,4 @@
-<!-- Dashboard/Index.svelte - Version Nettoyée -->
+<!-- Dashboard/Index.svelte - Version avec détails de serveur -->
 <script>
   import { onMount } from 'svelte';
   import { router } from '@inertiajs/svelte';
@@ -18,6 +18,8 @@
   let cy = null;
   let selectedService = null;
   let showServiceDetails = false;
+  let selectedServer = null;
+  let showServerDetails = false;
   let isLoading = true;
 
   // === CONFIGURATION CYTOSCAPE ===
@@ -237,17 +239,17 @@
       handleServiceClick(serviceId, node.data());
     });
 
-    // Click sur serveur
+    // Click sur serveur - MODIFIÉ pour afficher les détails au lieu de rediriger
     cy.on('tap', 'node[type = "server"]', (evt) => {
       const node = evt.target;
       const serverId = node.data('id').replace('server_', '');
-      router.visit(`/servers/${serverId}`);
+      handleServerClick(serverId, node.data());
     });
 
     // Click sur arrière-plan
     cy.on('tap', (evt) => {
       if (evt.target === cy) {
-        closeServiceDetails();
+        closeAllDetails();
       }
     });
   };
@@ -297,6 +299,9 @@
 
   // === ACTIONS RÉSEAU ===
   function handleServiceClick(serviceId, nodeData) {
+    // Fermer les détails du serveur s'ils sont ouverts
+    closeServerDetails();
+
     selectedService = {
       id: serviceId,
       name: nodeData.label,
@@ -310,6 +315,30 @@
       dependentsCount: getDependentsCount(serviceId)
     };
     showServiceDetails = true;
+  }
+
+  function handleServerClick(serverId, nodeData) {
+    // Fermer les détails du service s'ils sont ouverts
+    closeServiceDetails();
+
+    // Trouver les données complètes du serveur
+    const serverData = servers.find(s => s.id.toString() === serverId);
+
+    if (serverData) {
+      selectedServer = {
+        id: serverId,
+        name: nodeData.label || serverData.nom,
+        ip: serverData.ip,
+        hebergeur: serverData.hebergeur,
+        localisation: serverData.localisation,
+        createdAt: serverData.createdAt,
+        parentServer: serverData.parentServer,
+        services: serverData.services || [],
+        servicesCount: (serverData.services || []).length,
+        dependenciesCount: (serverData.services || []).reduce((acc, s) => acc + (s.dependencies?.length || 0), 0)
+      };
+      showServerDetails = true;
+    }
   }
 
   function fitNetwork() {
@@ -331,7 +360,7 @@
   function resetView() {
     if (cy) {
       stopPhysics(); // Arrêter simulation actuelle
-      closeServiceDetails(); // Nettoyer UI
+      closeAllDetails(); // Nettoyer UI
       startInitialLayout(cy); // Redémarrer avec layout initial
     }
   }
@@ -346,6 +375,16 @@
   function closeServiceDetails() {
     showServiceDetails = false;
     selectedService = null;
+  }
+
+  function closeServerDetails() {
+    showServerDetails = false;
+    selectedServer = null;
+  }
+
+  function closeAllDetails() {
+    closeServiceDetails();
+    closeServerDetails();
     if (cy) {
       cy.elements().unselect();
     }
@@ -369,6 +408,21 @@
   function formatDate(dateString) {
     if (!dateString) return 'Inconnue';
     return new Date(dateString).toLocaleDateString('fr-FR');
+  }
+
+  function copyToClipboard(text) {
+    navigator.clipboard.writeText(text).then(() => {
+      console.log('IP copiée dans le presse-papiers');
+      // Tu peux ajouter une notification toast ici si tu veux
+    }).catch(() => {
+      // Fallback pour les navigateurs plus anciens
+      const textarea = document.createElement('textarea');
+      textarea.value = text;
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textarea);
+    });
   }
 
   // === LIFECYCLE ===
@@ -402,103 +456,9 @@
 </svelte:head>
 
 <DashboardLayout {user} {flash} title="Dashboard - Kalya" currentRoute="dashboard">
-  <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
-
-    <!-- Sidebar avec stats et légende -->
-    <div class="lg:col-span-1 space-y-6">
-
-      <!-- Statistiques -->
-      <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-          <h2 class="card-title">📊 Statistiques</h2>
-          <div class="stats stats-vertical">
-            <div class="stat">
-              <div class="stat-figure text-primary">
-                <span class="text-3xl">🖥️</span>
-              </div>
-              <div class="stat-title">Serveurs</div>
-              <div class="stat-value text-primary">{servers.length}</div>
-            </div>
-            <div class="stat">
-              <div class="stat-figure text-secondary">
-                <span class="text-3xl">⚙️</span>
-              </div>
-              <div class="stat-title">Services</div>
-              <div class="stat-value text-secondary">{services.length}</div>
-            </div>
-            <div class="stat">
-              <div class="stat-figure text-accent">
-                <span class="text-3xl">🔗</span>
-              </div>
-              <div class="stat-title">Dépendances</div>
-              <div class="stat-value text-accent">
-                {graphData.elements?.filter(el => el.data?.type === 'dependency').length || 0}
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Légende -->
-      <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-          <h3 class="card-title text-lg">🎨 Légende</h3>
-          <div class="space-y-3 text-sm">
-            <div class="flex items-center gap-3">
-              <div class="w-6 h-4 bg-primary rounded border-2 border-primary"></div>
-              <span>Serveurs (conteneurs)</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <div class="w-4 h-4 bg-secondary rounded-full"></div>
-              <span>Services (à l'intérieur)</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-0 border-t-2 border-error"></div>
-              <span>Dépendance critique</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-0 border-t-2 border-warning"></div>
-              <span>Dépendance optionnelle</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <div class="w-8 h-0 border-t-2 border-success"></div>
-              <span>Dépendance fallback</span>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- Actions rapides -->
-      <div class="card bg-base-100 shadow-xl">
-        <div class="card-body">
-          <h3 class="card-title text-lg">⚡ Actions rapides</h3>
-          <div class="space-y-2">
-            <ActionButton
-              variant="primary"
-              size="sm"
-              class="w-full"
-              on:click={() => router.visit('/servers/create')}
-            >
-              <span>➕</span>
-              Nouveau serveur
-            </ActionButton>
-            <ActionButton
-              variant="secondary"
-              size="sm"
-              class="w-full"
-              on:click={() => router.visit('/services/create')}
-            >
-              <span>⚙️</span>
-              Nouveau service
-            </ActionButton>
-          </div>
-        </div>
-      </div>
-
-    </div>
-
+  <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Graphique principal -->
-    <div class="lg:col-span-3 space-y-6">
+    <div class="lg:col-span-2 space-y-6">
 
       <!-- Cartographie des services -->
       <div class="card bg-base-100 shadow-xl">
@@ -520,20 +480,13 @@
               >
                 🎯 Optimiser
               </button>
-              <button
-                class="btn btn-sm btn-outline"
-                disabled={isLoading}
-                on:click={resetView}
-              >
-                🔄 Reset
-              </button>
             </div>
           </div>
 
           <div class="relative">
             <div
               bind:this={networkContainer}
-              class="w-full h-96 border border-base-300 rounded-lg bg-base-50"
+              class="w-full h-124 border border-base-300 rounded-lg bg-base-50"
             ></div>
 
             {#if isLoading}
@@ -550,6 +503,105 @@
         </div>
       </div>
 
+      <div class="grid grid-cols-2 gap-6">
+        <!-- Statistiques -->
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <h2 class="card-title">📊 Statistiques</h2>
+            <div class="stats stats-vertical">
+              <div class="stat">
+                <div class="stat-figure text-primary">
+                  <span class="text-3xl">🖥️</span>
+                </div>
+                <div class="stat-title">Serveurs</div>
+                <div class="stat-value text-primary">{servers.length}</div>
+              </div>
+              <div class="stat">
+                <div class="stat-figure text-secondary">
+                  <span class="text-3xl">⚙️</span>
+                </div>
+                <div class="stat-title">Services</div>
+                <div class="stat-value text-secondary">{services.length}</div>
+              </div>
+              <div class="stat">
+                <div class="stat-figure text-accent">
+                  <span class="text-3xl">🔗</span>
+                </div>
+                <div class="stat-title">Dépendances</div>
+                <div class="stat-value text-accent">
+                  {graphData.elements?.filter(el => el.data?.type === 'dependency').length || 0}
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-6">
+          <!-- Légende -->
+          <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+              <h3 class="card-title text-lg">🎨 Légende</h3>
+              <div class="space-y-3 text-sm">
+                <div class="flex items-center gap-3">
+                  <div class="w-6 h-4 bg-primary rounded border-2 border-primary"></div>
+                  <span>Serveurs (conteneurs)</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-4 h-4 bg-secondary rounded-full"></div>
+                  <span>Services (à l'intérieur)</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-0 border-t-2 border-error"></div>
+                  <span>Dépendance critique</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-0 border-t-2 border-warning"></div>
+                  <span>Dépendance optionnelle</span>
+                </div>
+                <div class="flex items-center gap-3">
+                  <div class="w-8 h-0 border-t-2 border-success"></div>
+                  <span>Dépendance fallback</span>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Actions rapides -->
+          <div class="card bg-base-100 shadow-xl">
+            <div class="card-body">
+              <h3 class="card-title text-lg">⚡ Actions rapides</h3>
+              <div class="space-y-2">
+                <ActionButton
+                  variant="primary"
+                  size="sm"
+                  class="w-full"
+                  on:click={() => router.visit('/servers/create')}
+                >
+                  <span>➕</span>
+                  Nouveau serveur
+                </ActionButton>
+                <ActionButton
+                  variant="secondary"
+                  size="sm"
+                  class="w-full"
+                  on:click={() => router.visit('/services/create')}
+                >
+                  <span>⚙️</span>
+                  Nouveau service
+                </ActionButton>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <!-- Sidebar avec stats et légende -->
+    <div class="lg:col-span-1 space-y-6">
+
+
       <!-- Détails du service sélectionné -->
       {#if showServiceDetails && selectedService}
         <div class="card bg-base-100 shadow-xl">
@@ -561,7 +613,7 @@
               </button>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
+            <div class="grid grid-cols-1 gap-6 mt-4">
               <!-- Informations du service -->
               <div class="space-y-4">
                 <div>
@@ -659,7 +711,147 @@
         </div>
       {/if}
 
+      <!-- Détails du serveur sélectionné -->
+      {#if showServerDetails && selectedServer}
+        <div class="card bg-base-100 shadow-xl">
+          <div class="card-body">
+            <div class="flex justify-between items-center">
+              <h3 class="card-title">🖥️ Détails du serveur</h3>
+              <button class="btn btn-sm btn-circle btn-ghost" on:click={closeServerDetails}>
+                ✕
+              </button>
+            </div>
+
+            <div class="grid grid-cols-1 gap-6 mt-4">
+              <!-- Informations du serveur -->
+              <div class="space-y-4">
+                <div>
+                  <h4 class="font-bold text-lg flex items-center gap-2">
+                    🖥️ {selectedServer.name}
+                  </h4>
+                  <p class="text-base-content/70">
+                    {selectedServer.hebergeur} • {selectedServer.localisation}
+                  </p>
+                </div>
+
+                <div class="space-y-2 text-sm">
+                  <div>
+                    <span class="font-semibold">Adresse IP:</span>
+                    <div class="flex items-center gap-2 mt-1">
+                      <code class="bg-base-200 px-2 py-1 rounded text-xs">
+                        {selectedServer.ip}
+                      </code>
+                      <button
+                        class="btn btn-xs btn-outline"
+                        on:click={() => copyToClipboard(selectedServer.ip)}
+                        title="Copier l'IP"
+                      >
+                        📋
+                      </button>
+                    </div>
+                  </div>
+
+                  <div>
+                    <span class="font-semibold">Hébergeur:</span>
+                    <span class="ml-2 badge badge-primary badge-sm">{selectedServer.hebergeur}</span>
+                  </div>
+
+                  <div>
+                    <span class="font-semibold">Localisation:</span>
+                    <span class="ml-2 text-xs">{selectedServer.localisation}</span>
+                  </div>
+
+                  {#if selectedServer.parentServer}
+                    <div>
+                      <span class="font-semibold">Hébergé dans:</span>
+                      <button
+                        class="ml-2 link link-primary text-xs"
+                        on:click={() => router.visit(`/servers/${selectedServer.parentServer.id}`)}
+                      >
+                        {selectedServer.parentServer.name}
+                      </button>
+                    </div>
+                  {/if}
+
+                  <div>
+                    <span class="font-semibold">Créé le:</span>
+                    <span class="ml-2 text-xs">{formatDate(selectedServer.createdAt)}</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Actions et statistiques -->
+              <div class="space-y-4">
+                <div>
+                  <h5 class="font-semibold mb-2">Actions</h5>
+                  <div class="flex flex-wrap gap-2">
+                    <ActionButton
+                      variant="primary"
+                      size="sm"
+                      on:click={() => router.visit(`/servers/${selectedServer.id}`)}
+                    >
+                      Voir détails
+                    </ActionButton>
+                    <ActionButton
+                      variant="secondary"
+                      size="sm"
+                      on:click={() => router.visit(`/servers/${selectedServer.id}/edit`)}
+                    >
+                      Modifier
+                    </ActionButton>
+                    <ActionButton
+                      variant="accent"
+                      size="sm"
+                      on:click={() => router.visit(`/services/create?server_id=${selectedServer.id}`)}
+                    >
+                      Ajouter service
+                    </ActionButton>
+                  </div>
+                </div>
+
+                <div>
+                  <h5 class="font-semibold mb-2">Statistiques</h5>
+                  <div class="text-xs space-y-1">
+                    <div>
+                      Services hébergés:
+                      <span class="badge badge-sm">{selectedServer.servicesCount}</span>
+                    </div>
+                    <div>
+                      Total dépendances:
+                      <span class="badge badge-sm">{selectedServer.dependenciesCount}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <!-- Aperçu des services -->
+                {#if selectedServer.services.length > 0}
+                  <div>
+                    <h5 class="font-semibold mb-2">Services ({selectedServer.servicesCount})</h5>
+                    <div class="space-y-1 max-h-32 overflow-y-auto">
+                      {#each selectedServer.services.slice(0, 5) as service}
+                        <button
+                          class="text-xs link link-secondary block text-left"
+                          on:click={() => router.visit(`/services/${service.id}`)}
+                        >
+                          {service.nom}
+                        </button>
+                      {/each}
+                      {#if selectedServer.services.length > 5}
+                        <div class="text-xs text-base-content/50">
+                          ... et {selectedServer.services.length - 5} autres
+                        </div>
+                      {/if}
+                    </div>
+                  </div>
+                {/if}
+              </div>
+            </div>
+          </div>
+        </div>
+      {/if}
     </div>
+
+
   </div>
 </DashboardLayout>
 

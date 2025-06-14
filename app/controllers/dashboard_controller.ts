@@ -8,6 +8,26 @@ export default class DashboardController {
    * MIGRATION INERTIA: view.render() → inertia.render()
    */
   async index({ inertia, session }: HttpContext) {
+    // ✅ FIX: Vérifier l'authentification avant tout
+    const sessionUserId = session.get('user_id')
+    const sessionUserEmail = session.get('user_email')
+    const sessionUserName = session.get('user_name')
+
+    console.log('🔍 Debug session utilisateur:', {
+      user_id: sessionUserId,
+      user_email: sessionUserEmail,
+      user_name: sessionUserName,
+      hasToken: !!session.get('access_token')
+    })
+
+    // ✅ Si les données sont manquantes, forcer la déconnexion
+    if (!sessionUserId || !sessionUserEmail) {
+      console.warn('⚠️ Données utilisateur manquantes en session, déconnexion forcée')
+      session.clear()
+      session.flash('error', 'Session expirée, veuillez vous reconnecter')
+      return inertia.location('/auth/login')
+    }
+
     // Récupérer toutes les données nécessaires
     const servers = await Server.query()
       .preload('services', (servicesQuery) => {
@@ -38,11 +58,14 @@ export default class DashboardController {
       uptime: 98 // Tu peux calculer ça dynamiquement plus tard
     }
 
-    // Utilisateur connecté
+    // ✅ FIX: Utilisateur connecté sans valeurs par défaut problématiques
     const user = {
-      email: session.get('user_email') || 'admin@kalya.com',
-      fullName: session.get('user_name') || 'Admin Kalya'
+      id: sessionUserId,
+      email: sessionUserEmail,
+      fullName: sessionUserName
     }
+
+    console.log('👤 Utilisateur pour le rendu:', user)
 
     // ✅ INERTIA: Rendu avec Svelte
     return inertia.render('Dashboard/Index', {
@@ -53,7 +76,8 @@ export default class DashboardController {
         status: 'online', // Tu peux calculer ça dynamiquement
         servicesCount: server.services?.length || 0,
         hebergeur: server.hebergeur,
-        localisation: server.localisation
+        localisation: server.localisation,
+        services: server.services || []
       })),
       services,
       stats,
