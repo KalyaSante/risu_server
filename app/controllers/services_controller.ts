@@ -179,7 +179,9 @@ export default class ServicesController {
           validationErrors[msg.field] = msg.message
         })
 
-        return response.redirect().back().withInput().with({ errors: validationErrors })
+        session.flash({ errors: validationErrors });
+        session.flashAll();
+        return response.redirect().back();
       } else {
         session.flash('error', 'Erreur lors de la création du service')
         return response.redirect().back()
@@ -342,7 +344,9 @@ export default class ServicesController {
           validationErrors[msg.field] = msg.message
         })
 
-        return response.redirect().back().withInput().with({ errors: validationErrors })
+        session.flash({ errors: validationErrors });
+        session.flashAll();
+        return response.redirect().back();
       } else {
         session.flash('error', 'Erreur lors de la mise à jour du service')
         return response.redirect().back()

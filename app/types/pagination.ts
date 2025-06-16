@@ -1,12 +1,13 @@
 import type { ModelPaginatorContract } from '@adonisjs/lucid/types/model'
+import type { LucidRow } from '@ioc:Adonis/Lucid/Orm';
 
-export interface ExtendedPaginator<T> extends ModelPaginatorContract<T> {
+export interface ExtendedPaginator<T extends LucidRow> extends ModelPaginatorContract<T> {
   hasNextPage: boolean
   hasPreviousPage: boolean
 }
 
 // Fonction helper pour calculer les propriétés de pagination
-export function extendPaginator<T>(paginator: ModelPaginatorContract<T>): ExtendedPaginator<T> {
+export function extendPaginator<T extends LucidRow>(paginator: ModelPaginatorContract<T>): ExtendedPaginator<T> {
   return {
     ...paginator,
     hasNextPage: paginator.hasPages && paginator.currentPage < paginator.lastPage,
