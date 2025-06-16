@@ -71,7 +71,12 @@ export default class Service extends BaseModel {
 
   // ✅ Getters simples
   get primaryPort(): number | null {
-    return this.ports?.[0]?.port || null
+    const portValue = this.ports?.[0]?.port;
+    if (typeof portValue === 'string') {
+      const parsedPort = parseInt(portValue, 10);
+      return isNaN(parsedPort) ? null : parsedPort;
+    }
+    return portValue || null;
   }
 
   get allPorts(): ServicePort[] {

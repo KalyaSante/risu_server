@@ -2,7 +2,7 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Server from '#models/server'
 import Service from '#models/service'
 import type { ServiceDependency } from '#types/oauth'
-import { getDependencyColor, type DependencyType } from '#types/pagination'
+import { getDependencyColor } from '#types/pagination'
 
 export default class DashboardApiController {
   /**

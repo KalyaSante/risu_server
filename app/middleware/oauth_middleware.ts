@@ -38,7 +38,7 @@ export default class OAuthMiddleware {
       ctx.user = {
         id: user.id,
         email: user.email,
-        fullName: user.fullName
+        fullName: user.fullName || ''
       }
 
       // Rendre l'utilisateur disponible dans les vues
