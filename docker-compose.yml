@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3333:3333" # Maps container port 3333 to host port 3333
+    volumes:
+      - ./data/db:/app/tmp  # Persists SQLite database in ./data/db on the host
+                          # The Dockerfile creates /app/tmp, and Adonis stores sqlite here
+    env_file:
+      - .env  # Loads environment variables from .env file in the same directory
+    environment:
+      - NODE_ENV=production
+      - HOST=0.0.0.0 # Important for Docker to listen on all interfaces
+      # - APP_KEY=your_production_app_key # Should be set in the .env file on the server
+      # - PORT=3333 # Already exposed in Dockerfile, can be overridden here or in .env
+    restart: unless-stopped
+    # healthcheck: # Optional: Add a healthcheck if your app has an endpoint for it
+    #   test: ["CMD", "curl", "-f", "http://localhost:3333/health"] # Example
+    #   interval: 30s
+    #   timeout: 10s
+    #   retries: 3
+
+# Optional: Define a named volume for better management by Docker,
+# but bind mount is often simpler for SQLite where the file path is key.
+# volumes:
+#   database_data:
