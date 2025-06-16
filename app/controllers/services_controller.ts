@@ -2,11 +2,36 @@ import type { HttpContext } from '@adonisjs/core/http'
 import Service from '#models/service'
 import Server from '#models/server'
 import { createServiceValidator, updateServiceValidator } from '#validators/service'
+import { DateTime } from 'luxon'
+
+// ✅ FIX: Interface pour les erreurs de validation
+interface ValidationMessage {
+  message: string
+  field: string
+  rule: string
+}
+
+interface ValidationError extends Error {
+  messages: ValidationMessage[]
+}
 
 export default class ServicesController {
   /**
+   * ✅ NOUVEAU: Helper pour nettoyer les ports
+   */
+  private cleanPorts(ports: any[]): any[] | null {
+    if (!ports || !Array.isArray(ports)) return null
+
+    const validPorts = ports.filter(port =>
+      port && (port.port || port.label)
+    )
+
+    return validPorts.length > 0 ? validPorts : null
+  }
+
+  /**
    * Liste tous les services
-   * ✅ MIGRÉ VERS INERTIA
+   * ✅ MIGRÉ VERS INERTIA + PORTS SIMPLES
    */
   async index({ inertia, request, session }: HttpContext) {
     const page = request.input('page', 1)
@@ -31,12 +56,14 @@ export default class ServicesController {
 
     const servers = await Server.query().orderBy('nom', 'asc')
 
-    // Formater les données pour Svelte
-    const formattedServices = services.serialize().data.map(service => ({
+    // ✅ Formater les données pour Svelte avec ports simples
+    const formattedServices = services.serialize().data.map((service: any) => ({
       id: service.id,
       name: service.nom,
-      status: 'running', // Tu peux calculer ça dynamiquement
-      port: service.port,
+      status: 'running',
+      // ✅ SIMPLE: Juste le port principal et la liste des ports
+      primaryPort: service.primaryPort,
+      ports: service.allPorts,
       path: service.path,
       icon: service.icon,
       description: service.description || '',
@@ -51,7 +78,7 @@ export default class ServicesController {
       lastMaintenanceAt: service.lastMaintenanceAt
     }))
 
-    const formattedServers = servers.map(server => ({
+    const formattedServers = servers.map((server: any) => ({
       id: server.id,
       name: server.nom,
       ip: server.ip
@@ -85,14 +112,13 @@ export default class ServicesController {
 
   /**
    * Affiche le formulaire de création
-   * ✅ MIGRÉ VERS INERTIA
    */
   async create({ inertia, request, session }: HttpContext) {
     const serverId = request.input('server_id')
     const servers = await Server.query().orderBy('nom', 'asc')
     const selectedServer = serverId ? await Server.find(serverId) : null
 
-    const formattedServers = servers.map(server => ({
+    const formattedServers = servers.map((server: any) => ({
       id: server.id,
       name: server.nom,
       ip: server.ip
@@ -123,25 +149,46 @@ export default class ServicesController {
 
   /**
    * Stocke un nouveau service
-   * ✅ OPTIMISÉ POUR INERTIA
+   * ✅ AMÉLIORÉ: Meilleure gestion des erreurs de validation + nettoyage des ports
    */
   async store({ request, response, session }: HttpContext) {
     try {
-      const payload = await request.validateUsing(createServiceValidator)
+      const validatedData = await request.validateUsing(createServiceValidator)
+
+      // ✅ NOUVEAU: Nettoyer les ports après validation
+      const cleanedPorts = this.cleanPorts(validatedData.ports || [])
+
+      const payload = {
+        ...validatedData,
+        ports: cleanedPorts,
+        lastMaintenanceAt: validatedData.lastMaintenanceAt
+          ? DateTime.fromJSDate(new Date(validatedData.lastMaintenanceAt))
+          : null
+      }
 
       const service = await Service.create(payload)
 
       session.flash('success', `Service "${service.nom}" créé avec succès!`)
       return response.redirect().toRoute('services.show', { id: service.id })
     } catch (error) {
-      session.flash('error', 'Erreur lors de la création du service')
-      return response.redirect().back()
+      // ✅ AMÉLIORÉ: Meilleure gestion des erreurs de validation
+      if ('messages' in error && Array.isArray((error as ValidationError).messages)) {
+        const validationErrors: Record<string, string> = {}
+
+        ;(error as ValidationError).messages.forEach((msg: ValidationMessage) => {
+          validationErrors[msg.field] = msg.message
+        })
+
+        return response.redirect().back().withInput().with({ errors: validationErrors })
+      } else {
+        session.flash('error', 'Erreur lors de la création du service')
+        return response.redirect().back()
+      }
     }
   }
 
   /**
    * Affiche les détails d'un service
-   * ✅ MIGRÉ VERS INERTIA
    */
   async show({ params, inertia, session }: HttpContext) {
     const service = await Service.query()
@@ -155,12 +202,12 @@ export default class ServicesController {
       })
       .firstOrFail()
 
-    // Formater les données pour Svelte
     const formattedService = {
       id: service.id,
       nom: service.nom,
-      status: 'running', // Tu peux calculer ça dynamiquement
-      port: service.port,
+      status: 'running',
+      primaryPort: service.primaryPort,
+      ports: service.allPorts,
       path: service.path,
       icon: service.icon,
       description: service.description || '',
@@ -174,7 +221,7 @@ export default class ServicesController {
       } : null
     }
 
-    const formattedDependencies = service.dependencies.map(dep => ({
+    const formattedDependencies = service.dependencies.map((dep: any) => ({
       id: dep.id,
       name: dep.nom,
       type: dep.$extras.pivot_type,
@@ -182,7 +229,7 @@ export default class ServicesController {
       server: dep.server?.nom
     }))
 
-    const formattedDependents = service.dependents.map(dep => ({
+    const formattedDependents = service.dependents.map((dep: any) => ({
       id: dep.id,
       name: dep.nom,
       type: dep.$extras.pivot_type,
@@ -209,7 +256,7 @@ export default class ServicesController {
 
   /**
    * Affiche le formulaire d'édition
-   * ✅ MIGRÉ VERS INERTIA
+   * ✅ AMÉLIORÉ: Meilleur formatage des données
    */
   async edit({ params, inertia, session }: HttpContext) {
     const service = await Service.query()
@@ -222,16 +269,24 @@ export default class ServicesController {
     const formattedService = {
       id: service.id,
       nom: service.nom,
-      port: service.port,
+      primaryPort: service.primaryPort,
+      // ✅ AMÉLIORÉ: S'assurer qu'il y a toujours au moins un port par défaut
+      ports: service.allPorts && service.allPorts.length > 0
+        ? service.allPorts
+        : [{ port: '', label: 'web' }],
       path: service.path,
       icon: service.icon,
       description: service.description || '',
       repoUrl: service.repoUrl,
       docPath: service.docPath,
-      serverId: service.serverId
+      serverId: service.serverId,
+      // ✅ NOUVEAU: Formater la date pour l'input datetime-local
+      lastMaintenanceAt: service.lastMaintenanceAt
+        ? service.lastMaintenanceAt.toFormat('yyyy-MM-dd\'T\'HH:mm')
+        : ''
     }
 
-    const formattedServers = servers.map(server => ({
+    const formattedServers = servers.map((server: any) => ({
       id: server.id,
       name: server.nom,
       ip: server.ip
@@ -256,26 +311,47 @@ export default class ServicesController {
 
   /**
    * Met à jour un service
-   * ✅ OPTIMISÉ POUR INERTIA
+   * ✅ AMÉLIORÉ: Meilleure gestion des erreurs de validation + nettoyage des ports
    */
   async update({ params, request, response, session }: HttpContext) {
     try {
       const service = await Service.findOrFail(params.id)
-      const payload = await request.validateUsing(updateServiceValidator)
+      const validatedData = await request.validateUsing(updateServiceValidator)
+
+      // ✅ NOUVEAU: Nettoyer les ports après validation
+      const cleanedPorts = this.cleanPorts(validatedData.ports || [])
+
+      const payload = {
+        ...validatedData,
+        ports: cleanedPorts,
+        lastMaintenanceAt: validatedData.lastMaintenanceAt
+          ? DateTime.fromJSDate(new Date(validatedData.lastMaintenanceAt))
+          : null
+      }
 
       await service.merge(payload).save()
 
       session.flash('success', `Service "${service.nom}" mis à jour avec succès!`)
       return response.redirect().toRoute('services.show', { id: service.id })
     } catch (error) {
-      session.flash('error', 'Erreur lors de la mise à jour du service')
-      return response.redirect().back()
+      // ✅ AMÉLIORÉ: Meilleure gestion des erreurs de validation
+      if ('messages' in error && Array.isArray((error as ValidationError).messages)) {
+        const validationErrors: Record<string, string> = {}
+
+        ;(error as ValidationError).messages.forEach((msg: ValidationMessage) => {
+          validationErrors[msg.field] = msg.message
+        })
+
+        return response.redirect().back().withInput().with({ errors: validationErrors })
+      } else {
+        session.flash('error', 'Erreur lors de la mise à jour du service')
+        return response.redirect().back()
+      }
     }
   }
 
   /**
    * Supprime un service
-   * ✅ OPTIMISÉ POUR INERTIA
    */
   async destroy({ params, response, session }: HttpContext) {
     try {

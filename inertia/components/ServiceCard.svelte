@@ -1,6 +1,7 @@
 <script>
   import { router } from '@inertiajs/svelte';
   import ActionButton from './ActionButton.svelte';
+  import ServicePorts from './ServicePorts.svelte';
 
   // Props
   export let service = {};
@@ -45,6 +46,7 @@
   $: maintenance = getMaintenanceStatus(service.lastMaintenanceAt);
   $: serviceName = service.name || service.nom || 'Service sans nom';
   $: serverName = service.server?.name || service.server?.nom;
+  $: serverIp = service.server?.ip;
 </script>
 
 <!-- Service Card Component -->
@@ -53,39 +55,61 @@
 
     <!-- Header -->
     <div class="flex justify-between items-start">
-      <div>
+      <div class="flex-1">
         <h3 class="card-title {variant === 'compact' ? 'text-base' : ''}">{serviceName}</h3>
 
         {#if showServer && serverName}
           <p class="text-sm text-base-content/70">📍 {serverName}</p>
         {/if}
 
+        {#if service.description}
+          <p class="text-sm text-base-content/60 mt-1">{service.description}</p>
+        {/if}
+
         {#if service.path}
-          <p class="text-sm text-base-content/70">{service.path}</p>
+          <p class="text-xs text-base-content/50 mt-1">{service.path}</p>
         {/if}
       </div>
 
       {#if service.icon}
-        <div class="w-12 h-12 bg-white border border-base-200 p-2 rounded-full">
-            <img src="/icons/{service.icon}" alt={serviceName} />
+        <div class="w-12 h-12 bg-white border border-base-200 p-2 rounded-full flex-shrink-0 ml-3">
+          <img src="/icons/{service.icon}" alt={serviceName} class="w-full h-full object-contain" />
         </div>
       {/if}
     </div>
 
+    <!-- ✅ NOUVEAU: Affichage des ports -->
+    {#if service.ports && service.ports.length > 0}
       <div class="mt-3">
-        <div class="badge {maintenance.badge} badge-sm">
-          {maintenance.text}
-        </div>
+        <ServicePorts
+          ports={service.ports}
+          {serverIp}
+          servicePath={service.path}
+          size={variant === 'compact' ? 'small' : 'normal'}
+        />
+      </div>
+    {/if}
+
+    <div class="mt-3 flex flex-wrap gap-2 items-center">
+      <!-- Status et maintenance -->
+      <div class="badge {maintenance.badge} badge-sm">
+        {maintenance.text}
       </div>
 
       <!-- Dependencies info -->
       {#if service.dependenciesCount > 0}
-        <div class="mt-3">
-          <p class="text-xs text-base-content/50">
-            {service.dependenciesCount} dépendance{service.dependenciesCount > 1 ? 's' : ''}
-          </p>
+        <div class="badge badge-ghost badge-sm">
+          {service.dependenciesCount} dépendance{service.dependenciesCount > 1 ? 's' : ''}
         </div>
       {/if}
+
+      <!-- Status du service -->
+      {#if service.status}
+        <div class="badge {service.status === 'running' ? 'badge-success' : 'badge-error'} badge-sm">
+          {service.status === 'running' ? '🟢 Running' : '🔴 Stopped'}
+        </div>
+      {/if}
+    </div>
 
     <!-- Actions -->
     <div class="card-actions justify-end mt-{variant === 'compact' ? '3' : '4'}">

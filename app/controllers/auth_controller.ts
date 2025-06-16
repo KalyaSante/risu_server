@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import { oauthConfig } from '#config/oauth'
 import User from '#models/user'
+import type { TokenData, UserData } from '#types/oauth'
 
 export default class AuthController {
   /**
@@ -11,6 +12,11 @@ export default class AuthController {
 
     // Stocker le state en session pour vérification
     request.ctx?.session?.put('oauth_state', state)
+
+    // ✅ FIX: Vérifier que clientId existe
+    if (!oauthConfig.clientId) {
+      throw new Error('OAuth client ID is not configured')
+    }
 
     // Construire l'URL d'autorisation
     const params = new URLSearchParams({
@@ -81,7 +87,8 @@ export default class AuthController {
         throw new Error(`Token exchange failed: ${tokenResponse.status} - ${errorText}`)
       }
 
-      const tokenData = await tokenResponse.json()
+      // ✅ FIX: Typage explicite pour tokenData
+      const tokenData = await tokenResponse.json() as TokenData
       console.log('✅ Token OAuth obtenu')
 
       // Récupérer les infos utilisateur
@@ -99,7 +106,8 @@ export default class AuthController {
         throw new Error(`User info fetch failed: ${userResponse.status} - ${errorText}`)
       }
 
-      const userData = await userResponse.json()
+      // ✅ FIX: Typage explicite pour userData
+      const userData = await userResponse.json() as UserData
       console.log('✅ Données utilisateur récupérées:', {
         id: userData.id,
         email: userData.email,
@@ -125,7 +133,9 @@ export default class AuthController {
 
       // ✅ FIX: Stocker les données utilisateur COMPLÈTES en session
       session.put('access_token', tokenData.access_token)
-      session.put('refresh_token', tokenData.refresh_token)
+      if (tokenData.refresh_token) {
+        session.put('refresh_token', tokenData.refresh_token)
+      }
       session.put('token_expires_at', Date.now() + (tokenData.expires_in * 1000))
       session.put('user_id', user.id)
       session.put('user_email', user.email)
@@ -150,7 +160,7 @@ export default class AuthController {
 
     } catch (error) {
       console.error('💥 Erreur callback OAuth:', error)
-      session.flash('error', 'Erreur lors de l\'authentification OAuth: ' + error.message)
+      session.flash('error', 'Erreur lors de l\'authentification OAuth: ' + (error as Error).message)
       return response.redirect('/login')
     }
   }
@@ -232,7 +242,8 @@ export default class AuthController {
 
       if (!response.ok) return false
 
-      const tokenData = await response.json()
+      // ✅ FIX: Typage du token refresh
+      const tokenData = await response.json() as TokenData
 
       // Mettre à jour les tokens en session
       session.put('access_token', tokenData.access_token)

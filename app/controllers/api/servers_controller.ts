@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Server from '#models/server'
+import { extendPaginator } from '#types/pagination'
 
 export default class ServersApiController {
   /**
@@ -21,16 +22,19 @@ export default class ServersApiController {
         .orderBy('nom', 'asc')
         .paginate(page, limit)
 
+      // ✅ FIX: Utiliser extendPaginator pour calculer hasNextPage/hasPreviousPage
+      const extendedServers = extendPaginator(servers)
+
       return response.json({
         success: true,
         data: servers.serialize(),
         meta: {
-          total: servers.total,
-          perPage: servers.perPage,
-          currentPage: servers.currentPage,
-          lastPage: servers.lastPage,
-          hasNextPage: servers.hasNextPage,
-          hasPreviousPage: servers.hasPreviousPage
+          total: extendedServers.total,
+          perPage: extendedServers.perPage,
+          currentPage: extendedServers.currentPage,
+          lastPage: extendedServers.lastPage,
+          hasNextPage: extendedServers.hasNextPage,
+          hasPreviousPage: extendedServers.hasPreviousPage
         }
       })
     } catch (error) {
@@ -79,7 +83,7 @@ export default class ServersApiController {
         .orderBy('nom', 'asc')
 
       // Simuler le statut pour l'instant (tu peux implémenter ping/health check plus tard)
-      const serversWithStatus = servers.map(server => ({
+      const serversWithStatus = servers.map((server: any) => ({
         id: server.id,
         name: server.nom,
         ip: server.ip,

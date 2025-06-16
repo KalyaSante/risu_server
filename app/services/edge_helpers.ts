@@ -1,17 +1,18 @@
 import edge from 'edge.js'
 import { DateTime } from 'luxon'
+import { getStatusColor as getStatusColorHelper } from '#types/pagination'
 
 /**
  * Helpers personnalisés pour Edge.js
  */
 export function registerEdgeHelpers() {
-  
+
   /**
    * Helper pour formater les dates en français
    */
   edge.global('formatDate', (date: DateTime | string | Date, format: string = 'short') => {
     let d: DateTime
-    
+
     if (date instanceof DateTime) {
       d = date
     } else if (typeof date === 'string') {
@@ -19,7 +20,7 @@ export function registerEdgeHelpers() {
     } else {
       d = DateTime.fromJSDate(date)
     }
-    
+
     if (format === 'short') {
       return d.toFormat('dd/MM/yyyy')
     } else if (format === 'long') {
@@ -34,7 +35,7 @@ export function registerEdgeHelpers() {
    */
   edge.global('timeAgo', (date: DateTime | string | Date) => {
     let d: DateTime
-    
+
     if (date instanceof DateTime) {
       d = date
     } else if (typeof date === 'string') {
@@ -42,10 +43,10 @@ export function registerEdgeHelpers() {
     } else {
       d = DateTime.fromJSDate(date)
     }
-    
+
     const now = DateTime.now()
     const diff = now.diff(d, ['days', 'hours', 'minutes'])
-    
+
     if (diff.days > 0) {
       return `il y a ${Math.floor(diff.days)} jour${Math.floor(diff.days) > 1 ? 's' : ''}`
     } else if (diff.hours > 0) {
@@ -98,16 +99,21 @@ export function registerEdgeHelpers() {
   })
 
   /**
-   * Helper pour obtenir la couleur selon le statut
+   * ✅ FIX: Helper pour obtenir la couleur selon le statut avec typage strict
    */
   edge.global('getStatusColor', (status: string) => {
-    const colors = {
-      'healthy': 'success',
-      'warning': 'warning', 
-      'error': 'error',
-      'unknown': 'neutral'
+    // Utiliser la fonction helper typée
+    const color = getStatusColorHelper(status)
+
+    // Mapper les couleurs hex vers les classes CSS
+    const cssClasses: Record<string, string> = {
+      '#10b981': 'success',
+      '#f59e0b': 'warning',
+      '#ef4444': 'error',
+      '#6b7280': 'neutral'
     }
-    return colors[status] || 'neutral'
+
+    return cssClasses[color] || 'neutral'
   })
 
   /**
@@ -118,7 +124,7 @@ export function registerEdgeHelpers() {
     const colors = ['#FF6B6B', '#4ECDC4', '#45B7D1', '#96CEB4', '#FECA57', '#FF9FF3', '#54A0FF']
     const colorIndex = name ? name.charCodeAt(0) % colors.length : 0
     const color = colors[colorIndex]
-    
+
     return `data:image/svg+xml,${encodeURIComponent(`
       <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
         <circle cx="${size/2}" cy="${size/2}" r="${size/2}" fill="${color}"/>

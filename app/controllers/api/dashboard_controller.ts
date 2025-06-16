@@ -1,6 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Server from '#models/server'
 import Service from '#models/service'
+import type { ServiceDependency } from '#types/oauth'
+import { getDependencyColor, type DependencyType } from '#types/pagination'
 
 export default class DashboardApiController {
   /**
@@ -75,7 +77,7 @@ export default class DashboardApiController {
    */
   private buildGraphData(servers: any[], services: any[]) {
     const nodes = [
-      ...servers.map(server => ({
+      ...servers.map((server: any) => ({
         id: `server_${server.id}`,
         label: server.nom,
         group: 'servers',
@@ -89,7 +91,7 @@ export default class DashboardApiController {
         services_count: server.services?.length || 0
       })),
 
-      ...services.map(service => ({
+      ...services.map((service: any) => ({
         id: `service_${service.id}`,
         label: service.nom,
         group: 'services',
@@ -106,20 +108,19 @@ export default class DashboardApiController {
     ]
 
     const edges = [
-      // ❌ Liaison serveur -> serveur supprimée (redondant avec l'imbrication visuelle)
-
       // dépendances de services
-      ...services.flatMap((service) =>
-        service.dependencies.map(dep => ({
+      ...services.flatMap((service: any) =>
+        // ✅ FIX: Typage correct du paramètre dep
+        service.dependencies.map((dep: ServiceDependency) => ({
           from: `service_${service.id}`,
           to: `service_${dep.id}`,
-          label: dep.$extras.pivot_label,
-          title: `${service.nom} → ${dep.nom}\n${dep.$extras.pivot_label}`,
-          color: this.getEdgeColor(dep.$extras.pivot_type),
+          label: dep.$pivot?.label,
+          title: `${service.nom} → ${dep.nom}\n${dep.$pivot?.label}`,
+          color: this.getEdgeColor(dep.$pivot?.type || 'fallback'),
           arrows: 'to',
           smooth: { type: 'continuous' },
-          type: dep.$extras.pivot_type,
-          dependency_label: dep.$extras.pivot_label
+          type: dep.$pivot?.type,
+          dependency_label: dep.$pivot?.label
         }))
       )
     ]
@@ -128,14 +129,9 @@ export default class DashboardApiController {
   }
 
   /**
-   * Obtenir la couleur d'un edge selon son type
+   * ✅ FIX: Obtenir la couleur d'un edge selon son type avec typage strict
    */
-  private getEdgeColor(type: string) {
-    const colors = {
-      required: '#ef4444',
-      optional: '#f59e0b',
-      fallback: '#10b981'
-    }
-    return colors[type] || '#6b7280'
+  private getEdgeColor(type: string): string {
+    return getDependencyColor(type)
   }
 }

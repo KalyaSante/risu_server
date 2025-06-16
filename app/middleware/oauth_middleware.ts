@@ -4,7 +4,8 @@ import User from '#models/user'
 import AuthController from '#controllers/auth_controller'
 
 export default class OAuthMiddleware {
-  async handle({ request, response, session, view }: HttpContext, next: NextFn) {
+  async handle(ctx: HttpContext, next: NextFn) {
+    const { request, response, session, view } = ctx
     const accessToken = session.get('access_token')
     const tokenExpiresAt = session.get('token_expires_at')
     const userId = session.get('user_id')
@@ -33,9 +34,15 @@ export default class OAuthMiddleware {
         return this.redirectToLogin(response, request)
       }
 
-      // Rendre l'utilisateur disponible dans les vues et contrôleurs
+      // ✅ FIX: Utiliser ctx.user au lieu de request.ctx.user
+      ctx.user = {
+        id: user.id,
+        email: user.email,
+        fullName: user.fullName
+      }
+
+      // Rendre l'utilisateur disponible dans les vues
       view.share({ auth: { user } })
-      request.ctx = { ...request.ctx, user }
 
     } catch (error) {
       console.error('OAuth middleware error:', error)

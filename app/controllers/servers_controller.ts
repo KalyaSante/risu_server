@@ -1,7 +1,17 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Server from '#models/server'
-import Service from '#models/service'
 import { createServerValidator, updateServerValidator } from '#validators/server'
+
+// ✅ FIX: Interface pour les erreurs de validation
+interface ValidationMessage {
+  message: string
+  field: string
+  rule: string
+}
+
+interface ValidationError extends Error {
+  messages: ValidationMessage[]
+}
 
 export default class ServersController {
   /**
@@ -35,7 +45,7 @@ export default class ServersController {
       .orderBy('nom', 'asc')
 
     // Formater les données pour Svelte
-    const formattedServers = servers.map(server => ({
+    const formattedServers = servers.map((server: any) => ({
       id: server.id,
       name: server.nom,
       ip: server.ip,
@@ -47,7 +57,7 @@ export default class ServersController {
       parentServer: server.parent
         ? { id: server.parent.id, name: server.parent.nom }
         : null,
-      services: server.services?.map(service => ({
+      services: server.services?.map((service: any) => ({
         id: service.id,
         name: service.nom,
         path: service.path,
@@ -75,7 +85,7 @@ export default class ServersController {
     const user = this.getAuthenticatedUser(session)
 
     const servers = await Server.query().orderBy('nom', 'asc')
-    const serverOptions = servers.map((s) => ({ id: s.id, name: s.nom }))
+    const serverOptions = servers.map((s: any) => ({ id: s.id, name: s.nom }))
 
     return inertia.render('Servers/Create', {
       user,
@@ -98,20 +108,22 @@ export default class ServersController {
       const rawData = request.all()
       const formData = rawData.data || rawData
 
-      // Créer un objet request mock pour VineJS
-      const mockRequest = {
-        all: () => formData,
-        only: (keys) => {
-          const result = {}
-          keys.forEach(key => {
-            if (formData[key] !== undefined) result[key] = formData[key]
-          })
-          return result
-        },
-        validateUsing: (validator) => validator.validate(formData)
+      // ✅ FIX: Validation avec gestion d'erreur typée
+      let payload
+      try {
+        payload = await createServerValidator.validate(formData)
+      } catch (validationError) {
+        // Gestion des erreurs VineJS typées
+        if ('messages' in validationError && Array.isArray((validationError as ValidationError).messages)) {
+          const errorMessages = (validationError as ValidationError).messages
+            .map((msg: ValidationMessage) => msg.message)
+            .join(', ')
+          session.flash('error', `Erreur de validation: ${errorMessages}`)
+        } else {
+          session.flash('error', 'Erreur de validation')
+        }
+        return response.redirect().back()
       }
-
-      const payload = await createServerValidator.validate(formData)
 
       const server = await Server.create(payload)
 
@@ -119,14 +131,7 @@ export default class ServersController {
       return response.redirect().toRoute('servers.show', { id: server.id })
     } catch (error) {
       console.error('💥 Erreur création serveur:', error)
-
-      // Gestion des erreurs de validation VineJS
-      if (error.messages) {
-        const errorMessages = error.messages.map(msg => msg.message).join(', ')
-        session.flash('error', `Erreur de validation: ${errorMessages}`)
-      } else {
-        session.flash('error', 'Erreur lors de la création du serveur')
-      }
+      session.flash('error', 'Erreur lors de la création du serveur')
       return response.redirect().back()
     }
   }
@@ -159,7 +164,7 @@ export default class ServersController {
       parentServer: server.parent
         ? { id: server.parent.id, name: server.parent.nom }
         : null,
-      services: server.services?.map(service => ({
+      services: server.services?.map((service: any) => ({
         id: service.id,
         name: service.nom,
         path: service.path,
@@ -190,7 +195,7 @@ export default class ServersController {
     const server = await Server.findOrFail(params.id)
 
     const servers = await Server.query().whereNot('id', params.id).orderBy('nom', 'asc')
-    const serverOptions = servers.map((s) => ({ id: s.id, name: s.nom }))
+    const serverOptions = servers.map((s: any) => ({ id: s.id, name: s.nom }))
 
     const formattedServer = {
       id: server.id,
@@ -226,19 +231,21 @@ export default class ServersController {
 
       const rawData = request.all()
       const formData = rawData.data || rawData
+
+      // ✅ FIX: Validation avec gestion d'erreur typée
       let payload
       try {
-        payload = await updateServerValidator.validate(formData) // ✅ Méthode .validate()
+        payload = await updateServerValidator.validate(formData)
       } catch (validationError) {
-        // Gestion des erreurs VineJS
-        let errorMessage = 'Erreur de validation'
-        if (validationError?.messages && Array.isArray(validationError.messages)) {
-          errorMessage = validationError.messages.map(err => err.message || err).join(', ')
-        } else if (validationError?.message) {
-          errorMessage = validationError.message
+        // Gestion des erreurs VineJS typées
+        if ('messages' in validationError && Array.isArray((validationError as ValidationError).messages)) {
+          const errorMessages = (validationError as ValidationError).messages
+            .map((msg: ValidationMessage) => msg.message)
+            .join(', ')
+          session.flash('error', `Erreur de validation: ${errorMessages}`)
+        } else {
+          session.flash('error', 'Erreur de validation')
         }
-
-        session.flash('error', `Erreur de validation: ${errorMessage}`)
         return response.redirect().back()
       }
 
@@ -254,7 +261,7 @@ export default class ServersController {
       // Message d'erreur plus détaillée pour le développement
       const isDevelopment = process.env.NODE_ENV === 'development'
       const errorMessage = isDevelopment
-        ? `Erreur détaillée: ${error.message}`
+        ? `Erreur détaillée: ${(error as Error).message}`
         : 'Erreur lors de la mise à jour du serveur'
 
       session.flash('error', errorMessage)

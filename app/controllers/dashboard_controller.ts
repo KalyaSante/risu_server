@@ -1,6 +1,8 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Server from '#models/server'
 import Service from '#models/service'
+import type { ServiceDependency } from '#types/oauth'
+import { getDependencyColor } from '#types/pagination'
 
 export default class DashboardController {
   /**
@@ -36,7 +38,6 @@ export default class DashboardController {
         })
       })
       .preload('parent')
-      .preload('parent')
 
     const services = await Service.query()
       .preload('server')
@@ -54,7 +55,7 @@ export default class DashboardController {
     const stats = {
       totalServers: servers.length,
       totalServices: services.length,
-      totalDependencies: graphData.elements.filter(el => el.data?.type === 'dependency').length,
+      totalDependencies: graphData.elements.filter((el: any) => el.data?.type === 'dependency').length,
       uptime: 98 // Tu peux calculer ça dynamiquement plus tard
     }
 
@@ -69,7 +70,7 @@ export default class DashboardController {
 
     // ✅ INERTIA: Rendu avec Svelte
     return inertia.render('Dashboard/Index', {
-      servers: servers.map(server => ({
+      servers: servers.map((server: any) => ({
         id: server.id,
         name: server.nom,
         ip: server.ip,
@@ -106,19 +107,19 @@ export default class DashboardController {
     return inertia.render('Dashboard/ServiceDetail', {
       service,
       // Données formatées pour Svelte
-      dependencies: service.dependencies.map(dep => ({
+      dependencies: service.dependencies.map((dep: ServiceDependency) => ({
         id: dep.id,
         name: dep.nom,
-        type: dep.$extras.pivot_type,
-        label: dep.$extras.pivot_label,
-        server: dep.server?.nom
+        type: dep.$pivot?.type,
+        label: dep.$pivot?.label,
+        server: (dep as any).server?.nom
       })),
-      dependents: service.dependents.map(dep => ({
+      dependents: service.dependents.map((dep: ServiceDependency) => ({
         id: dep.id,
         name: dep.nom,
-        type: dep.$extras.pivot_type,
-        label: dep.$extras.pivot_label,
-        server: dep.server?.nom
+        type: dep.$pivot?.type,
+        label: dep.$pivot?.label,
+        server: (dep as any).server?.nom
       }))
     })
   }
@@ -149,7 +150,7 @@ export default class DashboardController {
       meta: {
         serversCount: servers.length,
         servicesCount: services.length,
-        dependenciesCount: graphData.elements.filter(el => el.data?.type === 'dependency').length
+        dependenciesCount: graphData.elements.filter((el: any) => el.data?.type === 'dependency').length
       }
     })
   }
@@ -160,7 +161,7 @@ export default class DashboardController {
   private buildGraphData(servers: any[], services: any[]) {
     const elements = [
       // Serveurs comme nœuds parents
-      ...servers.map(server => ({
+      ...servers.map((server: any) => ({
         data: {
           id: `server_${server.id}`,
           label: server.nom,
@@ -176,7 +177,7 @@ export default class DashboardController {
       })),
 
       // Services comme nœuds enfants (avec parent = serveur)
-      ...services.map(service => ({
+      ...services.map((service: any) => ({
         data: {
           id: `service_${service.id}`,
           label: service.nom,
@@ -193,20 +194,19 @@ export default class DashboardController {
         }
       })),
 
-      // ❌ Edges d'hébergement entre serveurs supprimés (redondant avec parent/child)
-
       // Edges de dépendances entre services
-      ...services.flatMap(service =>
-        service.dependencies.map(dep => ({
+      ...services.flatMap((service: any) =>
+        // ✅ FIX: Typage correct du paramètre dep
+        service.dependencies.map((dep: ServiceDependency) => ({
           data: {
             id: `dep_${service.id}_${dep.id}`,
             source: `service_${service.id}`,
             target: `service_${dep.id}`,
             type: 'dependency',
-            label: dep.$extras.pivot_label,
-            color: this.getEdgeColor(dep.$extras.pivot_type),
-            dependency_type: dep.$extras.pivot_type,
-            dependency_label: dep.$extras.pivot_label
+            label: dep.$pivot?.label,
+            color: this.getEdgeColor(dep.$pivot?.type || 'fallback'),
+            dependency_type: dep.$pivot?.type,
+            dependency_label: dep.$pivot?.label
           }
         }))
       )
@@ -216,14 +216,9 @@ export default class DashboardController {
   }
 
   /**
-   * Obtenir la couleur d'un edge selon son type
+   * ✅ FIX: Obtenir la couleur d'un edge selon son type avec typage strict
    */
-  private getEdgeColor(type: string) {
-    const colors = {
-      required: '#ef4444',    // Rouge pour les dépendances critiques
-      optional: '#f59e0b',    // Orange pour les dépendances optionnelles
-      fallback: '#10b981'     // Vert pour les fallbacks
-    }
-    return colors[type] || '#6b7280'
+  private getEdgeColor(type: string): string {
+    return getDependencyColor(type)
   }
 }

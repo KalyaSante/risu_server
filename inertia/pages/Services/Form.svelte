@@ -1,6 +1,7 @@
 <script>
   import { router } from '@inertiajs/svelte';
   import { ActionButton } from '../../components';
+  import PortsEditor from '../../components/PortsEditor.svelte';
 
   // Props
   export let service = {};
@@ -17,8 +18,12 @@
     path: service.path || '',
     repoUrl: service.repoUrl || '',
     docPath: service.docPath || '',
+    description: service.description || '',
     lastMaintenanceAt: service.lastMaintenanceAt ? formatDatetimeLocal(service.lastMaintenanceAt) : ''
   };
+
+  // ✅ NOUVEAU: Ports multiples
+  let ports = service.ports || [{ port: '', label: 'web' }];
 
   // State
   let iconPreview = formData.icon;
@@ -43,11 +48,15 @@
 
     const submitData = { ...formData };
 
+    // ✅ NOUVEAU: Ajouter les ports au payload
+    submitData.ports = ports;
+
     // Convert empty strings to null for optional fields
     if (!submitData.icon) submitData.icon = null;
     if (!submitData.path) submitData.path = null;
     if (!submitData.repoUrl) submitData.repoUrl = null;
     if (!submitData.docPath) submitData.docPath = null;
+    if (!submitData.description) submitData.description = null;
     if (!submitData.lastMaintenanceAt) submitData.lastMaintenanceAt = null;
 
     if (isEdit) {
@@ -145,6 +154,26 @@
               {#if errors.serverId}
                 <label class="label">
                   <span class="label-text-alt text-error">{errors.serverId}</span>
+                </label>
+              {/if}
+            </div>
+
+            <!-- ✅ NOUVEAU: Ports multiples -->
+            <PortsEditor bind:ports disabled={isSubmitting} />
+            <!-- Description -->
+            <div class="form-control">
+              <label class="label">
+                <span class="label-text font-semibold">Description</span>
+              </label>
+              <textarea
+                bind:value={formData.description}
+                placeholder="Description courte du service et de son rôle"
+                class="textarea textarea-bordered {errors.description ? 'textarea-error' : ''}"
+                rows="3"
+              ></textarea>
+              {#if errors.description}
+                <label class="label">
+                  <span class="label-text-alt text-error">{errors.description}</span>
                 </label>
               {/if}
             </div>
@@ -289,6 +318,11 @@
           <div>
             <h3 class="font-semibold">🏷️ Nom du service</h3>
             <p class="text-base-content/70">Utilisez un nom descriptif qui identifie clairement le service et sa fonction.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold">🔌 Ports</h3>
+            <p class="text-base-content/70">Ajoutez tous les ports exposés par votre service. Le premier port sera considéré comme principal.</p>
           </div>
 
           <div>
