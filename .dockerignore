@@ -1,0 +1,35 @@
+# Node.js
+node_modules
+npm-debug.log
+yarn-error.log
+
+# Build output
+build/
+dist/
+tmp/ # Exclude host tmp directory, container tmp will be created by Dockerfile
+
+# AdonisJS specific
+*.sqlite3 # Exclude database files from the image
+*.sqlite3-journal
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# Git
+.git
+.gitignore
+
+# Editor
+.vscode
+.idea
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Environment files
+.env
+.env.*
+!/.env.example # Keep .env.example for reference if needed

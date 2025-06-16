@@ -1,116 +1,116 @@
 <script>
   import { router } from '@inertiajs/svelte';
   import ActionButton from './ActionButton.svelte';
-  
+
   // Props
   export let service = {};
-  
+  export let variant = 'full'; // 'full' ou 'compact'
+  export let showServer = true; // Afficher ou non le serveur (pour les pages de détail serveur)
+
   // Functions
   function viewService() {
     router.visit(`/services/${service.id}`);
   }
-  
+
   function editService() {
     router.visit(`/services/${service.id}/edit`);
   }
-  
-  function deleteService() {
-    if (confirm('Are you sure you want to delete this service?')) {
-      router.delete(`/services/${service.id}`);
+
+  function getMaintenanceStatus(lastMaintenanceAt) {
+    if (!lastMaintenanceAt) return { status: 'never', days: 999, badge: 'badge-ghost', text: 'Jamais maintenu' };
+
+    const days = Math.floor((Date.now() - new Date(lastMaintenanceAt).getTime()) / (1000 * 60 * 60 * 24));
+
+    if (days <= 7) {
+      return { status: 'recent', days, badge: 'badge-success', text: `Maintenance il y a ${days} jour${days > 1 ? 's' : ''}` };
+    } else if (days <= 30) {
+      return { status: 'warning', days, badge: 'badge-warning', text: `Maintenance il y a ${days} jours` };
+    } else {
+      return { status: 'critical', days, badge: 'badge-error', text: `Maintenance il y a ${days} jours` };
     }
   }
-  
-  function toggleService() {
-    router.patch(`/services/${service.id}/toggle`);
+
+  function formatDate(dateString) {
+    if (!dateString) return 'Non renseigné';
+    return new Date(dateString).toLocaleDateString('fr-FR', {
+      day: '2-digit',
+      month: '2-digit',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    });
   }
+
+  // Reactive variables
+  $: maintenance = getMaintenanceStatus(service.lastMaintenanceAt);
+  $: serviceName = service.name || service.nom || 'Service sans nom';
+  $: serverName = service.server?.name || service.server?.nom;
 </script>
 
 <!-- Service Card Component -->
-<div class="service-card">
-  <div class="service-card__header">
-    <h3 class="service-card__title">{service.name || 'Unnamed Service'}</h3>
-    <div class="service-card__status" class:running={service.status === 'running'} class:stopped={service.status === 'stopped'}>
-      {service.status || 'unknown'}
+<div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow {variant === 'compact' ? 'bg-base-200' : ''}">
+  <div class="card-body {variant === 'compact' ? 'p-4' : ''}">
+
+    <!-- Header -->
+    <div class="flex justify-between items-start">
+      <div>
+        <h3 class="card-title {variant === 'compact' ? 'text-base' : ''}">{serviceName}</h3>
+
+        {#if showServer && serverName}
+          <p class="text-sm text-base-content/70">📍 {serverName}</p>
+        {/if}
+
+        {#if service.path}
+          <p class="text-sm text-base-content/70">{service.path}</p>
+        {/if}
+      </div>
+
+      {#if service.icon}
+        <div class="w-12 h-12 bg-white border border-base-200 p-2 rounded-full">
+            <img src="/icons/{service.icon}" alt={serviceName} />
+        </div>
+      {/if}
     </div>
-  </div>
-  
-  <div class="service-card__content">
-    {#if service.port}
-      <p class="service-card__port">
-        <strong>Port:</strong> {service.port}
-      </p>
-    {/if}
-    
-    {#if service.description}
-      <p class="service-card__description">
-        {service.description}
-      </p>
-    {/if}
-    
-    {#if service.server}
-      <p class="service-card__server">
-        <strong>Server:</strong> {service.server.name}
-      </p>
-    {/if}
-  </div>
-  
-  <div class="service-card__actions">
-    <ActionButton variant="primary" size="sm" on:click={viewService}>
-      View
-    </ActionButton>
-    <ActionButton variant="secondary" size="sm" on:click={editService}>
-      Edit
-    </ActionButton>
-    <ActionButton 
-      variant={service.status === 'running' ? 'warning' : 'success'} 
-      size="sm" 
-      on:click={toggleService}
-    >
-      {service.status === 'running' ? 'Stop' : 'Start'}
-    </ActionButton>
-    <ActionButton variant="danger" size="sm" on:click={deleteService}>
-      Delete
-    </ActionButton>
+
+      <div class="mt-3">
+        <div class="badge {maintenance.badge} badge-sm">
+          {maintenance.text}
+        </div>
+      </div>
+
+      <!-- Dependencies info -->
+      {#if service.dependenciesCount > 0}
+        <div class="mt-3">
+          <p class="text-xs text-base-content/50">
+            {service.dependenciesCount} dépendance{service.dependenciesCount > 1 ? 's' : ''}
+          </p>
+        </div>
+      {/if}
+
+    <!-- Actions -->
+    <div class="card-actions justify-end mt-{variant === 'compact' ? '3' : '4'}">
+      <ActionButton
+        variant="primary"
+        size={variant === 'compact' ? 'xs' : 'sm'}
+        on:click={viewService}
+      >
+        Voir
+      </ActionButton>
+      <ActionButton
+        variant="secondary"
+        size={variant === 'compact' ? 'xs' : 'sm'}
+        on:click={editService}
+      >
+        Modifier
+      </ActionButton>
+    </div>
+
   </div>
 </div>
 
 <style>
-  /* Service Card styles will go here */
-  .service-card {
-    /* Base card styles */
-  }
-  
-  .service-card__header {
-    /* Header styles */
-  }
-  
-  .service-card__title {
-    /* Title styles */
-  }
-  
-  .service-card__status {
-    /* Status styles */
-  }
-  
-  .service-card__status.running {
-    /* Running status styles */
-  }
-  
-  .service-card__status.stopped {
-    /* Stopped status styles */
-  }
-  
-  .service-card__content {
-    /* Content styles */
-  }
-  
-  .service-card__port,
-  .service-card__description,
-  .service-card__server {
-    /* Content item styles */
-  }
-  
-  .service-card__actions {
-    /* Actions styles */
+  /* Effet hover pour soulever légèrement la card */
+  .card:hover {
+    transform: translateY(-2px);
   }
 </style>

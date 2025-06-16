@@ -16,7 +16,7 @@
   $: hebergeurs = [...new Set(servers.map(s => s.hebergeur).filter(Boolean))];
   $: totalServices = servers.reduce((acc, s) => acc + (s.services?.length || 0), 0);
   $: filteredServers = servers.filter(server => {
-    const matchesSearch = (server.nom || '').toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesSearch = (server.name || '').toLowerCase().includes(searchTerm.toLowerCase());
     const matchesHebergeur = !selectedHebergeur || server.hebergeur === selectedHebergeur;
     return matchesSearch && matchesHebergeur;
   });
@@ -110,7 +110,7 @@
           <div class="card-body">
             <div class="flex justify-between items-start">
               <div>
-                <h2 class="card-title">{server.nom || 'Serveur sans nom'}</h2>
+                <h2 class="card-title">{server.name || 'Serveur sans nom'}</h2>
                 <p class="text-sm text-base-content/70">{server.ip || 'IP non renseignée'}</p>
               </div>
               <div class="badge badge-primary">{server.hebergeur || 'Non spécifié'}</div>
@@ -125,7 +125,7 @@
                 <p class="text-sm font-medium">Services ({server.services.length})</p>
                 <div class="flex flex-wrap gap-1 mt-2">
                   {#each server.services.slice(0, 3) as service}
-                    <span class="badge badge-secondary badge-sm">{service.nom || 'Service'}</span>
+                    <span class="badge badge-secondary badge-sm">{service.name || 'Service'}</span>
                   {/each}
                   {#if server.services.length > 3}
                     <span class="badge badge-ghost badge-sm">+{server.services.length - 3}</span>

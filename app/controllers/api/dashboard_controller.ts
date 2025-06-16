@@ -88,7 +88,7 @@ export default class DashboardApiController {
         localisation: server.localisation,
         services_count: server.services?.length || 0
       })),
-      
+
       ...services.map(service => ({
         id: `service_${service.id}`,
         label: service.nom,
@@ -105,19 +105,24 @@ export default class DashboardApiController {
       }))
     ]
 
-    const edges = services.flatMap(service => 
-      service.dependencies.map(dep => ({
-        from: `service_${service.id}`,
-        to: `service_${dep.id}`,
-        label: dep.$extras.pivot_label,
-        title: `${service.nom} → ${dep.nom}\n${dep.$extras.pivot_label}`,
-        color: this.getEdgeColor(dep.$extras.pivot_type),
-        arrows: 'to',
-        smooth: { type: 'continuous' },
-        type: dep.$extras.pivot_type,
-        dependency_label: dep.$extras.pivot_label
-      }))
-    )
+    const edges = [
+      // ❌ Liaison serveur -> serveur supprimée (redondant avec l'imbrication visuelle)
+
+      // dépendances de services
+      ...services.flatMap((service) =>
+        service.dependencies.map(dep => ({
+          from: `service_${service.id}`,
+          to: `service_${dep.id}`,
+          label: dep.$extras.pivot_label,
+          title: `${service.nom} → ${dep.nom}\n${dep.$extras.pivot_label}`,
+          color: this.getEdgeColor(dep.$extras.pivot_type),
+          arrows: 'to',
+          smooth: { type: 'continuous' },
+          type: dep.$extras.pivot_type,
+          dependency_label: dep.$extras.pivot_label
+        }))
+      )
+    ]
 
     return { nodes, edges }
   }

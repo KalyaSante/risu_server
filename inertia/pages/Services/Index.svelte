@@ -54,29 +54,6 @@
     });
   }
 
-  // Functions
-  function getMaintenanceStatus(lastMaintenanceAt) {
-    if (!lastMaintenanceAt) return { status: 'never', days: 999, badge: 'badge-ghost', text: 'Jamais maintenu' };
-
-    const days = Math.floor((Date.now() - new Date(lastMaintenanceAt).getTime()) / (1000 * 60 * 60 * 24));
-
-    if (days <= 7) {
-      return { status: 'recent', days, badge: 'badge-success', text: `Maintenance il y a ${days} jour${days > 1 ? 's' : ''}` };
-    } else if (days <= 30) {
-      return { status: 'warning', days, badge: 'badge-warning', text: `Maintenance il y a ${days} jours` };
-    } else {
-      return { status: 'critical', days, badge: 'badge-error', text: `Maintenance il y a ${days} jours` };
-    }
-  }
-
-  function goToService(serviceId) {
-    router.visit(`/services/${serviceId}`);
-  }
-
-  function editService(serviceId) {
-    router.visit(`/services/${serviceId}/edit`);
-  }
-
   function createService() {
     router.visit('/services/create');
   }
@@ -217,57 +194,11 @@
     <!-- Services grid -->
     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {#each filteredServices as service (service.id)}
-        {@const maintenance = getMaintenanceStatus(service.lastMaintenanceAt)}
-
-        <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow">
-          <div class="card-body">
-
-            <!-- Header -->
-            <div class="flex justify-between items-start">
-              <div>
-                <h2 class="card-title">{service.name}</h2>
-                {#if service.server}
-                  <p class="text-sm text-base-content/70">📍 {service.server.name}</p>
-                {/if}
-                {#if service.path}
-                  <p class="text-sm text-base-content/70">{service.path}</p>
-                {/if}
-              </div>
-              {#if service.icon}
-                <div class="w-12 h-12 bg-base-content p-2 rounded-full">
-                  <img src="/icons/{service.icon}" />
-                </div>
-              {/if}
-            </div>
-
-            <!-- Maintenance badge -->
-            <div class="mt-3">
-              <div class="badge {maintenance.badge} badge-sm">
-                {maintenance.text}
-              </div>
-            </div>
-
-            <!-- Dependencies info -->
-            {#if service.dependenciesCount > 0}
-              <div class="mt-3">
-                <p class="text-xs text-base-content/50">
-                  {service.dependenciesCount} dépendance{service.dependenciesCount > 1 ? 's' : ''}
-                </p>
-              </div>
-            {/if}
-
-            <!-- Actions -->
-            <div class="card-actions justify-end mt-4">
-              <ActionButton variant="primary" size="sm" on:click={() => goToService(service.id)}>
-                Voir
-              </ActionButton>
-              <ActionButton variant="secondary" size="sm" on:click={() => editService(service.id)}>
-                Modifier
-              </ActionButton>
-            </div>
-
-          </div>
-        </div>
+        <ServiceCard
+          {service}
+          variant="full"
+          showServer={true}
+        />
       {/each}
     </div>
 

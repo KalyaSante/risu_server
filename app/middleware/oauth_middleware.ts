@@ -53,6 +53,6 @@ export default class OAuthMiddleware {
       response.cookie('intended_url', intendedUrl)
     }
 
-    return response.redirect('/auth/login')
+    return response.redirect('/login')
   }
 }

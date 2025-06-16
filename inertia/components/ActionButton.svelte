@@ -10,7 +10,7 @@
 
 <!-- Action Button Component -->
 <button
-  class="action-button btn btn-soft btn-{variant} btn-{size}"
+  class="action-button btn btn-{variant} btn-{size}"
   {type}
   {disabled}
   class:loading
@@ -24,7 +24,7 @@
 
   /* Button styles will go here */
   .action-button {
-    @apply btn btn-soft;
+    @apply btn;
   }
 
   .action-button--primary {

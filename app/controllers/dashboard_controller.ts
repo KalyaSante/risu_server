@@ -8,6 +8,26 @@ export default class DashboardController {
    * MIGRATION INERTIA: view.render() → inertia.render()
    */
   async index({ inertia, session }: HttpContext) {
+    // ✅ FIX: Vérifier l'authentification avant tout
+    const sessionUserId = session.get('user_id')
+    const sessionUserEmail = session.get('user_email')
+    const sessionUserName = session.get('user_name')
+
+    console.log('🔍 Debug session utilisateur:', {
+      user_id: sessionUserId,
+      user_email: sessionUserEmail,
+      user_name: sessionUserName,
+      hasToken: !!session.get('access_token')
+    })
+
+    // ✅ Si les données sont manquantes, forcer la déconnexion
+    if (!sessionUserId || !sessionUserEmail) {
+      console.warn('⚠️ Données utilisateur manquantes en session, déconnexion forcée')
+      session.clear()
+      session.flash('error', 'Session expirée, veuillez vous reconnecter')
+      return inertia.location('/auth/login')
+    }
+
     // Récupérer toutes les données nécessaires
     const servers = await Server.query()
       .preload('services', (servicesQuery) => {
@@ -15,6 +35,8 @@ export default class DashboardController {
           depQuery.pivotColumns(['label', 'type'])
         })
       })
+      .preload('parent')
+      .preload('parent')
 
     const services = await Service.query()
       .preload('server')
@@ -36,11 +58,14 @@ export default class DashboardController {
       uptime: 98 // Tu peux calculer ça dynamiquement plus tard
     }
 
-    // Utilisateur connecté
+    // ✅ FIX: Utilisateur connecté sans valeurs par défaut problématiques
     const user = {
-      email: session.get('user_email') || 'admin@kalya.com',
-      fullName: session.get('user_name') || 'Admin Kalya'
+      id: sessionUserId,
+      email: sessionUserEmail,
+      fullName: sessionUserName
     }
+
+    console.log('👤 Utilisateur pour le rendu:', user)
 
     // ✅ INERTIA: Rendu avec Svelte
     return inertia.render('Dashboard/Index', {
@@ -51,7 +76,8 @@ export default class DashboardController {
         status: 'online', // Tu peux calculer ça dynamiquement
         servicesCount: server.services?.length || 0,
         hebergeur: server.hebergeur,
-        localisation: server.localisation
+        localisation: server.localisation,
+        services: server.services || []
       })),
       services,
       stats,
@@ -139,6 +165,7 @@ export default class DashboardController {
           id: `server_${server.id}`,
           label: server.nom,
           type: 'server',
+          parent: server.parentServerId ? `server_${server.parentServerId}` : undefined,
           // Données supplémentaires pour les détails
           server_id: server.id,
           ip: server.ip,
@@ -165,7 +192,9 @@ export default class DashboardController {
           last_maintenance_at: service.lastMaintenanceAt?.toISO()
         }
       })),
-      
+
+      // ❌ Edges d'hébergement entre serveurs supprimés (redondant avec parent/child)
+
       // Edges de dépendances entre services
       ...services.flatMap(service =>
         service.dependencies.map(dep => ({

@@ -1,5 +1,7 @@
 @import "tailwindcss";
-@plugin "daisyui";
+@plugin "daisyui" {
+  themes: all;
+}
 
 body{
   @apply bg-base-300 text-base-content;
@@ -13,3 +15,10 @@ main{
   @apply bg-primary text-primary-content;
 }
 
+.input{
+  @apply input;
+}
+
+.select{
+  @apply select;
+}

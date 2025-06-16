@@ -1,6 +1,6 @@
 <script>
   import { DashboardLayout } from '../../app';
-  import { ActionButton } from '../../components';
+  import { ActionButton, ServiceCard } from '../../components';
   import { router } from '@inertiajs/svelte';
 
   // Props from Inertia
@@ -15,14 +15,6 @@
 
   function createService() {
     router.visit(`/services/create?server_id=${server.id}`);
-  }
-
-  function viewService(serviceId) {
-    router.visit(`/services/${serviceId}`);
-  }
-
-  function editService(serviceId) {
-    router.visit(`/services/${serviceId}/edit`);
   }
 
   function copyToClipboard(text) {
@@ -58,15 +50,15 @@
   // Breadcrumbs
   $: breadcrumbs = [
     { label: 'Serveurs', href: '/servers' },
-    { label: server.nom }
+    { label: server.name }
   ];
 </script>
 
 <svelte:head>
-  <title>{server.nom} - Kalya</title>
+  <title>{server.name} - Kalya</title>
 </svelte:head>
 
-<DashboardLayout {user} {flash} title="{server.nom} - Kalya" currentRoute="servers">
+<DashboardLayout {user} {flash} title="{server.name} - Kalya" currentRoute="servers">
   <!-- En-tête -->
   <div class="flex justify-between items-start mb-6">
     <div>
@@ -85,7 +77,7 @@
           {/each}
         </ul>
       </div>
-      <h1 class="text-3xl font-bold mt-2">🖥️ {server.nom}</h1>
+      <h1 class="text-3xl font-bold mt-2">🖥️ {server.name}</h1>
     </div>
     <div class="flex gap-2">
       <ActionButton variant="secondary" on:click={editServer}>
@@ -131,6 +123,19 @@
               <label class="label-text font-semibold">Localisation</label>
               <p class="mt-1 text-sm">{server.localisation}</p>
             </div>
+
+            {#if server.parentServer}
+              <div>
+                <label class="label-text font-semibold">Hébergé dans</label>
+                <a
+                  href={`/servers/${server.parentServer.id}`}
+                  class="link mt-1 block"
+                  on:click|preventDefault={() => router.visit(`/servers/${server.parentServer.id}`)}
+                >
+                  {server.parentServer.name}
+                </a>
+              </div>
+            {/if}
 
             <div>
               <label class="label-text font-semibold">Créé le</label>
@@ -190,36 +195,11 @@
           {:else}
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               {#each server.services as service (service.id)}
-                <div class="card bg-base-200 shadow-md hover:shadow-lg transition-shadow">
-                  <div class="card-body p-4">
-                    <div class="flex justify-between items-start">
-                      <div>
-                        <h3 class="card-title text-base">{service.nom}</h3>
-                        {#if service.path}
-                          <p class="text-sm text-base-content/70">{service.path}</p>
-                        {/if}
-                      </div>
-                      {#if service.icon}
-                        <div class="text-2xl">{service.icon}</div>
-                      {/if}
-                    </div>
-
-                    {#if service.lastMaintenanceAt}
-                      <div class="text-xs text-base-content/50 mt-2">
-                        Maintenance: {formatDate(service.lastMaintenanceAt)}
-                      </div>
-                    {/if}
-
-                    <div class="card-actions justify-end mt-3">
-                      <ActionButton variant="primary" size="xs" on:click={() => viewService(service.id)}>
-                        Voir
-                      </ActionButton>
-                      <ActionButton variant="secondary" size="xs" on:click={() => editService(service.id)}>
-                        Modifier
-                      </ActionButton>
-                    </div>
-                  </div>
-                </div>
+                <ServiceCard
+                  {service}
+                  variant="compact"
+                  showServer={false}
+                />
               {/each}
             </div>
           {/if}
