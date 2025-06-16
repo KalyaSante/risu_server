@@ -3,11 +3,7 @@ name: Build and Push Docker Image to GHCR
 on:
   push:
     branches:
-      - main # Or your default branch if it's different, e.g., master
-  # You can also trigger on pull requests, releases, etc.
-  # pull_request:
-  #   branches:
-  #     - main
+      - master
 
 env:
   REGISTRY: ghcr.io
