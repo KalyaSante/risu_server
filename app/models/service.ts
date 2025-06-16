@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo, manyToMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Server from './server.js'
+import type { ServicePort } from '#types/oauth'
 
 export default class Service extends BaseModel {
   @column({ isPrimary: true })
@@ -25,6 +26,17 @@ export default class Service extends BaseModel {
   @column()
   declare docPath: string | null
 
+  @column()
+  declare description: string | null
+
+  // ✅ SIMPLE: Ports multiples en JSON avec juste port + label
+  @column({
+    serialize: (value: ServicePort[] | null) => value,
+    prepare: (value: ServicePort[] | null) => value ? JSON.stringify(value) : null,
+    consume: (value: string | null) => value ? JSON.parse(value) : null,
+  })
+  declare ports: ServicePort[] | null
+
   @column.dateTime()
   declare lastMaintenanceAt: DateTime | null
 
@@ -37,7 +49,6 @@ export default class Service extends BaseModel {
   @belongsTo(() => Server)
   declare server: BelongsTo<typeof Server>
 
-  // Services dont ce service dépend
   @manyToMany(() => Service, {
     pivotTable: 'service_dependencies',
     localKey: 'id',
@@ -48,7 +59,6 @@ export default class Service extends BaseModel {
   })
   declare dependencies: ManyToMany<typeof Service>
 
-  // Services qui dépendent de ce service
   @manyToMany(() => Service, {
     pivotTable: 'service_dependencies',
     localKey: 'id',
@@ -58,4 +68,18 @@ export default class Service extends BaseModel {
     pivotColumns: ['label', 'type'],
   })
   declare dependents: ManyToMany<typeof Service>
+
+  // ✅ Getters simples
+  get primaryPort(): number | null {
+    const portValue = this.ports?.[0]?.port;
+    if (typeof portValue === 'string') {
+      const parsedPort = parseInt(portValue, 10);
+      return isNaN(parsedPort) ? null : parsedPort;
+    }
+    return portValue || null;
+  }
+
+  get allPorts(): ServicePort[] {
+    return this.ports || []
+  }
 }

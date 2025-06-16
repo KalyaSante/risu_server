@@ -1,5 +1,6 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Service from '#models/service'
+import { extendPaginator } from '#types/pagination'
 
 export default class ServicesApiController {
   /**
@@ -29,16 +30,19 @@ export default class ServicesApiController {
         .orderBy('nom', 'asc')
         .paginate(page, limit)
 
+      // ✅ FIX: Utiliser extendPaginator pour calculer hasNextPage/hasPreviousPage
+      const extendedServices = extendPaginator(services)
+
       return response.json({
         success: true,
         data: services.serialize(),
         meta: {
-          total: services.total,
-          perPage: services.perPage,
-          currentPage: services.currentPage,
-          lastPage: services.lastPage,
-          hasNextPage: services.hasNextPage,
-          hasPreviousPage: services.hasPreviousPage
+          total: extendedServices.total,
+          perPage: extendedServices.perPage,
+          currentPage: extendedServices.currentPage,
+          lastPage: extendedServices.lastPage,
+          hasNextPage: extendedServices.hasNextPage,
+          hasPreviousPage: extendedServices.hasPreviousPage
         }
       })
     } catch (error) {
@@ -89,7 +93,7 @@ export default class ServicesApiController {
 
       return response.json({
         success: true,
-        data: services.map(service => service.serialize()),
+        data: services.map((service: any) => service.serialize()),
         meta: {
           count: services.length,
           serverId: params.serverId
@@ -115,7 +119,7 @@ export default class ServicesApiController {
         .orderBy('nom', 'asc')
 
       // Simuler le statut pour l'instant (tu peux implémenter la vraie logique plus tard)
-      const servicesWithStatus = services.map(service => ({
+      const servicesWithStatus = services.map((service: any) => ({
         id: service.id,
         name: service.nom,
         status: Math.random() > 0.1 ? 'running' : 'stopped', // 90% running

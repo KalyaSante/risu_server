@@ -2,6 +2,7 @@
   import { router } from '@inertiajs/svelte';
   import { DashboardLayout } from '../../app';
   import { ActionButton } from '../../components';
+  import ServicePorts from '../../components/ServicePorts.svelte';
 
   // Props from Inertia
   export let service = {};
@@ -125,6 +126,11 @@
           {service.server?.nom}
         </button>
       </p>
+
+      <!-- ✅ NOUVEAU: Description -->
+      {#if service.description}
+        <p class="text-base-content/60 mt-2">{service.description}</p>
+      {/if}
     </div>
 
     <!-- Actions -->
@@ -165,6 +171,21 @@
                 {/if}
               </div>
             </div>
+
+            <!-- ✅ NOUVEAU: Ports -->
+            {#if service.ports && service.ports.length > 0}
+              <div>
+                <label class="label-text font-semibold">Ports exposés</label>
+                <div class="mt-2">
+                  <ServicePorts
+                    ports={service.ports}
+                    serverIp={service.server?.ip}
+                    servicePath={service.path}
+                    size="normal"
+                  />
+                </div>
+              </div>
+            {/if}
 
             <!-- Installation path -->
             {#if service.path}

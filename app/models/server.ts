@@ -19,6 +19,10 @@ export default class Server extends BaseModel {
   @column()
   declare localisation: string
 
+  // ✅ AJOUT: Propriété description manquante
+  @column()
+  declare description: string | null
+
   @column({ columnName: 'parent_server_id' })
   declare parentServerId: number | null
 
@@ -31,8 +35,9 @@ export default class Server extends BaseModel {
   @hasMany(() => Service)
   declare services: HasMany<typeof Service>
 
+  // ✅ FIX: Relation parent sans le ? optionnel pour éviter les erreurs TypeScript
   @belongsTo(() => Server, { foreignKey: 'parentServerId' })
-  declare parent?: BelongsTo<typeof Server>
+  declare parent: BelongsTo<typeof Server>
 
   @hasMany(() => Server, { foreignKey: 'parentServerId' })
   declare children: HasMany<typeof Server>
