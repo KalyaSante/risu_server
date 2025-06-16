@@ -69,12 +69,16 @@ The `docker-compose.yml` is configured to persist the SQLite database.
 
 ## Automated Image Publishing with GitHub Actions
 
-This project is set up with a GitHub Actions workflow (see `.github/workflows/docker-image.yml`) to automatically build and publish the Docker image to the GitHub Container Registry (GHCR).
+This project includes a GitHub Actions workflow (see `.github/workflows/docker-image.yml`) that automatically builds and publishes the Docker image to the GitHub Container Registry (GHCR).
 
-*   **Trigger:** The workflow runs on every push to the `main` branch.
-*   **Image Name:** `ghcr.io/YOUR_GITHUB_USERNAME/YOUR_REPOSITORY_NAME` (e.g., `ghcr.io/johndoe/my-app`).
-*   **Privacy:** The image will be private if your repository is private.
-*   **Tags:** Images are tagged with the commit SHA and `latest` (for pushes to the `main` branch).
+*   **How it works:** The workflow is defined in `.github/workflows/docker-image.yml`.
+*   **Trigger:** It runs on every push to the `main` branch (or your configured default branch).
+*   **Image Name:** The image will be named `ghcr.io/YOUR_GITHUB_USERNAME/YOUR_REPOSITORY_NAME` (e.g., `ghcr.io/johndoe/my-app`). GitHub Actions dynamically determines your username and repository name.
+*   **Privacy:** The image will be private if your repository is private. You can manage package visibility in your repository's package settings if needed.
+*   **Tags:** Images are tagged with the commit SHA and `latest` (for pushes to the default branch).
+*   **Permissions:** The workflow has the necessary permissions (`packages: write`) to publish to GHCR using the automatically available `GITHUB_TOKEN`.
+
+You can monitor the status of these actions in the "Actions" tab of your GitHub repository.
 
 ### Using the Published Image on a Server
 
@@ -84,8 +88,9 @@ This project is set up with a GitHub Actions workflow (see `.github/workflows/do
     export CR_PAT=<your_github_pat>
     echo $CR_PAT | docker login ghcr.io -u YOUR_GITHUB_USERNAME --password-stdin
     ```
+    (Replace `YOUR_GITHUB_USERNAME` and `<your_github_pat>`)
 
-2.  **Update `docker-compose.yml` on the server (Optional but Recommended):**
+2.  **Update `docker-compose.yml` on the server (Recommended):**
     Instead of building the image on the server, you can modify the `docker-compose.yml` to pull the pre-built image from GHCR.
     Replace the `build` section with `image`:
     ```yaml
