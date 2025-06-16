@@ -1,13 +1,13 @@
 import type { ModelPaginatorContract } from '@adonisjs/lucid/types/model'
-import type { LucidRow } from '@ioc:Adonis/Lucid/Orm';
+import type { LucidRow } from '@adonisjs/lucid/types/model'
 
-export interface ExtendedPaginator<T extends LucidRow> extends ModelPaginatorContract<T> {
+export interface ExtendedPaginator<T extends LucidRow = LucidRow> extends ModelPaginatorContract<T> {
   hasNextPage: boolean
   hasPreviousPage: boolean
 }
 
 // Fonction helper pour calculer les propriétés de pagination
-export function extendPaginator<T extends LucidRow>(paginator: ModelPaginatorContract<T>): ExtendedPaginator<T> {
+export function extendPaginator<T extends LucidRow = LucidRow>(paginator: ModelPaginatorContract<T>): ExtendedPaginator<T> {
   return {
     ...paginator,
     hasNextPage: paginator.hasPages && paginator.currentPage < paginator.lastPage,
@@ -20,7 +20,7 @@ export type DependencyType = 'required' | 'optional' | 'fallback'
 
 export const dependencyColors: Record<DependencyType, string> = {
   required: '#ef4444',
-  optional: '#f59e0b', 
+  optional: '#f59e0b',
   fallback: '#6b7280'
 }
 
