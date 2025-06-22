@@ -5,8 +5,7 @@
   export let user = {};
   export let flash = {};
   export let errors = {};
+  export let servers = [];
 </script>
-
-export let servers = [];
 
 <Form {user} {flash} {errors} {servers} />
