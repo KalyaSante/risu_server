@@ -17,11 +17,14 @@
 */
 
 /**
- * Register hook to process TypeScript files using ts-node-maintained
+ * This file is the entrypoint for Ace commands. It directly imports
+ * the TypeScript version of the console kernel.
+ *
+ * The `ts-node/esm` loader should be activated via NODE_OPTIONS
+ * in the package.json script.
  */
-import 'ts-node-maintained/register/esm'
 
 /**
  * Import ace console entrypoint
  */
-await import('./bin/console.js')
+await import('./bin/console.ts')

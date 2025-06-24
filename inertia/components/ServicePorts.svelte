@@ -36,7 +36,7 @@
         {/if}
         {primaryPort.port}
         {#if primaryUrl}
-          <a href={primaryUrl} target="_blank" class="ml-1 opacity-70 hover:opacity-100">
+          <a href={primaryUrl} target="_blank" class="ml-1 opacity-70 hover:opacity-100" aria-label="Open port {primaryPort.port} in new tab">
             <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
             </svg>
@@ -62,7 +62,7 @@
                 {/if}
               </div>
               {#if getPortUrl(port)}
-                <a href={getPortUrl(port)} target="_blank" class="btn btn-ghost btn-xs">
+                 <a href={getPortUrl(port)} target="_blank" class="btn btn-ghost btn-xs" aria-label="Open port {port.port} in new tab">
                   <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
                   </svg>

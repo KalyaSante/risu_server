@@ -106,18 +106,19 @@
             <div class="space-y-6">
               <!-- Nom du serveur -->
               <div class="form-control">
-                <label class="label">
+                <label class="label" for="server_nom">
                   <span class="label-text font-semibold">Nom du serveur *</span>
                 </label>
                 <input
                   type="text"
+                  id="server_nom"
                   bind:value={form.nom}
                   placeholder="ex: Serveur Production"
                   class="input input-bordered {errors.nom ? 'input-error' : ''}"
                   required
                 >
                 {#if errors.nom}
-                  <label class="label">
+                  <label class="label" for="server_nom_error">
                     <span class="label-text-alt text-error">{errors.nom}</span>
                   </label>
                 {/if}
@@ -125,18 +126,19 @@
 
               <!-- Adresse IP -->
               <div class="form-control">
-                <label class="label">
+                <label class="label" for="server_ip">
                   <span class="label-text font-semibold">Adresse IP *</span>
                 </label>
                 <input
                   type="text"
+                  id="server_ip"
                   bind:value={form.ip}
                   placeholder="ex: 192.168.1.100 ou 51.210.45.123"
                   class="input input-bordered {errors.ip ? 'input-error' : ''}"
                   required
                 >
                 {#if errors.ip}
-                  <label class="label">
+                  <label class="label" for="server_ip_error">
                     <span class="label-text-alt text-error">{errors.ip}</span>
                   </label>
                 {/if}
@@ -144,10 +146,11 @@
 
               <!-- Hébergeur -->
               <div class="form-control">
-                <label class="label">
+                <label class="label" for="server_hebergeur">
                   <span class="label-text font-semibold">Hébergeur *</span>
                 </label>
                 <select
+                  id="server_hebergeur"
                   bind:value={form.hebergeur}
                   class="select select-bordered {errors.hebergeur ? 'select-error' : ''}"
                   required
@@ -158,7 +161,7 @@
                   {/each}
                 </select>
                 {#if errors.hebergeur}
-                  <label class="label">
+                  <label class="label" for="server_hebergeur_error">
                     <span class="label-text-alt text-error">{errors.hebergeur}</span>
                   </label>
                 {/if}
@@ -166,18 +169,19 @@
 
               <!-- Localisation -->
               <div class="form-control">
-                <label class="label">
+                <label class="label" for="server_localisation">
                   <span class="label-text font-semibold">Localisation *</span>
                 </label>
                 <input
                   type="text"
+                  id="server_localisation"
                   bind:value={form.localisation}
                   placeholder="ex: Strasbourg, France ou Bureau Kalya"
                   class="input input-bordered {errors.localisation ? 'input-error' : ''}"
                   required
                 >
                 {#if errors.localisation}
-                  <label class="label">
+                  <label class="label" for="server_localisation_error">
                     <span class="label-text-alt text-error">{errors.localisation}</span>
                   </label>
                 {/if}
@@ -185,10 +189,11 @@
 
               <!-- Serveur parent -->
               <div class="form-control">
-                <label class="label">
+                <label class="label" for="server_parentServerId">
                   <span class="label-text font-semibold">Hébergé dans</span>
                 </label>
                 <select
+                  id="server_parentServerId"
                   bind:value={form.parentServerId}
                   class="select select-bordered"
                 >
@@ -198,7 +203,7 @@
                   {/each}
                 </select>
                 {#if errors.parentServerId}
-                  <label class="label">
+                  <label class="label" for="server_parentServerId_error">
                     <span class="label-text-alt text-error">{errors.parentServerId}</span>
                   </label>
                 {/if}

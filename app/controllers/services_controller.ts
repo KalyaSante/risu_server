@@ -4,8 +4,7 @@ import Server from '#models/server'
 import {
   createServiceValidator,
   updateServiceValidator,
-  createServiceDependencyValidator,
-  updateServiceDependenciesValidator
+  createServiceDependencyValidator
 } from '#validators/service'
 import { DateTime } from 'luxon'
 

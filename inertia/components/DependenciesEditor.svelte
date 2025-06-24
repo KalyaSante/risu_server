@@ -76,7 +76,7 @@
 </script>
 
 <div class="form-control">
-  <label class="label">
+  <label class="label" for="dependencies_editor_main_label">
     <span class="label-text font-semibold">🔗 Dépendances</span>
     <span class="label-text-alt">Services nécessaires au bon fonctionnement</span>
   </label>
@@ -129,10 +129,11 @@
       <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
         <!-- Sélection du service -->
         <div class="form-control">
-          <label class="label">
+          <label class="label" for="new_dependency_serviceId">
             <span class="label-text text-sm">Service</span>
           </label>
           <select
+            id="new_dependency_serviceId"
             bind:value={newDependency.serviceId}
             class="select select-bordered select-sm"
             disabled={disabled}
@@ -148,10 +149,11 @@
 
         <!-- Type de dépendance -->
         <div class="form-control">
-          <label class="label">
+          <label class="label" for="new_dependency_type">
             <span class="label-text text-sm">Type</span>
           </label>
           <select
+            id="new_dependency_type"
             bind:value={newDependency.type}
             class="select select-bordered select-sm"
             disabled={disabled}
@@ -164,10 +166,11 @@
 
         <!-- Action -->
         <div class="form-control">
-          <label class="label">
+          <label class="label" for="new_dependency_action_button">
             <span class="label-text text-sm">&nbsp;</span>
           </label>
           <ActionButton
+            id="new_dependency_action_button"
             variant="primary"
             size="sm"
             on:click={addDependency}
@@ -181,11 +184,12 @@
       <!-- Label personnalisé (optionnel) -->
       {#if newDependency.serviceId}
         <div class="form-control mt-3">
-          <label class="label">
+          <label class="label" for="new_dependency_label">
             <span class="label-text text-sm">Label personnalisé (optionnel)</span>
           </label>
           <input
             type="text"
+            id="new_dependency_label"
             bind:value={newDependency.label}
             placeholder="ex: Base de données principale, Cache Redis..."
             class="input input-bordered input-sm"
@@ -211,7 +215,7 @@
   {/if}
 
   <!-- Aide -->
-  <label class="label">
+  <label class="label" for="dependencies_editor_help_text">
     <span class="label-text-alt">
       💡 Les dépendances permettent de tracer les relations entre services et d'identifier l'impact des pannes
     </span>

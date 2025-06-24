@@ -161,8 +161,8 @@
 
             <!-- Server -->
             <div>
-              <label class="label-text font-semibold">Serveur</label>
-              <div class="flex items-center gap-2 mt-1">
+              <label class="label-text font-semibold" for="service_server_display">Serveur</label>
+              <div id="service_server_display" class="flex items-center gap-2 mt-1">
                 <button class="link link-primary" on:click={goToServer}>
                   {service.server?.nom}
                 </button>
@@ -175,8 +175,8 @@
             <!-- ✅ NOUVEAU: Ports -->
             {#if service.ports && service.ports.length > 0}
               <div>
-                <label class="label-text font-semibold">Ports exposés</label>
-                <div class="mt-2">
+                <label class="label-text font-semibold" for="service_ports_display">Ports exposés</label>
+                <div id="service_ports_display" class="mt-2">
                   <ServicePorts
                     ports={service.ports}
                     serverIp={service.server?.ip}
@@ -190,15 +190,16 @@
             <!-- Installation path -->
             {#if service.path}
               <div>
-                <label class="label-text font-semibold">Chemin d'installation</label>
+                <label class="label-text font-semibold" for="service_path_display">Chemin d'installation</label>
                 <div class="flex items-center gap-2 mt-1">
-                  <code class="bg-base-200 px-3 py-2 rounded text-sm flex-1 truncate">
+                  <code id="service_path_display" class="bg-base-200 px-3 py-2 rounded text-sm flex-1 truncate">
                     {service.path}
                   </code>
                   <button
                     class="btn btn-sm btn-square btn-outline"
                     on:click={() => copyToClipboard(service.path)}
                     title="Copier le chemin"
+                    aria-label="Copier le chemin d'installation"
                   >
                     📋
                   </button>
@@ -209,8 +210,8 @@
             <!-- Repository -->
             {#if service.repoUrl}
               <div>
-                <label class="label-text font-semibold">Repository</label>
-                <div class="mt-1">
+                <label class="label-text font-semibold" for="service_repo_display">Repository</label>
+                <div id="service_repo_display" class="mt-1">
                   <button class="link link-primary text-sm" on:click={openRepository}>
                     {repoUrlShort}
                   </button>
@@ -221,15 +222,15 @@
             <!-- Documentation -->
             {#if service.docPath}
               <div>
-                <label class="label-text font-semibold">Documentation</label>
-                <p class="mt-1 text-sm">{service.docPath}</p>
+                <label class="label-text font-semibold" for="service_doc_display">Documentation</label>
+                <p id="service_doc_display" class="mt-1 text-sm">{service.docPath}</p>
               </div>
             {/if}
 
             <!-- Last maintenance -->
             <div>
-              <label class="label-text font-semibold">Dernière maintenance</label>
-              <div class="flex items-center gap-2 mt-1">
+              <label class="label-text font-semibold" for="service_maintenance_display">Dernière maintenance</label>
+              <div id="service_maintenance_display" class="flex items-center gap-2 mt-1">
                 <time class="text-sm" datetime={service.lastMaintenanceAt}>
                   {formatDate(service.lastMaintenanceAt)}
                 </time>
@@ -241,8 +242,8 @@
 
             <!-- Created date -->
             <div>
-              <label class="label-text font-semibold">Créé le</label>
-              <p class="mt-1 text-sm">{formatDate(service.createdAt)}</p>
+              <label class="label-text font-semibold" for="service_created_display">Créé le</label>
+              <p id="service_created_display" class="mt-1 text-sm">{formatDate(service.createdAt)}</p>
             </div>
 
           </div>
