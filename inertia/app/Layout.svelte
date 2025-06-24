@@ -45,7 +45,7 @@
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
           </svg>
         </div>
-        <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+        <ul class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
           <li><a href="/" class:font-bold={currentPath === '/'}>Dashboard</a></li>
           <li><a href="/servers" class:font-bold={currentPath.startsWith('/servers')}>Serveurs</a></li>
           <li><a href="/services" class:font-bold={currentPath.startsWith('/services')}>Services</a></li>
@@ -90,7 +90,7 @@
               {auth.user.fullName?.charAt(0) || auth.user.email?.charAt(0) || '?'}
             </div>
           </div>
-          <ul tabindex="0" class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
+          <ul class="menu menu-sm dropdown-content bg-base-100 rounded-box z-[1] mt-3 w-52 p-2 shadow">
             <li>
               <span class="text-sm opacity-70 pointer-events-none">
                 {auth.user.fullName || auth.user.email}

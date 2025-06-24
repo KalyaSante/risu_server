@@ -99,13 +99,14 @@
           <h2 class="card-title">📋 Informations</h2>
           <div class="space-y-4">
             <div>
-              <label class="label-text font-semibold">Adresse IP</label>
+              <label class="label-text font-semibold" for="server_ip_display">Adresse IP</label>
               <div class="flex items-center gap-2 mt-1">
-                <code class="bg-base-200 px-3 py-2 rounded text-sm flex-1">{server.ip}</code>
+                <code id="server_ip_display" class="bg-base-200 px-3 py-2 rounded text-sm flex-1">{server.ip}</code>
                 <button
                   class="btn btn-sm btn-square btn-outline"
                   on:click={() => copyToClipboard(server.ip)}
                   title="Copier l'IP"
+                  aria-label="Copier l'adresse IP"
                 >
                   📋
                 </button>
@@ -113,21 +114,22 @@
             </div>
 
             <div>
-              <label class="label-text font-semibold">Hébergeur</label>
-              <div class="mt-1">
+              <label class="label-text font-semibold" for="server_hebergeur_display">Hébergeur</label>
+              <div id="server_hebergeur_display" class="mt-1">
                 <div class="badge badge-primary">{server.hebergeur}</div>
               </div>
             </div>
 
             <div>
-              <label class="label-text font-semibold">Localisation</label>
-              <p class="mt-1 text-sm">{server.localisation}</p>
+              <label class="label-text font-semibold" for="server_localisation_display">Localisation</label>
+              <p id="server_localisation_display" class="mt-1 text-sm">{server.localisation}</p>
             </div>
 
             {#if server.parentServer}
               <div>
-                <label class="label-text font-semibold">Hébergé dans</label>
+                <label class="label-text font-semibold" for="server_parent_display">Hébergé dans</label>
                 <a
+                  id="server_parent_display"
                   href={`/servers/${server.parentServer.id}`}
                   class="link mt-1 block"
                   on:click|preventDefault={() => router.visit(`/servers/${server.parentServer.id}`)}
@@ -138,8 +140,8 @@
             {/if}
 
             <div>
-              <label class="label-text font-semibold">Créé le</label>
-              <p class="mt-1 text-sm">{formatDate(server.createdAt)}</p>
+              <label class="label-text font-semibold" for="server_createdAt_display">Créé le</label>
+              <p id="server_createdAt_display" class="mt-1 text-sm">{formatDate(server.createdAt)}</p>
             </div>
           </div>
         </div>

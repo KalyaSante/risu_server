@@ -176,7 +176,7 @@
         <div tabindex="0" role="button" class="btn btn-ghost btn-circle" title="Changer le thème">
           <span class="text-lg">{currentThemeData.icon}</span>
         </div>
-        <div tabindex="0" class="dropdown-content z-[1] card card-compact w-64 p-2 shadow-xl bg-base-100 border border-base-300">
+        <div class="dropdown-content z-[1] card card-compact w-64 p-2 shadow-xl bg-base-100 border border-base-300">
           <div>
             <h3 class="card-title text-sm mb-3">🎨 Choisir un thème</h3>
             <div class="grid grid-cols-2 gap-1 max-h-64 overflow-y-auto">
@@ -198,6 +198,7 @@
         class="btn btn-ghost btn-circle text-error hover:bg-error hover:text-error-content"
         on:click={logout}
         title="Se déconnecter"
+        aria-label="Se déconnecter"
       >
         <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -218,7 +219,7 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h7" />
         </svg>
       </div>
-      <div tabindex="0" class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-xl bg-base-100 rounded-box w-52 border border-base-300">
+      <div class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-xl bg-base-100 rounded-box w-52 border border-base-300">
         <li>
           <a
             href="/"

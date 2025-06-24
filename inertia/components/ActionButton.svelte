@@ -1,6 +1,6 @@
 <script>
   // Props for the action button
-  export let href = '#';
+  // export let href = '#'; // This prop is unused as the component renders a <button>
   export let variant = 'primary'; // primary, secondary, danger, etc.
   export let size = 'md'; // sm, md, lg
   export let disabled = false;
