@@ -1,6 +1,6 @@
 <script>
   import { router } from '@inertiajs/svelte';
-  import { ActionButton } from '../../components';
+  import { ActionButton, MarkdownEditor } from '../../components';
   import PortsEditor from '../../components/PortsEditor.svelte';
   import DependenciesEditor from '../../components/DependenciesEditor.svelte';
 
@@ -21,6 +21,7 @@
     repoUrl: service.repoUrl || '',
     docPath: service.docPath || '',
     description: service.description || '',
+    note: service.note || '',
     lastMaintenanceAt: service.lastMaintenanceAt ? formatDatetimeLocal(service.lastMaintenanceAt) : ''
   };
 
@@ -63,6 +64,7 @@
     if (!submitData.repoUrl) submitData.repoUrl = null;
     if (!submitData.docPath) submitData.docPath = null;
     if (!submitData.description) submitData.description = null;
+    if (!submitData.note) submitData.note = null;
     if (!submitData.lastMaintenanceAt) submitData.lastMaintenanceAt = null;
 
     if (isEdit) {
@@ -191,6 +193,15 @@
                 </label>
               {/if}
             </div>
+
+            <!-- ✅ NOUVEAU: Champ Note avec éditeur Markdown -->
+            <MarkdownEditor
+              bind:value={formData.note}
+              label="📝 Notes techniques"
+              placeholder="Documentez la configuration, les procédures de déploiement, les dépendances particulières, les solutions aux problèmes connus..."
+              error={errors.note}
+              rows="10"
+            />
 
             <!-- Icon -->
             <div class="form-control">
@@ -342,6 +353,11 @@
           <div>
             <h3 class="font-semibold">🔗 Dépendances</h3>
             <p class="text-base-content/70">Définissez les services dont celui-ci dépend pour fonctionner correctement. Utile pour tracer les pannes en cascade.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold">📝 Notes techniques</h3>
+            <p class="text-base-content/70">Documentez tout ce qui pourrait être utile : configuration spéciale, procédures, troubleshooting, credentials...</p>
           </div>
 
           <div>

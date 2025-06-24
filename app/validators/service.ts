@@ -59,6 +59,14 @@ export const createServiceValidator = vine.compile(
       .optional()
       .transform((value) => value?.trim()),
 
+    // ✅ AJOUT: Champ note markdown
+    note: vine
+      .string()
+      .trim()
+      .maxLength(10000)
+      .optional()
+      .transform((value) => value?.trim() || null),
+
     // ✅ FIX: Ports simples (nettoyage dans le contrôleur)
     ports: vine
       .array(portSchema)
@@ -99,9 +107,15 @@ export const createServiceValidator = vine.compile(
       .optional()
       .transform((value) => value?.trim()),
 
+    // ✅ CORRECTION: Ajouter le format datetime-local du HTML
     lastMaintenanceAt: vine
       .date({
-        formats: ['YYYY-MM-DD', 'YYYY-MM-DD HH:mm:ss']
+        formats: [
+          'YYYY-MM-DD',
+          'YYYY-MM-DD HH:mm:ss',
+          'YYYY-MM-DDTHH:mm',     // ✨ Format datetime-local
+          'YYYY-MM-DDTHH:mm:ss'   // ✨ Format ISO complet
+        ]
       })
       .optional()
   })
@@ -129,6 +143,14 @@ export const updateServiceValidator = vine.compile(
       .optional()
       .transform((value) => value?.trim()),
 
+    // ✅ AJOUT: Champ note markdown
+    note: vine
+      .string()
+      .trim()
+      .maxLength(10000)
+      .optional()
+      .transform((value) => value?.trim() || null),
+
     // ✅ FIX: Ports simples (nettoyage dans le contrôleur)
     ports: vine
       .array(portSchema)
@@ -169,9 +191,15 @@ export const updateServiceValidator = vine.compile(
       .optional()
       .transform((value) => value?.trim()),
 
+    // ✅ CORRECTION: Ajouter le format datetime-local du HTML
     lastMaintenanceAt: vine
       .date({
-        formats: ['YYYY-MM-DD', 'YYYY-MM-DD HH:mm:ss']
+        formats: [
+          'YYYY-MM-DD',
+          'YYYY-MM-DD HH:mm:ss',
+          'YYYY-MM-DDTHH:mm',     // ✨ Format datetime-local
+          'YYYY-MM-DDTHH:mm:ss'   // ✨ Format ISO complet
+        ]
       })
       .optional()
   })
