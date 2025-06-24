@@ -1,7 +1,12 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Service from '#models/service'
 import Server from '#models/server'
-import { createServiceValidator, updateServiceValidator } from '#validators/service'
+import {
+  createServiceValidator,
+  updateServiceValidator,
+  createServiceDependencyValidator,
+  updateServiceDependenciesValidator
+} from '#validators/service'
 import { DateTime } from 'luxon'
 
 // ✅ FIX: Interface pour les erreurs de validation
@@ -27,6 +32,52 @@ export default class ServicesController {
     )
 
     return validPorts.length > 0 ? validPorts : null
+  }
+
+  /**
+   * ✅ NOUVEAU: Helper pour récupérer les services disponibles pour les dépendances
+   */
+  private async getAvailableServices(excludeId?: number) {
+    const query = Service.query()
+      .preload('server')
+      .orderBy('nom', 'asc')
+
+    if (excludeId) {
+      query.where('id', '!=', excludeId)
+    }
+
+    const services = await query
+
+    return services.map((service) => ({
+      id: service.id,
+      name: service.nom,
+      serverName: service.server?.nom || 'Unknown',
+      serverId: service.serverId
+    }))
+  }
+
+  /**
+   * ✅ NOUVEAU: Helper pour synchroniser les dépendances
+   */
+  private async syncDependencies(service: Service, dependencies: any[]) {
+    if (!dependencies || !Array.isArray(dependencies)) {
+      return
+    }
+
+    // Supprimer toutes les dépendances existantes
+    await service.related('dependencies').detach()
+
+    // Ajouter les nouvelles dépendances
+    for (const dep of dependencies) {
+      if (dep.serviceId && dep.serviceId !== service.id) {
+        await service.related('dependencies').attach({
+          [dep.serviceId]: {
+            label: dep.label || '',
+            type: dep.type || 'required'
+          }
+        })
+      }
+    }
   }
 
   /**
@@ -111,12 +162,15 @@ export default class ServicesController {
   }
 
   /**
-   * Affiche le formulaire de création
+   * ✅ AMÉLIORÉ: Affiche le formulaire de création avec services disponibles
    */
   async create({ inertia, request, session }: HttpContext) {
     const serverId = request.input('server_id')
     const servers = await Server.query().orderBy('nom', 'asc')
     const selectedServer = serverId ? await Server.find(serverId) : null
+
+    // ✅ NOUVEAU: Récupérer tous les services pour les dépendances
+    const availableServices = await this.getAvailableServices()
 
     const formattedServers = servers.map((server: any) => ({
       id: server.id,
@@ -138,6 +192,7 @@ export default class ServicesController {
     return inertia.render('Services/Create', {
       servers: formattedServers,
       selectedServer: formattedSelectedServer,
+      availableServices, // ✅ NOUVEAU
       user,
       errors: {},
       flash: {
@@ -148,8 +203,7 @@ export default class ServicesController {
   }
 
   /**
-   * Stocke un nouveau service
-   * ✅ AMÉLIORÉ: Meilleure gestion des erreurs de validation + nettoyage des ports
+   * ✅ AMÉLIORÉ: Stocke un nouveau service avec dépendances
    */
   async store({ request, response, session }: HttpContext) {
     try {
@@ -166,7 +220,15 @@ export default class ServicesController {
           : null
       }
 
-      const service = await Service.create(payload)
+      // Enlever les dépendances du payload principal
+      const { dependencies, ...serviceData } = payload
+
+      const service = await Service.create(serviceData)
+
+      // ✅ NOUVEAU: Gérer les dépendances
+      if (dependencies && dependencies.length > 0) {
+        await this.syncDependencies(service, dependencies)
+      }
 
       session.flash('success', `Service "${service.nom}" créé avec succès!`)
       return response.redirect().toRoute('services.show', { id: service.id })
@@ -257,16 +319,21 @@ export default class ServicesController {
   }
 
   /**
-   * Affiche le formulaire d'édition
-   * ✅ AMÉLIORÉ: Meilleur formatage des données
+   * ✅ AMÉLIORÉ: Affiche le formulaire d'édition avec dépendances
    */
   async edit({ params, inertia, session }: HttpContext) {
     const service = await Service.query()
       .where('id', params.id)
       .preload('server')
+      .preload('dependencies', (query) => {
+        query.pivotColumns(['label', 'type'])
+      })
       .firstOrFail()
 
     const servers = await Server.query().orderBy('nom', 'asc')
+
+    // ✅ NOUVEAU: Récupérer tous les services sauf celui en cours d'édition
+    const availableServices = await this.getAvailableServices(service.id)
 
     const formattedService = {
       id: service.id,
@@ -285,7 +352,13 @@ export default class ServicesController {
       // ✅ NOUVEAU: Formater la date pour l'input datetime-local
       lastMaintenanceAt: service.lastMaintenanceAt
         ? service.lastMaintenanceAt.toFormat('yyyy-MM-dd\'T\'HH:mm')
-        : ''
+        : '',
+      // ✅ NOUVEAU: Dépendances actuelles
+      dependencies: service.dependencies.map((dep: any) => ({
+        serviceId: dep.id,
+        label: dep.$extras.pivot_label,
+        type: dep.$extras.pivot_type
+      }))
     }
 
     const formattedServers = servers.map((server: any) => ({
@@ -302,6 +375,7 @@ export default class ServicesController {
     return inertia.render('Services/Edit', {
       service: formattedService,
       servers: formattedServers,
+      availableServices, // ✅ NOUVEAU
       user,
       errors: {},
       flash: {
@@ -312,8 +386,7 @@ export default class ServicesController {
   }
 
   /**
-   * Met à jour un service
-   * ✅ AMÉLIORÉ: Meilleure gestion des erreurs de validation + nettoyage des ports
+   * ✅ AMÉLIORÉ: Met à jour un service avec dépendances
    */
   async update({ params, request, response, session }: HttpContext) {
     try {
@@ -331,7 +404,13 @@ export default class ServicesController {
           : null
       }
 
-      await service.merge(payload).save()
+      // Enlever les dépendances du payload principal
+      const { dependencies, ...serviceData } = payload
+
+      await service.merge(serviceData).save()
+
+      // ✅ NOUVEAU: Gérer les dépendances
+      await this.syncDependencies(service, dependencies || [])
 
       session.flash('success', `Service "${service.nom}" mis à jour avec succès!`)
       return response.redirect().toRoute('services.show', { id: service.id })
@@ -379,5 +458,159 @@ export default class ServicesController {
       session.flash('error', 'Erreur lors de la suppression du service')
       return response.redirect().back()
     }
+  }
+
+  /**
+   * ✅ NOUVEAU: Ajouter une dépendance à un service
+   */
+  async addDependency({ params, request, response, session }: HttpContext) {
+    try {
+      const service = await Service.findOrFail(params.id)
+      const validatedData = await request.validateUsing(createServiceDependencyValidator)
+
+      // Vérifier que le service de dépendance existe
+      const dependencyService = await Service.findOrFail(validatedData.dependsOnServiceId)
+
+      // Vérifier qu'on n'ajoute pas une dépendance circulaire
+      if (service.id === dependencyService.id) {
+        session.flash('error', 'Un service ne peut pas dépendre de lui-même')
+        return response.redirect().back()
+      }
+
+      // Vérifier si la dépendance existe déjà
+      const existingDependency = await service
+        .related('dependencies')
+        .query()
+        .where('service_id', dependencyService.id)
+        .first()
+
+      if (existingDependency) {
+        session.flash('error', 'Cette dépendance existe déjà')
+        return response.redirect().back()
+      }
+
+      // Ajouter la dépendance
+      await service.related('dependencies').attach({
+        [dependencyService.id]: {
+          label: validatedData.label,
+          type: validatedData.type
+        }
+      })
+
+      session.flash('success', `Dépendance vers "${dependencyService.nom}" ajoutée avec succès`)
+      return response.redirect().toRoute('services.show', { id: service.id })
+    } catch (error) {
+      session.flash('error', 'Erreur lors de l\'ajout de la dépendance')
+      return response.redirect().back()
+    }
+  }
+
+  /**
+   * ✅ NOUVEAU: Supprimer une dépendance d'un service
+   */
+  async removeDependency({ params, response, session }: HttpContext) {
+    try {
+      const service = await Service.findOrFail(params.id)
+      const dependencyId = params.dependencyId
+
+      const dependencyService = await Service.findOrFail(dependencyId)
+
+      await service.related('dependencies').detach([dependencyId])
+
+      session.flash('success', `Dépendance vers "${dependencyService.nom}" supprimée avec succès`)
+      return response.redirect().toRoute('services.show', { id: service.id })
+    } catch (error) {
+      session.flash('error', 'Erreur lors de la suppression de la dépendance')
+      return response.redirect().back()
+    }
+  }
+
+  /**
+   * ✅ NOUVEAU: API pour récupérer la liste des services disponibles pour les dépendances
+   */
+  async getAvailableServicesApi({ request, response }: HttpContext) {
+    try {
+      const excludeId = request.input('exclude_id')
+      const availableServices = await this.getAvailableServices(excludeId)
+
+      return response.json({
+        success: true,
+        data: availableServices
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        message: 'Erreur lors de la récupération des services'
+      })
+    }
+  }
+
+  /**
+   * ✅ NOUVEAU: API pour vérifier les dépendances circulaires
+   */
+  async checkCircularDependencies({ request, response }: HttpContext) {
+    try {
+      const serviceId = request.input('service_id')
+      const dependencyId = request.input('dependency_id')
+
+      if (serviceId === dependencyId) {
+        return response.json({
+          success: false,
+          message: 'Un service ne peut pas dépendre de lui-même'
+        })
+      }
+
+      // Vérifier les dépendances circulaires récursives
+      const hasCircularDependency = await this.hasCircularDependency(dependencyId, serviceId, new Set())
+
+      if (hasCircularDependency) {
+        return response.json({
+          success: false,
+          message: 'Cette dépendance créerait une dépendance circulaire'
+        })
+      }
+
+      return response.json({
+        success: true,
+        message: 'Dépendance valide'
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        message: 'Erreur lors de la vérification'
+      })
+    }
+  }
+
+  /**
+   * ✅ NOUVEAU: Helper récursif pour détecter les dépendances circulaires
+   */
+  private async hasCircularDependency(serviceId: number, targetId: number, visited: Set<number>): Promise<boolean> {
+    if (visited.has(serviceId)) {
+      return false // Éviter les boucles infinies
+    }
+
+    if (serviceId === targetId) {
+      return true
+    }
+
+    visited.add(serviceId)
+
+    const service = await Service.query()
+      .where('id', serviceId)
+      .preload('dependencies')
+      .first()
+
+    if (!service) {
+      return false
+    }
+
+    for (const dependency of service.dependencies) {
+      if (await this.hasCircularDependency(dependency.id, targetId, new Set(visited))) {
+        return true
+      }
+    }
+
+    return false
   }
 }

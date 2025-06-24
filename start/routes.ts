@@ -57,6 +57,15 @@ router.group(() => {
     services: 'id'
   })
 
+  // ✅ NOUVEAU: Routes pour la gestion des dépendances
+  router.group(() => {
+    // Ajouter une dépendance à un service
+    router.post('/services/:id/dependencies', '#controllers/services_controller.addDependency').as('services.dependencies.add')
+
+    // Supprimer une dépendance d'un service
+    router.delete('/services/:id/dependencies/:dependencyId', '#controllers/services_controller.removeDependency').as('services.dependencies.remove')
+  })
+
   // Routes API pour les données (conservées pour AJAX/fetch)
   router.group(() => {
     router.get('/servers', '#controllers/api/servers_controller.index').as('api.servers.index')
@@ -67,6 +76,10 @@ router.group(() => {
     router.get('/servers/status', '#controllers/api/servers_controller.status').as('api.servers.status')
     router.get('/services/status', '#controllers/api/services_controller.status').as('api.services.status')
     router.patch('/services/:id/toggle', '#controllers/api/services_controller.toggle').as('api.services.toggle')
+
+    // ✅ NOUVEAU: API pour la gestion des dépendances
+    router.get('/services/available', '#controllers/services_controller.getAvailableServicesApi').as('api.services.available')
+    router.post('/services/check-circular', '#controllers/services_controller.checkCircularDependencies').as('api.services.check-circular')
   }).prefix('/api')
 
 }).middleware([
@@ -110,5 +123,11 @@ router.get('/500', ({ inertia }) => {
 | 📁 inertia/components/  → Composants réutilisables (ActionButton, Alert, Navbar, Cards...)
 | 📁 inertia/app/         → Layouts (BaseLayout, DashboardLayout)
 | 📁 inertia/partials/    → Utilitaires (NetworkScript pour monitoring temps réel)
+|--------------------------------------------------------------------------
+| 🆕 NOUVEAU: Gestion des dépendances entre services
+| ✅ API /api/services/available → Liste des services disponibles pour dépendances
+| ✅ API /api/services/check-circular → Vérification des dépendances circulaires
+| ✅ POST /services/:id/dependencies → Ajouter une dépendance
+| ✅ DELETE /services/:id/dependencies/:dependencyId → Supprimer une dépendance
 |--------------------------------------------------------------------------
 */

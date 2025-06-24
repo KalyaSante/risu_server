@@ -6,6 +6,7 @@
   // Props from Inertia
   export let servers = [];
   export let selectedServer = null;
+  export let availableServices = []; // ✅ NOUVEAU
   export let user = {};
   export let errors = {};
   export let flash = {};
@@ -35,6 +36,7 @@
   <Form
     {servers}
     {selectedServer}
+    {availableServices}
     {errors}
     isEdit={false}
   />
