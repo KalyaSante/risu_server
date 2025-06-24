@@ -1,6 +1,6 @@
 <script>
   import { DashboardLayout } from '../../app';
-  import { ActionButton, ServiceCard } from '../../components';
+  import { ActionButton, ServiceCard, MarkdownViewer } from '../../components';
   import { router } from '@inertiajs/svelte';
 
   // Props from Inertia
@@ -207,6 +207,12 @@
           {/if}
         </div>
       </div>
+
+      <!-- ✅ NOUVEAU: Notes du serveur -->
+      <MarkdownViewer
+        content={server.note}
+        title="📝 Notes"
+      />
     </div>
   </div>
 </DashboardLayout>

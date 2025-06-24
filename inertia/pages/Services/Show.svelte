@@ -1,7 +1,7 @@
 <script>
   import { router } from '@inertiajs/svelte';
   import { DashboardLayout } from '../../app';
-  import { ActionButton } from '../../components';
+  import { ActionButton, MarkdownViewer } from '../../components';
   import ServicePorts from '../../components/ServicePorts.svelte';
 
   // Props from Inertia
@@ -416,6 +416,12 @@
           {/if}
         </div>
       </div>
+
+      <!-- ✅ NOUVEAU: Notes techniques du service -->
+      <MarkdownViewer
+        content={service.note}
+        title="📝 Notes techniques"
+      />
 
     </div>
 

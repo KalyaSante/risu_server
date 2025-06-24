@@ -1,6 +1,6 @@
 <script>
   import { DashboardLayout } from '../../app';
-  import { ActionButton } from '../../components';
+  import { ActionButton, MarkdownEditor } from '../../components';
   import { router } from '@inertiajs/svelte';
 
   // Props from Inertia
@@ -19,7 +19,8 @@
     ip: server?.ip || '',
     hebergeur: server?.hebergeur || '',
     localisation: server?.localisation || '',
-    parentServerId: server?.parentServerId || null
+    parentServerId: server?.parentServerId || null,
+    note: server?.note || ''
   };
 
   // Reactive variables
@@ -208,6 +209,15 @@
                   </label>
                 {/if}
               </div>
+
+              <!-- ✅ NOUVEAU: Champ Note avec éditeur Markdown -->
+              <MarkdownEditor
+                bind:value={form.note}
+                label="📝 Notes"
+                placeholder="Ajoutez des notes sur ce serveur : configuration, accès, informations importantes..."
+                error={errors.note}
+                rows="8"
+              />
             </div>
 
             <!-- Actions -->
@@ -248,6 +258,11 @@
             <div>
               <h3 class="font-semibold">📍 Localisation</h3>
               <p class="text-base-content/70">Précisez la ville/pays ou le lieu physique pour une meilleure organisation.</p>
+            </div>
+
+            <div>
+              <h3 class="font-semibold">📝 Notes</h3>
+              <p class="text-base-content/70">Documentez les informations importantes : credentials, procédures, configurations spéciales...</p>
             </div>
           </div>
         </div>

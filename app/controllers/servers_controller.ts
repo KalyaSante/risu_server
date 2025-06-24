@@ -54,6 +54,7 @@ export default class ServersController {
       hebergeur: server.hebergeur,
       localisation: server.localisation,
       description: server.description || '',
+      note: server.note || '', // ✅ AJOUT: Note
       parentServer: server.parent
         ? { id: server.parent.id, name: server.parent.nom }
         : null,
@@ -161,6 +162,8 @@ export default class ServersController {
       hebergeur: server.hebergeur,
       localisation: server.localisation,
       description: server.description || '',
+      note: server.note || '', // ✅ AJOUT: Note
+      createdAt: server.createdAt?.toISO(),
       parentServer: server.parent
         ? { id: server.parent.id, name: server.parent.nom }
         : null,
@@ -204,6 +207,7 @@ export default class ServersController {
       hebergeur: server.hebergeur,
       localisation: server.localisation,
       description: server.description || '',
+      note: server.note || '', // ✅ AJOUT: Note
       parentServerId: server.parentServerId
     }
 

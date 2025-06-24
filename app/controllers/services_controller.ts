@@ -110,13 +110,13 @@ export default class ServicesController {
     const formattedServices = services.serialize().data.map((service: any) => ({
       id: service.id,
       name: service.nom,
-      status: 'running',
-      // ✅ SIMPLE: Juste le port principal et la liste des ports
+      // ✅ SUPPRIMÉ: status: 'running' hardcodé
       primaryPort: service.primaryPort,
       ports: service.allPorts,
       path: service.path,
       icon: service.icon,
       description: service.description || '',
+      note: service.note || '', // ✅ AJOUT: Note
       server: service.server ? {
         id: service.server.id,
         name: service.server.nom,
@@ -206,7 +206,12 @@ export default class ServicesController {
    */
   async store({ request, response, session }: HttpContext) {
     try {
+      // 🔍 DEBUG: Log des données reçues
+      const allData = request.all()
+      console.log('🔍 DEBUG: Données reçues dans store:', JSON.stringify(allData, null, 2))
+
       const validatedData = await request.validateUsing(createServiceValidator)
+      console.log('🔍 DEBUG: Données validées:', JSON.stringify(validatedData, null, 2))
 
       // ✅ NOUVEAU: Nettoyer les ports après validation
       const cleanedPorts = this.cleanPorts(validatedData.ports || [])
@@ -219,10 +224,13 @@ export default class ServicesController {
           : null
       }
 
+      console.log('🔍 DEBUG: Payload final:', JSON.stringify(payload, null, 2))
+
       // Enlever les dépendances du payload principal
       const { dependencies, ...serviceData } = payload
 
       const service = await Service.create(serviceData)
+      console.log('🔍 DEBUG: Service créé:', JSON.stringify(service.toJSON(), null, 2))
 
       // ✅ NOUVEAU: Gérer les dépendances
       if (dependencies && dependencies.length > 0) {
@@ -232,6 +240,7 @@ export default class ServicesController {
       session.flash('success', `Service "${service.nom}" créé avec succès!`)
       return response.redirect().toRoute('services.show', { id: service.id })
     } catch (error) {
+      console.error('💥 DEBUG: Erreur dans store:', error)
       // ✅ AMÉLIORÉ: Meilleure gestion des erreurs de validation
       if ('messages' in error && Array.isArray((error as ValidationError).messages)) {
         const validationErrors: Record<string, string> = {}
@@ -252,6 +261,7 @@ export default class ServicesController {
 
   /**
    * Affiche les détails d'un service
+   * ✅ AJOUT: Champ note
    */
   async show({ params, inertia, session }: HttpContext) {
     const service = await Service.query()
@@ -265,17 +275,22 @@ export default class ServicesController {
       })
       .firstOrFail()
 
+    // 🔍 DEBUG: Log du service récupéré
+    console.log('🔍 DEBUG: Service récupéré:', JSON.stringify(service.toJSON(), null, 2))
+
     const formattedService = {
       id: service.id,
       nom: service.nom,
-      status: 'running',
+      // ✅ SUPPRIMÉ: status: 'running' hardcodé
       primaryPort: service.primaryPort,
       ports: service.allPorts,
       path: service.path,
       icon: service.icon,
       description: service.description || '',
+      note: service.note || '', // ✅ AJOUT: Note
       repoUrl: service.repoUrl,
       docPath: service.docPath,
+      createdAt: service.createdAt?.toISO(),
       lastMaintenanceAt: service.lastMaintenanceAt?.toISO(),
       server: service.server ? {
         id: service.server.id,
@@ -283,6 +298,9 @@ export default class ServicesController {
         ip: service.server.ip
       } : null
     }
+
+    // 🔍 DEBUG: Log du service formaté
+    console.log('🔍 DEBUG: Service formaté pour frontend:', JSON.stringify(formattedService, null, 2))
 
     const formattedDependencies = service.dependencies.map((dep: any) => ({
       id: dep.id,
@@ -329,6 +347,9 @@ export default class ServicesController {
       })
       .firstOrFail()
 
+    // 🔍 DEBUG: Log du service pour l'édition
+    console.log('🔍 DEBUG: Service pour édition:', JSON.stringify(service.toJSON(), null, 2))
+
     const servers = await Server.query().orderBy('nom', 'asc')
 
     // ✅ NOUVEAU: Récupérer tous les services sauf celui en cours d'édition
@@ -345,6 +366,7 @@ export default class ServicesController {
       path: service.path,
       icon: service.icon,
       description: service.description || '',
+      note: service.note || '', // ✅ AJOUT: Note
       repoUrl: service.repoUrl,
       docPath: service.docPath,
       serverId: service.serverId,
@@ -359,6 +381,9 @@ export default class ServicesController {
         type: dep.$extras.pivot_type
       }))
     }
+
+    // 🔍 DEBUG: Log du service formaté pour édition
+    console.log('🔍 DEBUG: Service formaté pour édition:', JSON.stringify(formattedService, null, 2))
 
     const formattedServers = servers.map((server: any) => ({
       id: server.id,
@@ -390,7 +415,13 @@ export default class ServicesController {
   async update({ params, request, response, session }: HttpContext) {
     try {
       const service = await Service.findOrFail(params.id)
+
+      // 🔍 DEBUG: Log des données reçues
+      const allData = request.all()
+      console.log('🔍 DEBUG: Données reçues dans update:', JSON.stringify(allData, null, 2))
+
       const validatedData = await request.validateUsing(updateServiceValidator)
+      console.log('🔍 DEBUG: Données validées pour update:', JSON.stringify(validatedData, null, 2))
 
       // ✅ NOUVEAU: Nettoyer les ports après validation
       const cleanedPorts = this.cleanPorts(validatedData.ports || [])
@@ -403,10 +434,13 @@ export default class ServicesController {
           : null
       }
 
+      console.log('🔍 DEBUG: Payload final pour update:', JSON.stringify(payload, null, 2))
+
       // Enlever les dépendances du payload principal
       const { dependencies, ...serviceData } = payload
 
       await service.merge(serviceData).save()
+      console.log('🔍 DEBUG: Service mis à jour:', JSON.stringify(service.toJSON(), null, 2))
 
       // ✅ NOUVEAU: Gérer les dépendances
       await this.syncDependencies(service, dependencies || [])
@@ -414,6 +448,7 @@ export default class ServicesController {
       session.flash('success', `Service "${service.nom}" mis à jour avec succès!`)
       return response.redirect().toRoute('services.show', { id: service.id })
     } catch (error) {
+      console.error('💥 DEBUG: Erreur dans update:', error)
       // ✅ AMÉLIORÉ: Meilleure gestion des erreurs de validation
       if ('messages' in error && Array.isArray((error as ValidationError).messages)) {
         const validationErrors: Record<string, string> = {}

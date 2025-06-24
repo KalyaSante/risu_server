@@ -23,6 +23,10 @@ export default class Server extends BaseModel {
   @column()
   declare description: string | null
 
+  // ✅ AJOUT: Champ note markdown
+  @column()
+  declare note: string | null
+
   @column({ columnName: 'parent_server_id' })
   declare parentServerId: number | null
 
