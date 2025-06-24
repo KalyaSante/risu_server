@@ -111,8 +111,7 @@ export default class ServicesController {
     const formattedServices = services.serialize().data.map((service: any) => ({
       id: service.id,
       name: service.nom,
-      status: 'running',
-      // ✅ SIMPLE: Juste le port principal et la liste des ports
+      // ✅ SUPPRIMÉ: status: 'running' hardcodé
       primaryPort: service.primaryPort,
       ports: service.allPorts,
       path: service.path,
@@ -269,7 +268,7 @@ export default class ServicesController {
     const formattedService = {
       id: service.id,
       nom: service.nom,
-      status: 'running',
+      // ✅ SUPPRIMÉ: status: 'running' hardcodé
       primaryPort: service.primaryPort,
       ports: service.allPorts,
       path: service.path,
