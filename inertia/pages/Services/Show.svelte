@@ -279,12 +279,6 @@
         </div>
       </div>
 
-      <!-- ✅ NOUVEAU: Notes techniques du service -->
-      <MarkdownViewer
-        content={service.note}
-        title="📝 Notes techniques"
-      />
-
     </div>
 
     <!-- Right column - Dependencies and relations -->
@@ -421,6 +415,12 @@
           {/if}
         </div>
       </div>
+
+      <!-- ✅ NOUVEAU: Notes techniques du service -->
+      <MarkdownViewer
+        content={service.note}
+        title="📝 Notes techniques"
+      />
 
     </div>
 

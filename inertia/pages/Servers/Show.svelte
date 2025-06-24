@@ -169,12 +169,6 @@
           </div>
         </div>
       </div>
-
-      <!-- ✅ NOUVEAU: Notes du serveur -->
-      <MarkdownViewer
-        content={server.note}
-        title="📝 Notes"
-      />
     </div>
 
     <!-- Services du serveur -->
@@ -211,6 +205,12 @@
           {/if}
         </div>
       </div>
+
+      <!-- ✅ NOUVEAU: Notes du serveur -->
+      <MarkdownViewer
+        content={server.note}
+        title="📝 Notes"
+      />
     </div>
   </div>
 </DashboardLayout>
