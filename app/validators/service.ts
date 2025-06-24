@@ -17,6 +17,26 @@ const portSchema = vine.object({
     .optional()
 })
 
+// ✅ NOUVEAU: Schéma pour les dépendances
+const dependencySchema = vine.object({
+  serviceId: vine
+    .number()
+    .positive()
+    .withoutDecimals(),
+
+  label: vine
+    .string()
+    .trim()
+    .minLength(1)
+    .maxLength(100)
+    .optional(),
+
+  type: vine
+    .string()
+    .in(['required', 'optional', 'fallback'])
+    .optional()
+})
+
 export const createServiceValidator = vine.compile(
   vine.object({
     serverId: vine
@@ -42,6 +62,11 @@ export const createServiceValidator = vine.compile(
     // ✅ FIX: Ports simples (nettoyage dans le contrôleur)
     ports: vine
       .array(portSchema)
+      .optional(),
+
+    // ✅ NOUVEAU: Dépendances
+    dependencies: vine
+      .array(dependencySchema)
       .optional(),
 
     icon: vine
@@ -109,6 +134,11 @@ export const updateServiceValidator = vine.compile(
       .array(portSchema)
       .optional(),
 
+    // ✅ NOUVEAU: Dépendances
+    dependencies: vine
+      .array(dependencySchema)
+      .optional(),
+
     icon: vine
       .string()
       .trim()
@@ -169,5 +199,14 @@ export const createServiceDependencyValidator = vine.compile(
     type: vine
       .string()
       .in(['required', 'optional', 'fallback'])
+  })
+)
+
+// ✅ NOUVEAU: Validator pour la mise à jour des dépendances en lot
+export const updateServiceDependenciesValidator = vine.compile(
+  vine.object({
+    dependencies: vine
+      .array(dependencySchema)
+      .optional()
   })
 )

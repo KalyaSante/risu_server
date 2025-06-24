@@ -2,11 +2,13 @@
   import { router } from '@inertiajs/svelte';
   import { ActionButton } from '../../components';
   import PortsEditor from '../../components/PortsEditor.svelte';
+  import DependenciesEditor from '../../components/DependenciesEditor.svelte';
 
   // Props
   export let service = {};
   export let servers = [];
   export let selectedServer = null;
+  export let availableServices = []; // ✅ NOUVEAU
   export let errors = {};
   export let isEdit = false;
 
@@ -24,6 +26,9 @@
 
   // ✅ NOUVEAU: Ports multiples
   let ports = service.ports || [{ port: '', label: 'web' }];
+
+  // ✅ NOUVEAU: Dépendances
+  let dependencies = service.dependencies || [];
 
   // State
   let iconPreview = formData.icon;
@@ -48,8 +53,9 @@
 
     const submitData = { ...formData };
 
-    // ✅ NOUVEAU: Ajouter les ports au payload
+    // ✅ NOUVEAU: Ajouter les ports et dépendances au payload
     submitData.ports = ports;
+    submitData.dependencies = dependencies;
 
     // Convert empty strings to null for optional fields
     if (!submitData.icon) submitData.icon = null;
@@ -160,6 +166,14 @@
 
             <!-- ✅ NOUVEAU: Ports multiples -->
             <PortsEditor bind:ports disabled={isSubmitting} />
+
+            <!-- ✅ NOUVEAU: Gestion des dépendances -->
+            <DependenciesEditor
+              bind:dependencies
+              {availableServices}
+              disabled={isSubmitting}
+            />
+
             <!-- Description -->
             <div class="form-control">
               <label class="label">
@@ -326,6 +340,11 @@
           </div>
 
           <div>
+            <h3 class="font-semibold">🔗 Dépendances</h3>
+            <p class="text-base-content/70">Définissez les services dont celui-ci dépend pour fonctionner correctement. Utile pour tracer les pannes en cascade.</p>
+          </div>
+
+          <div>
             <h3 class="font-semibold">🖥️ Serveur</h3>
             <p class="text-base-content/70">Sélectionnez le serveur qui héberge ce service.</p>
           </div>
@@ -343,6 +362,31 @@
           <div>
             <h3 class="font-semibold">🔗 Repository</h3>
             <p class="text-base-content/70">URL du repository Git (GitHub, GitLab, etc.) pour accéder au code source.</p>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    <!-- ✅ NOUVEAU: Types de dépendances -->
+    <div class="card bg-base-100 shadow-xl">
+      <div class="card-body">
+        <h2 class="card-title text-lg">🔗 Types de dépendances</h2>
+        <div class="space-y-3 text-sm">
+
+          <div>
+            <h3 class="font-semibold text-error">🔴 Requise</h3>
+            <p class="text-base-content/70">Service critique. Si cette dépendance tombe, le service principal ne peut pas fonctionner.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-warning">🟡 Optionnelle</h3>
+            <p class="text-base-content/70">Service utile mais non critique. Le service principal peut fonctionner en mode dégradé.</p>
+          </div>
+
+          <div>
+            <h3 class="font-semibold text-success">🟢 Fallback</h3>
+            <p class="text-base-content/70">Service de secours ou alternatif, utilisé uniquement en cas de problème.</p>
           </div>
 
         </div>
