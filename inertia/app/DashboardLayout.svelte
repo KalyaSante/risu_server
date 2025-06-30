@@ -50,40 +50,34 @@
 
 
   <!-- Main Content -->
-  <main class="dashboard-layout__main">
-    <div class="dashboard-layout__content">
+  <main class="dashboard-layout__main p-4 md:p-6 lg:p-8">
+    <div class="dashboard-layout__content max-w-screen-xl mx-auto">
       <slot />
     </div>
   </main>
 </div>
 
 <style>
-  /* Dashboard Layout styles will go here */
   .dashboard-layout {
-    /* Main layout container */
-  }
-
-  .dashboard-layout__sidebar {
-    /* Sidebar styles */
-  }
-
-  .dashboard-layout__sidebar-nav {
-    /* Sidebar navigation */
-  }
-
-  .sidebar-nav__link {
-    /* Sidebar link styles */
-  }
-
-  .sidebar-nav__link.active {
-    /* Active sidebar link */
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    background-color: hsl(var(--b2, var(--b1)) / 1); /* Use background color from theme */
   }
 
   .dashboard-layout__main {
-    /* Main content area */
+    flex-grow: 1;
+    /* Padding is now applied directly via Tailwind classes */
   }
 
   .dashboard-layout__content {
-    /* Content container */
+    /* Max-width and centering are now applied directly via Tailwind classes */
   }
+
+  /* Removed unused sidebar styles:
+  .dashboard-layout__sidebar { ... }
+  .dashboard-layout__sidebar-nav { ... }
+  .sidebar-nav__link { ... }
+  .sidebar-nav__link.active { ... }
+  */
 </style>

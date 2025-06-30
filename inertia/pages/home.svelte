@@ -7,7 +7,7 @@
 <div class="pt-4 h-full flex flex-col">
   <!-- Header -->
   <div class="grow pb-4 bg-gradient-to-b from-sand-1 to-sand-2 flex justify-center items-center">
-    <a href="https://adonisjs.com" target="_blank" class="isolate">
+    <a href="https://adonisjs.com" target="_blank" class="isolate" aria-label="AdonisJS Homepage">
       <svg class="w-16 h-16 fill-primary" viewBox="0 0 33 33">
         <path
           fill-rule="evenodd"

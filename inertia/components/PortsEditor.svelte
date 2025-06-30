@@ -46,7 +46,7 @@
 </script>
 
 <div class="ports-editor space-y-3">
-  <label class="label">
+  <label class="label" for="ports_editor_main_label">
     <span class="label-text font-medium">Ports du service</span>
     <span class="label-text-alt">Port et label optionnels (ex: 3000, web)</span>
   </label>
@@ -56,8 +56,10 @@
       <div class="flex-1 grid grid-cols-2 gap-2">
         <!-- Port number -->
         <div class="form-control">
+          <label class="sr-only" for="port_number_{index}">Port {index + 1}</label>
           <input
             type="number"
+            id="port_number_{index}"
             bind:value={port.port}
             placeholder="Port (ex: 3000)"
             class="input input-bordered input-sm"
@@ -70,8 +72,10 @@
 
         <!-- Label -->
         <div class="form-control relative">
+          <label class="sr-only" for="port_label_{index}">Label du port {index + 1}</label>
           <input
             type="text"
+            id="port_label_{index}"
             bind:value={port.label}
             placeholder="Label (ex: web)"
             class="input input-bordered input-sm"

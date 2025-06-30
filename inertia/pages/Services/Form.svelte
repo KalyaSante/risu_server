@@ -125,18 +125,19 @@
 
             <!-- Service name -->
             <div class="form-control">
-              <label class="label">
+              <label class="label" for="service_nom">
                 <span class="label-text font-semibold">Nom du service *</span>
               </label>
               <input
                 type="text"
+                id="service_nom"
                 bind:value={formData.nom}
                 placeholder="ex: API Principale Laravel"
                 class="input input-bordered {errors.nom ? 'input-error' : ''}"
                 required
               />
               {#if errors.nom}
-                <label class="label">
+                <label class="label" for="service_nom_error">
                   <span class="label-text-alt text-error">{errors.nom}</span>
                 </label>
               {/if}
@@ -144,10 +145,11 @@
 
             <!-- Server -->
             <div class="form-control">
-              <label class="label">
+              <label class="label" for="service_serverId">
                 <span class="label-text font-semibold">Serveur *</span>
               </label>
               <select
+                id="service_serverId"
                 bind:value={formData.serverId}
                 class="select select-bordered {errors.serverId ? 'select-error' : ''}"
                 required
@@ -160,7 +162,7 @@
                 {/each}
               </select>
               {#if errors.serverId}
-                <label class="label">
+                <label class="label" for="service_serverId_error">
                   <span class="label-text-alt text-error">{errors.serverId}</span>
                 </label>
               {/if}
@@ -178,17 +180,18 @@
 
             <!-- Description -->
             <div class="form-control">
-              <label class="label">
+              <label class="label" for="service_description">
                 <span class="label-text font-semibold">Description</span>
               </label>
               <textarea
+                id="service_description"
                 bind:value={formData.description}
                 placeholder="Description courte du service et de son rôle"
                 class="textarea textarea-bordered {errors.description ? 'textarea-error' : ''}"
                 rows="3"
               ></textarea>
               {#if errors.description}
-                <label class="label">
+                <label class="label" for="service_description_error">
                   <span class="label-text-alt text-error">{errors.description}</span>
                 </label>
               {/if}
@@ -205,13 +208,14 @@
 
             <!-- Icon -->
             <div class="form-control">
-              <label class="label">
+              <label class="label" for="service_icon">
                 <span class="label-text font-semibold">Icône</span>
                 <span class="label-text-alt">Format: nom.svg</span>
               </label>
               <div class="flex gap-2">
                 <input
                   type="text"
+                  id="service_icon"
                   bind:value={formData.icon}
                   placeholder="ex: laravel.svg"
                   class="input input-bordered flex-1 {errors.icon ? 'input-error' : ''}"
@@ -228,28 +232,29 @@
                 {/if}
               </div>
               {#if errors.icon}
-                <label class="label">
+                <label class="label" for="service_icon_error">
                   <span class="label-text-alt text-error">{errors.icon}</span>
                 </label>
               {/if}
-              <label class="label">
+              <label class="label" for="service_icon_helper">
                 <span class="label-text-alt">Placez vos icônes dans <code>public/icons/</code></span>
               </label>
             </div>
 
             <!-- Installation path -->
             <div class="form-control">
-              <label class="label">
+              <label class="label" for="service_path">
                 <span class="label-text font-semibold">Chemin d'installation</span>
               </label>
               <input
                 type="text"
+                id="service_path"
                 bind:value={formData.path}
                 placeholder="ex: /var/www/api ou C:\inetpub\wwwroot\api"
                 class="input input-bordered {errors.path ? 'input-error' : ''}"
               />
               {#if errors.path}
-                <label class="label">
+                <label class="label" for="service_path_error">
                   <span class="label-text-alt text-error">{errors.path}</span>
                 </label>
               {/if}
@@ -257,17 +262,18 @@
 
             <!-- Repository URL -->
             <div class="form-control">
-              <label class="label">
+              <label class="label" for="service_repoUrl">
                 <span class="label-text font-semibold">URL du repository</span>
               </label>
               <input
                 type="url"
+                id="service_repoUrl"
                 bind:value={formData.repoUrl}
                 placeholder="ex: https://github.com/kalya/mon-service"
                 class="input input-bordered {errors.repoUrl ? 'input-error' : ''}"
               />
               {#if errors.repoUrl}
-                <label class="label">
+                <label class="label" for="service_repoUrl_error">
                   <span class="label-text-alt text-error">{errors.repoUrl}</span>
                 </label>
               {/if}
@@ -275,17 +281,18 @@
 
             <!-- Documentation path -->
             <div class="form-control">
-              <label class="label">
+              <label class="label" for="service_docPath">
                 <span class="label-text font-semibold">Documentation</span>
               </label>
               <input
                 type="text"
+                id="service_docPath"
                 bind:value={formData.docPath}
                 placeholder="ex: /docs/service.md ou https://docs.example.com"
                 class="input input-bordered {errors.docPath ? 'input-error' : ''}"
               />
               {#if errors.docPath}
-                <label class="label">
+                <label class="label" for="service_docPath_error">
                   <span class="label-text-alt text-error">{errors.docPath}</span>
                 </label>
               {/if}
@@ -293,16 +300,17 @@
 
             <!-- Last maintenance -->
             <div class="form-control">
-              <label class="label">
+              <label class="label" for="service_lastMaintenanceAt">
                 <span class="label-text font-semibold">Dernière maintenance</span>
               </label>
               <input
                 type="datetime-local"
+                id="service_lastMaintenanceAt"
                 bind:value={formData.lastMaintenanceAt}
                 class="input input-bordered {errors.lastMaintenanceAt ? 'input-error' : ''}"
               />
               {#if errors.lastMaintenanceAt}
-                <label class="label">
+                <label class="label" for="service_lastMaintenanceAt_error">
                   <span class="label-text-alt text-error">{errors.lastMaintenanceAt}</span>
                 </label>
               {/if}
