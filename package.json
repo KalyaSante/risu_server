@@ -6,9 +6,9 @@
   "license": "UNLICENSED",
   "scripts": {
     "start": "node bin/server.js",
-    "build": "NODE_OPTIONS=\"--loader ts-node/esm\" node ace build",
-    "dev": "NODE_OPTIONS=\"--loader ts-node/esm\" node ace serve --hmr",
-    "test": "NODE_OPTIONS=\"--loader ts-node/esm\" node ace test",
+    "build": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" node ace build",
+    "dev": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" node ace serve --hmr",
+    "test": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" node ace test",
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit"
@@ -44,6 +44,7 @@
     "@swc/core": "1.11.24",
     "@types/luxon": "^3.6.2",
     "@types/node": "^22.15.18",
+    "cross-env": "^7.0.3",
     "daisyui": "^5.0.43",
     "eslint": "^9.26.0",
     "hot-hook": "^0.4.0",

@@ -117,8 +117,9 @@
 <div class="navbar bg-base-100 shadow-lg px-4">
   <!-- Logo/Brand -->
   <div class="navbar-start">
-    <a href="/" class="btn btn-ghost text-xl font-bold text-primary">
-      🔷 Kalya
+    <a href="/" class="btn btn-ghost text-xl font-bold text-primary flex align-items-center">
+      <img src="/risu_128.png" alt="logo" class="w-8 h-8">
+      <span>Risu Server</span>
     </a>
 
     <!-- Navigation Menu -->
