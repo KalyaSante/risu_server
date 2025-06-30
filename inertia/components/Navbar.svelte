@@ -117,37 +117,40 @@
 <div class="navbar bg-base-100 shadow-lg px-4">
   <!-- Logo/Brand -->
   <div class="navbar-start">
-    <a href="/" class="btn btn-ghost text-xl font-bold text-primary flex align-items-center">
+    <button 
+      on:click={() => router.visit('/')} 
+      class="btn btn-ghost text-xl font-bold text-primary flex align-items-center"
+    >
       <img src="/risu_128.png" alt="logo" class="w-8 h-8">
       <span>Risu Server</span>
-    </a>
+    </button>
 
     <!-- Navigation Menu -->
     <div class="hidden lg:flex ml-8">
       <ul class="menu menu-horizontal px-1 gap-2">
         <li>
-          <a
-            href="/"
+          <button
+            on:click={() => router.visit('/')}
             class="btn btn-ghost btn-sm {currentRoute === 'dashboard' ? 'bg-primary text-primary-content' : ''}"
           >
             📊 Dashboard
-          </a>
+          </button>
         </li>
         <li>
-          <a
-            href="/servers"
+          <button
+            on:click={() => router.visit('/servers')}
             class="btn btn-ghost btn-sm {currentRoute === 'servers' ? 'bg-primary text-primary-content' : ''}"
           >
             🖥️ Serveurs
-          </a>
+          </button>
         </li>
         <li>
-          <a
-            href="/services"
+          <button
+            on:click={() => router.visit('/services')}
             class="btn btn-ghost btn-sm {currentRoute === 'services' ? 'bg-primary text-primary-content' : ''}"
           >
             ⚙️ Services
-          </a>
+          </button>
         </li>
       </ul>
     </div>
@@ -208,9 +211,12 @@
 
     {:else}
       <!-- Login Link -->
-      <a href="/login" class="btn btn-primary btn-sm">
+      <button 
+        on:click={() => router.visit('/login')} 
+        class="btn btn-primary btn-sm"
+      >
         Se connecter
-      </a>
+      </button>
     {/if}
 
     <!-- Mobile Menu (Hamburger) -->
@@ -222,28 +228,28 @@
       </div>
       <div class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-xl bg-base-100 rounded-box w-52 border border-base-300">
         <li>
-          <a
-            href="/"
+          <button
+            on:click={() => router.visit('/')}
             class="{currentRoute === 'dashboard' ? 'active' : ''}"
           >
             📊 Dashboard
-          </a>
+          </button>
         </li>
         <li>
-          <a
-            href="/servers"
+          <button
+            on:click={() => router.visit('/servers')}
             class="{currentRoute === 'servers' ? 'active' : ''}"
           >
             🖥️ Serveurs
-          </a>
+          </button>
         </li>
         <li>
-          <a
-            href="/services"
+          <button
+            on:click={() => router.visit('/services')}
             class="{currentRoute === 'services' ? 'active' : ''}"
           >
             ⚙️ Services
-          </a>
+          </button>
         </li>
       </div>
     </div>
