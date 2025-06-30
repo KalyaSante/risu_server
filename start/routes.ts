@@ -66,6 +66,20 @@ router.group(() => {
     router.delete('/services/:id/dependencies/:dependencyId', '#controllers/services_controller.removeDependency').as('services.dependencies.remove')
   })
 
+  // ✅ NOUVEAU: Routes pour les paramètres
+  router.group(() => {
+    // Page principale des paramètres
+    router.get('/settings', '#controllers/settings_controller.index').as('settings.index')
+    
+    // Gestion des hébergeurs
+    router.get('/settings/hosters', '#controllers/settings_controller.hosters').as('settings.hosters')
+    router.post('/settings/hosters', '#controllers/settings_controller.store').as('settings.hosters.store')
+    router.post('/settings/hosters/import', '#controllers/settings_controller.import').as('settings.hosters.import')
+    router.put('/settings/hosters/:id', '#controllers/settings_controller.update').as('settings.hosters.update')
+    router.delete('/settings/hosters/:id', '#controllers/settings_controller.destroy').as('settings.hosters.destroy')
+    router.post('/settings/hosters/reorder', '#controllers/settings_controller.reorder').as('settings.hosters.reorder')
+  })
+
   // Routes API pour les données (conservées pour AJAX/fetch)
   router.group(() => {
     router.get('/servers', '#controllers/api/servers_controller.index').as('api.servers.index')

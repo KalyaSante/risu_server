@@ -117,8 +117,8 @@
 <div class="navbar bg-base-100 shadow-lg px-4">
   <!-- Logo/Brand -->
   <div class="navbar-start">
-    <button 
-      on:click={() => router.visit('/')} 
+    <button
+      on:click={() => router.visit('/')}
       class="btn btn-ghost text-xl font-bold text-primary flex align-items-center"
     >
       <img src="/risu_128.png" alt="logo" class="w-8 h-8">
@@ -159,6 +159,7 @@
   <!-- User Menu -->
   <div class="navbar-end gap-2">
     {#if user}
+
       <!-- User Profile -->
       <div class="flex items-center gap-3">
         <div class="avatar">
@@ -197,6 +198,16 @@
         </div>
       </div>
 
+      <!-- Settings Button -->
+      <button
+        on:click={() => router.visit('/settings')}
+        class="btn btn-ghost btn-circle {currentRoute === 'settings' ? 'bg-primary text-primary-content' : ''}"
+        title="Paramètres"
+        aria-label="Paramètres"
+      >
+        ⚙️
+      </button>
+
       <!-- Logout Button -->
       <button
         class="btn btn-ghost btn-circle text-error hover:bg-error hover:text-error-content"
@@ -211,8 +222,8 @@
 
     {:else}
       <!-- Login Link -->
-      <button 
-        on:click={() => router.visit('/login')} 
+      <button
+        on:click={() => router.visit('/login')}
         class="btn btn-primary btn-sm"
       >
         Se connecter
