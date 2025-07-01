@@ -2,9 +2,19 @@
   import { router } from '@inertiajs/svelte';
   import { DashboardLayout } from '../../app';
 
+  // Composants de sections
+  import {
+    HostersSection,
+    GeneralSection,
+    NotificationsSection,
+    SecuritySection
+  } from '../../components/Settings';
+
   // Props
   export let currentSection = 'hosters';
   export let user = null;
+  export let hosters = [];
+  export let currentRoute = 'settings/hosters';
 
   // Sections disponibles
   const sections = [
@@ -13,6 +23,12 @@
       name: 'Hébergeurs',
       icon: '🏢',
       description: 'Gérer les hébergeurs disponibles'
+    },
+    {
+      id: 'images',
+      name: 'Images',
+      icon: '🖼️',
+      description: 'Gérer les images des services'
     },
     {
       id: 'general',
@@ -35,11 +51,11 @@
   ];
 
   function navigateToSection(sectionId) {
-    router.visit(`/settings/${sectionId}`);
+    router.visit(`/settings/${sectionId}`)
   }
 </script>
 
-<DashboardLayout {user} currentRoute="settings">
+<DashboardLayout {user} {currentRoute}>
   <div class="min-h-screen">
     <div class="max-w-7xl mx-auto">
       <!-- Header -->
@@ -52,7 +68,7 @@
       <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
         <!-- Menu vertical gauche -->
         <div class="lg:col-span-1">
-          <div class="card bg-base-100 shadow-xl">
+          <div class="card bg-base-100 shadow-xl sticky top-4">
             <div class="card-body p-4">
               <h2 class="card-title text-lg mb-4">Navigation</h2>
               <ul class="menu menu-compact p-0 gap-1">
@@ -80,30 +96,25 @@
           <div class="card bg-base-100 shadow-xl">
             <div class="card-body">
               {#if currentSection === 'hosters'}
-                <slot name="hosters">
-                  <div class="text-center py-8">
-                    <div class="text-6xl mb-4">🏢</div>
-                    <h3 class="text-xl font-bold mb-2">Gestion des Hébergeurs</h3>
-                    <p class="text-base-content/70">Cette section sera développée prochainement</p>
-                  </div>
-                </slot>
+                <HostersSection {hosters} />
               {:else if currentSection === 'general'}
-                <div class="text-center py-8">
-                  <div class="text-6xl mb-4">⚙️</div>
-                  <h3 class="text-xl font-bold mb-2">Paramètres Généraux</h3>
-                  <p class="text-base-content/70">Configuration générale de l'application</p>
-                </div>
+                <GeneralSection settings={{}} />
               {:else if currentSection === 'notifications'}
-                <div class="text-center py-8">
-                  <div class="text-6xl mb-4">🔔</div>
-                  <h3 class="text-xl font-bold mb-2">Notifications</h3>
-                  <p class="text-base-content/70">Gérer vos préférences de notifications</p>
-                </div>
+                <NotificationsSection notifications={{}} />
               {:else if currentSection === 'security'}
-                <div class="text-center py-8">
-                  <div class="text-6xl mb-4">🔐</div>
-                  <h3 class="text-xl font-bold mb-2">Sécurité</h3>
-                  <p class="text-base-content/70">Paramètres de sécurité et authentification</p>
+                <SecuritySection security={{}} />
+              {:else}
+                <!-- Section par défaut -->
+                <div class="text-center py-12">
+                  <div class="text-6xl mb-4">⚙️</div>
+                  <h3 class="text-xl font-bold mb-2">Section introuvable</h3>
+                  <p class="text-base-content/70 mb-4">La section demandée n'existe pas</p>
+                  <button
+                    on:click={() => navigateToSection('hosters')}
+                    class="btn btn-primary"
+                  >
+                    Retour aux hébergeurs
+                  </button>
                 </div>
               {/if}
             </div>

@@ -68,11 +68,18 @@ router.group(() => {
 
   // ✅ NOUVEAU: Routes pour les paramètres
   router.group(() => {
-    // Page principale des paramètres
-    router.get('/settings', '#controllers/settings_controller.index').as('settings.index')
+    // Redirection par défaut vers hosters
+    router.get('/settings', ({ response }) => {
+      return response.redirect('/settings/hosters')
+    })
     
-    // Gestion des hébergeurs
+    // Routes propres pour chaque section
     router.get('/settings/hosters', '#controllers/settings_controller.hosters').as('settings.hosters')
+    router.get('/settings/general', '#controllers/settings_controller.general').as('settings.general')
+    router.get('/settings/notifications', '#controllers/settings_controller.notifications').as('settings.notifications')
+    router.get('/settings/security', '#controllers/settings_controller.security').as('settings.security')
+    
+    // Actions pour les hébergeurs (API)
     router.post('/settings/hosters', '#controllers/settings_controller.store').as('settings.hosters.store')
     router.post('/settings/hosters/import', '#controllers/settings_controller.import').as('settings.hosters.import')
     router.put('/settings/hosters/:id', '#controllers/settings_controller.update').as('settings.hosters.update')

@@ -3,70 +3,93 @@ import Hoster from '#models/hoster'
 import { createHosterValidator, updateHosterValidator, importHostersValidator } from '#validators/hoster'
 
 export default class SettingsController {
+  
   /**
-   * Page principale des paramètres avec menu vertical
+   * Méthode privée pour récupérer les données utilisateur
    */
-  async index({ inertia, session }: HttpContext) {
-    // Récupérer les données utilisateur depuis la session
-    const sessionUserId = session.get('user_id')
-    const sessionUserEmail = session.get('user_email')
-    const sessionUserName = session.get('user_name')
-
-    const user = {
-      id: sessionUserId,
-      email: sessionUserEmail,
-      fullName: sessionUserName
+  private getUserFromSession(session: any) {
+    return {
+      id: session.get('user_id'),
+      email: session.get('user_email'),
+      fullName: session.get('user_name')
     }
+  }
 
-    // Récupérer les hébergeurs pour la section par défaut
+  /**
+   * Méthode privée pour récupérer les hébergeurs
+   */
+  private async getHosters() {
     const hosters = await Hoster.query()
       .select('id', 'name', 'type', 'description', 'is_active', 'order', 'created_at', 'updated_at')
       .orderBy('order', 'asc')
       .orderBy('name', 'asc')
 
-    // Ajouter un flag pour indiquer si l'hébergeur a une API configurée (toujours false maintenant)
-    const hostersWithApiFlag = hosters.map(hoster => ({
+    return hosters.map(hoster => ({
       ...hoster.serialize(),
-      hasApi: false // Plus d'API dans ta structure
+      hasApi: false
     }))
+  }
+
+  /**
+   * Section Hébergeurs
+   */
+  async hosters({ inertia, session }: HttpContext) {
+    const user = this.getUserFromSession(session)
+    const hosters = await this.getHosters()
 
     return inertia.render('Settings/Index', {
       currentSection: 'hosters',
       user,
-      hosters: hostersWithApiFlag
+      hosters,
+      currentRoute: 'settings/hosters'
     })
   }
 
   /**
-   * Page de gestion des hébergeurs
+   * Section Général
    */
-  async hosters({ inertia, session }: HttpContext) {
-    // Récupérer les données utilisateur depuis la session
-    const sessionUserId = session.get('user_id')
-    const sessionUserEmail = session.get('user_email')
-    const sessionUserName = session.get('user_name')
+  async general({ inertia, session }: HttpContext) {
+    const user = this.getUserFromSession(session)
+    const hosters = await this.getHosters() // Toujours charger pour la navigation
 
-    const user = {
-      id: sessionUserId,
-      email: sessionUserEmail,
-      fullName: sessionUserName
-    }
+    return inertia.render('Settings/Index', {
+      currentSection: 'general',
+      user,
+      hosters,
+      settings: {}, // Ici tu peux ajouter les vrais paramètres généraux
+      currentRoute: 'settings/general'
+    })
+  }
 
-    const hosters = await Hoster.query()
-      .select('id', 'name', 'type', 'description', 'is_active', 'order', 'created_at', 'updated_at')
-      .orderBy('order', 'asc')
-      .orderBy('name', 'asc')
+  /**
+   * Section Notifications
+   */
+  async notifications({ inertia, session }: HttpContext) {
+    const user = this.getUserFromSession(session)
+    const hosters = await this.getHosters()
 
-    // Ajouter un flag pour indiquer si l'hébergeur a une API configurée (toujours false maintenant)
-    const hostersWithApiFlag = hosters.map(hoster => ({
-      ...hoster.serialize(),
-      hasApi: false // Plus d'API dans ta structure
-    }))
+    return inertia.render('Settings/Index', {
+      currentSection: 'notifications',
+      user,
+      hosters,
+      notifications: {}, // Ici tu peux ajouter les vraies notifications
+      currentRoute: 'settings/notifications'
+    })
+  }
 
-    return inertia.render('Settings/Hosters', {
-      hosters: hostersWithApiFlag,
-      currentSection: 'hosters',
-      user
+  /**
+   * Section Sécurité
+   */
+  async security({ inertia, session }: HttpContext) {
+    const user = this.getUserFromSession(session)
+    const hosters = await this.getHosters()
+
+    return inertia.render('Settings/Index', {
+      currentSection: 'security',
+      user,
+      hosters,
+      security: {}, // Ici tu peux ajouter les vraies données de sécurité
+      currentRoute: 'settings/security'
     })
   }
 
@@ -195,8 +218,11 @@ export default class SettingsController {
           .update({ order: i })
       }
 
-      // Retourner une réponse vide avec statut 200 pour Inertia
-      return response.status(200).send('')
+      // Retourner une réponse JSON pour les requêtes AJAX
+      return response.json({ 
+        success: true, 
+        message: 'Ordre mis à jour avec succès' 
+      })
     } catch (error) {
       return response.status(500).json({ 
         success: false, 
