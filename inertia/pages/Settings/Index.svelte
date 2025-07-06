@@ -7,13 +7,16 @@
     HostersSection,
     GeneralSection,
     NotificationsSection,
-    SecuritySection
+    SecuritySection,
+    ImagesSection,
+    ServiceImagesSection
   } from '../../components/Settings';
 
   // Props
   export let currentSection = 'hosters';
   export let user = null;
   export let hosters = [];
+  export let images = [];
   export let currentRoute = 'settings/hosters';
 
   // Sections disponibles
@@ -25,10 +28,16 @@
       description: 'Gérer les hébergeurs disponibles'
     },
     {
+      id: 'service-images',
+      name: 'Images Services',
+      icon: '🎨',
+      description: 'Gérer les images/icônes des services'
+    },
+    {
       id: 'images',
-      name: 'Images',
+      name: 'Images Générales',
       icon: '🖼️',
-      description: 'Gérer les images des services'
+      description: 'Gérer les images générales'
     },
     {
       id: 'general',
@@ -97,6 +106,10 @@
             <div class="card-body">
               {#if currentSection === 'hosters'}
                 <HostersSection {hosters} />
+              {:else if currentSection === 'service-images'}
+                <ServiceImagesSection {images} />
+              {:else if currentSection === 'images'}
+                <ImagesSection images={[]} />
               {:else if currentSection === 'general'}
                 <GeneralSection settings={{}} />
               {:else if currentSection === 'notifications'}

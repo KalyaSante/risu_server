@@ -3,14 +3,21 @@
   import { ActionButton, MarkdownEditor } from '../../components';
   import PortsEditor from '../../components/PortsEditor.svelte';
   import DependenciesEditor from '../../components/DependenciesEditor.svelte';
+  import ImageSelector from '../../components/ImageSelector.svelte';
 
   // Props
   export let service = {};
   export let servers = [];
   export let selectedServer = null;
   export let availableServices = []; // ✅ NOUVEAU
+  export let availableImages = []; // ✅ NOUVEAU
   export let errors = {};
   export let isEdit = false;
+
+  // 🔍 DEBUG: Log des props reçues
+  $: {
+    console.log('🔍 DEBUG Form.svelte: availableImages reçues:', availableImages.length, availableImages);
+  }
 
   // Form data
   let formData = {
@@ -31,9 +38,21 @@
   // ✅ NOUVEAU: Dépendances
   let dependencies = service.dependencies || [];
 
+  // ✅ NOUVEAU: État pour la modal de sélection d'images
+  let showImageSelector = false;
+  let selectedImage = null;
+
   // State
-  let iconPreview = formData.icon;
   let isSubmitting = false;
+
+  // ✅ NOUVEAU: Chercher l'image actuellement sélectionnée
+  $: {
+    if (formData.icon && availableImages.length > 0) {
+      selectedImage = availableImages.find(img => img.url === formData.icon) || null;
+    } else {
+      selectedImage = null;
+    }
+  }
 
   // Functions
   function formatDatetimeLocal(dateString) {
@@ -45,6 +64,29 @@
     const hours = String(date.getHours()).padStart(2, '0');
     const minutes = String(date.getMinutes()).padStart(2, '0');
     return `${year}-${month}-${day}T${hours}:${minutes}`;
+  }
+
+  // ✅ NOUVEAU: Gestionnaire de sélection d'image
+  function handleImageSelect(event) {
+    const image = event.detail;
+    if (image) {
+      formData.icon = image.url;
+      selectedImage = image;
+    } else {
+      formData.icon = '';
+      selectedImage = null;
+    }
+  }
+
+  // ✅ NOUVEAU: Ouvrir la modal de sélection d'images
+  function openImageSelector() {
+    console.log('🔍 DEBUG: Ouverture du sélecteur avec', availableImages.length, 'images');
+    showImageSelector = true;
+  }
+
+  // ✅ NOUVEAU: Fermer la modal de sélection d'images
+  function closeImageSelector() {
+    showImageSelector = false;
   }
 
   function handleSubmit() {
@@ -97,19 +139,6 @@
       router.delete(`/services/${service.id}`);
     }
   }
-
-  // Reactive statements
-  $: iconPreview = formData.icon;
-
-  // Suggested icons
-  const suggestedIcons = [
-    { icon: '🌐', name: 'laravel.svg' },
-    { icon: '⚡', name: 'angular.svg' },
-    { icon: '🗄️', name: 'mysql.svg' },
-    { icon: '🔄', name: 'nginx.svg' },
-    { icon: '⚡', name: 'redis.svg' },
-    { icon: '📊', name: 'monitoring.svg' }
-  ];
 </script>
 
 <!-- Service Form Component -->
@@ -119,6 +148,11 @@
   <div class="lg:col-span-2">
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
+
+        <!-- 🔍 DEBUG: Affichage du nombre d'images -->
+        <div class="mb-4 p-2 bg-base-200 rounded text-sm">
+          <strong>DEBUG Form.svelte:</strong> {availableImages.length} images disponibles
+        </div>
 
         <form on:submit|preventDefault={handleSubmit}>
           <div class="space-y-6">
@@ -168,6 +202,93 @@
               {/if}
             </div>
 
+            <!-- ✅ NOUVEAU: Sélection d'image avec modal -->
+            <div class="form-control">
+              <label class="label" for="service_icon">
+                <span class="label-text font-semibold">Icône du service</span>
+                <span class="label-text-alt">Optionnel</span>
+              </label>
+
+              <!-- Affichage de l'image sélectionnée -->
+              <div class="flex items-center gap-4">
+                <!-- Prévisualisation -->
+                <div class="flex-shrink-0">
+                  {#if selectedImage}
+                    <div class="w-16 h-16 bg-white border-2 border-base-300 rounded-lg p-2 flex items-center justify-center">
+                      <img
+                        src={selectedImage.url}
+                        alt={selectedImage.label}
+                        class="w-full h-full object-contain"
+                      />
+                    </div>
+                  {:else}
+                    <div class="w-16 h-16 bg-base-200 border-2 border-base-300 rounded-lg flex items-center justify-center text-base-content/50">
+                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                      </svg>
+                    </div>
+                  {/if}
+                </div>
+
+                <!-- Informations et actions -->
+                <div class="flex-1">
+                  {#if selectedImage}
+                    <div class="mb-2">
+                      <div class="font-semibold text-base-content">{selectedImage.label}</div>
+                      {#if selectedImage.description}
+                        <div class="text-sm text-base-content/70">{selectedImage.description}</div>
+                      {/if}
+                      <div class="text-xs text-base-content/50 mt-1">{selectedImage.filename}</div>
+                    </div>
+                  {:else}
+                    <div class="text-base-content/70 mb-2">
+                      Aucune image sélectionnée
+                    </div>
+                  {/if}
+
+                  <!-- Boutons d'action -->
+                  <div class="flex gap-2">
+                    <button
+                      type="button"
+                      class="btn btn-outline btn-sm"
+                      on:click={openImageSelector}
+                    >
+                      🎨 {selectedImage ? 'Changer' : 'Choisir'} l'image
+                    </button>
+                    {#if selectedImage}
+                      <button
+                        type="button"
+                        class="btn btn-ghost btn-sm"
+                        on:click={() => { formData.icon = ''; selectedImage = null; }}
+                      >
+                        🗑️ Supprimer
+                      </button>
+                    {/if}
+                  </div>
+                </div>
+              </div>
+
+              {#if errors.icon}
+                <label class="label" for="service_icon_error">
+                  <span class="label-text-alt text-error">{errors.icon}</span>
+                </label>
+              {/if}
+
+              <!-- Info sur la gestion des images -->
+              <label class="label">
+                <span class="label-text-alt">
+                  💡 Gérez vos images depuis
+                  <button
+                    type="button"
+                    class="link link-primary"
+                    on:click={() => window.open('/settings/service-images', '_blank')}
+                  >
+                    les paramètres
+                  </button>
+                </span>
+              </label>
+            </div>
+
             <!-- ✅ NOUVEAU: Ports multiples -->
             <PortsEditor bind:ports disabled={isSubmitting} />
 
@@ -205,41 +326,6 @@
               error={errors.note}
               rows="10"
             />
-
-            <!-- Icon -->
-            <div class="form-control">
-              <label class="label" for="service_icon">
-                <span class="label-text font-semibold">Icône</span>
-                <span class="label-text-alt">Format: nom.svg</span>
-              </label>
-              <div class="flex gap-2">
-                <input
-                  type="text"
-                  id="service_icon"
-                  bind:value={formData.icon}
-                  placeholder="ex: laravel.svg"
-                  class="input input-bordered flex-1 {errors.icon ? 'input-error' : ''}"
-                />
-                {#if iconPreview}
-                  <div class="flex items-center px-3 border border-base-300 rounded-lg bg-base-50">
-                    <img
-                      src="/icons/{iconPreview}"
-                      alt="Icône"
-                      class="w-6 h-6"
-                      on:error={(e) => e.target.style.display='none'}
-                    />
-                  </div>
-                {/if}
-              </div>
-              {#if errors.icon}
-                <label class="label" for="service_icon_error">
-                  <span class="label-text-alt text-error">{errors.icon}</span>
-                </label>
-              {/if}
-              <label class="label" for="service_icon_helper">
-                <span class="label-text-alt">Placez vos icônes dans <code>public/icons/</code></span>
-              </label>
-            </div>
 
             <!-- Installation path -->
             <div class="form-control">
@@ -354,6 +440,11 @@
           </div>
 
           <div>
+            <h3 class="font-semibold">🎨 Icône</h3>
+            <p class="text-base-content/70">Sélectionnez une image depuis la bibliothèque ou ajoutez-en de nouvelles dans les paramètres.</p>
+          </div>
+
+          <div>
             <h3 class="font-semibold">🔌 Ports</h3>
             <p class="text-base-content/70">Ajoutez tous les ports exposés par votre service. Le premier port sera considéré comme principal.</p>
           </div>
@@ -371,11 +462,6 @@
           <div>
             <h3 class="font-semibold">🖥️ Serveur</h3>
             <p class="text-base-content/70">Sélectionnez le serveur qui héberge ce service.</p>
-          </div>
-
-          <div>
-            <h3 class="font-semibold">🎨 Icône</h3>
-            <p class="text-base-content/70">Nom du fichier d'icône (format SVG recommandé). Placez le fichier dans <code>public/icons/</code>.</p>
           </div>
 
           <div>
@@ -417,32 +503,42 @@
       </div>
     </div>
 
-    <!-- Suggested icons -->
+    <!-- ✅ NOUVEAU: Gestion des images -->
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
-        <h2 class="card-title text-lg">🎨 Icônes suggérées</h2>
-        <div class="grid grid-cols-3 gap-2 text-xs">
-          {#each suggestedIcons as suggestion}
+        <h2 class="card-title text-lg">🎨 Gestion des images</h2>
+        <div class="space-y-3 text-sm">
+          <p class="text-base-content/70">
+            Utilisez la bibliothèque d'images pour une gestion centralisée de vos icônes de services.
+          </p>
+
+          <div class="flex flex-col gap-2">
             <button
               type="button"
-              class="text-center hover:bg-base-200 p-2 rounded transition-colors"
-              on:click={() => formData.icon = suggestion.name}
+              class="btn btn-outline btn-sm"
+              on:click={openImageSelector}
             >
-              <div class="bg-red-100 p-2 rounded mb-1">{suggestion.icon}</div>
-              <span>{suggestion.name}</span>
+              🖼️ Parcourir les images
             </button>
-          {/each}
+            <button
+              type="button"
+              class="btn btn-ghost btn-sm"
+              on:click={() => window.open('/settings/service-images', '_blank')}
+            >
+              ⚙️ Gérer les images
+            </button>
+          </div>
+
+          <div class="text-xs text-base-content/60 pt-2 border-t border-base-300">
+            <strong>Avantages :</strong>
+            <ul class="list-disc list-inside mt-1 space-y-1">
+              <li>Images centralisées et réutilisables</li>
+              <li>Prévisualisation en temps réel</li>
+              <li>Gestion des métadonnées</li>
+              <li>Organisation par labels</li>
+            </ul>
+          </div>
         </div>
-        <p class="text-xs text-base-content/70 mt-3">
-          Téléchargez des icônes depuis
-          <button
-            type="button"
-            class="link"
-            on:click={() => window.open('https://simpleicons.org', '_blank')}
-          >
-            simpleicons.org
-          </button>
-        </p>
       </div>
     </div>
 
@@ -469,3 +565,12 @@
   </div>
 
 </div>
+
+<!-- Modal de sélection d'images -->
+<ImageSelector
+  {availableImages}
+  selectedImageUrl={formData.icon}
+  bind:isOpen={showImageSelector}
+  on:select={handleImageSelect}
+  on:close={closeImageSelector}
+/>

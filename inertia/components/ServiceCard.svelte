@@ -42,11 +42,30 @@
     });
   }
 
+  // ✅ NOUVEAU: Helper pour gérer les icônes (ancien + nouveau système)
+  function getIconUrl(icon) {
+    if (!icon) return null;
+
+    // Si l'icône commence par '/uploads/', c'est le nouveau système (URL complète)
+    if (icon.startsWith('/uploads/')) {
+      return icon;
+    }
+
+    // Si l'icône commence par 'http', c'est une URL externe
+    if (icon.startsWith('http')) {
+      return icon;
+    }
+
+    // Sinon, c'est l'ancien système (nom de fichier dans /icons/)
+    return `/icons/${icon}`;
+  }
+
   // Reactive variables
   $: maintenance = getMaintenanceStatus(service.lastMaintenanceAt);
   $: serviceName = service.name || service.nom || 'Service sans nom';
   $: serverName = service.server?.name || service.server?.nom;
   $: serverIp = service.server?.ip;
+  $: iconUrl = getIconUrl(service.icon);
 </script>
 
 <!-- Service Card Component -->
@@ -71,9 +90,14 @@
         {/if}
       </div>
 
-      {#if service.icon}
+      {#if iconUrl}
         <div class="w-12 h-12 bg-white border border-base-200 p-2 rounded-full flex-shrink-0 ml-3">
-          <img src="/icons/{service.icon}" alt={serviceName} class="w-full h-full object-contain" />
+          <img
+            src={iconUrl}
+            alt={serviceName}
+            class="w-full h-full object-contain"
+            on:error={(e) => e.target.style.display='none'}
+          />
         </div>
       {/if}
     </div>

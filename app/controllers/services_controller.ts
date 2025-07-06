@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Service from '#models/service'
 import Server from '#models/server'
+import ServiceImage from '#models/service_image'
 import {
   createServiceValidator,
   updateServiceValidator,
@@ -53,6 +54,38 @@ export default class ServicesController {
       serverName: service.server?.nom || 'Unknown',
       serverId: service.serverId
     }))
+  }
+
+  /**
+   * ✅ NOUVEAU: Helper pour récupérer les images de services disponibles
+   */
+  private async getAvailableImages() {
+    console.log('🔍 DEBUG ServicesController: Récupération des images...')
+
+    try {
+      const images = await ServiceImage.query()
+        .where('is_active', true)
+        .orderBy('order', 'asc')
+        .orderBy('label', 'asc')
+
+      console.log('🔍 DEBUG ServicesController: Images trouvées:', images.length)
+
+      const formattedImages = images.map(image => ({
+        id: image.id,
+        label: image.label,
+        description: image.description,
+        url: image.url,
+        filename: image.filename,
+        file_extension: image.fileExtension
+      }))
+
+      console.log('🔍 DEBUG ServicesController: Images formatées:', JSON.stringify(formattedImages, null, 2))
+
+      return formattedImages
+    } catch (error) {
+      console.error('❌ DEBUG ServicesController: Erreur lors de la récupération des images:', error)
+      return []
+    }
   }
 
   /**
@@ -161,7 +194,7 @@ export default class ServicesController {
   }
 
   /**
-   * ✅ AMÉLIORÉ: Affiche le formulaire de création avec services disponibles
+   * ✅ AMÉLIORÉ: Affiche le formulaire de création avec services et images disponibles
    */
   async create({ inertia, request, session }: HttpContext) {
     const serverId = request.input('server_id')
@@ -170,6 +203,11 @@ export default class ServicesController {
 
     // ✅ NOUVEAU: Récupérer tous les services pour les dépendances
     const availableServices = await this.getAvailableServices()
+
+    // ✅ NOUVEAU: Récupérer toutes les images disponibles
+    const availableImages = await this.getAvailableImages()
+
+    console.log('🔍 DEBUG create(): Envoie de', availableImages.length, 'images au frontend')
 
     const formattedServers = servers.map((server: any) => ({
       id: server.id,
@@ -192,6 +230,7 @@ export default class ServicesController {
       servers: formattedServers,
       selectedServer: formattedSelectedServer,
       availableServices, // ✅ NOUVEAU
+      availableImages, // ✅ NOUVEAU
       user,
       errors: {},
       flash: {
@@ -336,7 +375,7 @@ export default class ServicesController {
   }
 
   /**
-   * ✅ AMÉLIORÉ: Affiche le formulaire d'édition avec dépendances
+   * ✅ AMÉLIORÉ: Affiche le formulaire d'édition avec dépendances et images
    */
   async edit({ params, inertia, session }: HttpContext) {
     const service = await Service.query()
@@ -354,6 +393,11 @@ export default class ServicesController {
 
     // ✅ NOUVEAU: Récupérer tous les services sauf celui en cours d'édition
     const availableServices = await this.getAvailableServices(service.id)
+
+    // ✅ NOUVEAU: Récupérer toutes les images disponibles
+    const availableImages = await this.getAvailableImages()
+
+    console.log('🔍 DEBUG edit(): Envoie de', availableImages.length, 'images au frontend')
 
     const formattedService = {
       id: service.id,
@@ -400,6 +444,7 @@ export default class ServicesController {
       service: formattedService,
       servers: formattedServers,
       availableServices, // ✅ NOUVEAU
+      availableImages, // ✅ NOUVEAU
       user,
       errors: {},
       flash: {

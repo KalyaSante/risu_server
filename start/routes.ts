@@ -72,19 +72,26 @@ router.group(() => {
     router.get('/settings', ({ response }) => {
       return response.redirect('/settings/hosters')
     })
-    
+
     // Routes propres pour chaque section
     router.get('/settings/hosters', '#controllers/settings_controller.hosters').as('settings.hosters')
+    router.get('/settings/service-images', '#controllers/settings_controller.images').as('settings.images')
     router.get('/settings/general', '#controllers/settings_controller.general').as('settings.general')
     router.get('/settings/notifications', '#controllers/settings_controller.notifications').as('settings.notifications')
     router.get('/settings/security', '#controllers/settings_controller.security').as('settings.security')
-    
+
     // Actions pour les hébergeurs (API)
     router.post('/settings/hosters', '#controllers/settings_controller.store').as('settings.hosters.store')
     router.post('/settings/hosters/import', '#controllers/settings_controller.import').as('settings.hosters.import')
     router.put('/settings/hosters/:id', '#controllers/settings_controller.update').as('settings.hosters.update')
     router.delete('/settings/hosters/:id', '#controllers/settings_controller.destroy').as('settings.hosters.destroy')
     router.post('/settings/hosters/reorder', '#controllers/settings_controller.reorder').as('settings.hosters.reorder')
+
+    // Actions pour les images de services (API)
+    router.post('/settings/images', '#controllers/settings_controller.storeImage').as('settings.images.store')
+    router.put('/settings/images/:id', '#controllers/settings_controller.updateImage').as('settings.images.update')
+    router.delete('/settings/images/:id', '#controllers/settings_controller.destroyImage').as('settings.images.destroy')
+    router.post('/settings/images/reorder', '#controllers/settings_controller.reorderImages').as('settings.images.reorder')
   })
 
   // Routes API pour les données (conservées pour AJAX/fetch)
@@ -150,5 +157,12 @@ router.get('/500', ({ inertia }) => {
 | ✅ API /api/services/check-circular → Vérification des dépendances circulaires
 | ✅ POST /services/:id/dependencies → Ajouter une dépendance
 | ✅ DELETE /services/:id/dependencies/:dependencyId → Supprimer une dépendance
+|--------------------------------------------------------------------------
+| 🆕 NOUVEAU: Gestion des images de services
+| ✅ GET /settings/service-images → Interface de gestion des images
+| ✅ POST /settings/images → Upload d'une nouvelle image
+| ✅ PUT /settings/images/:id → Modification d'une image
+| ✅ DELETE /settings/images/:id → Suppression d'une image
+| ✅ POST /settings/images/reorder → Réorganisation de l'ordre
 |--------------------------------------------------------------------------
 */

@@ -7,6 +7,7 @@
   export let service = {};
   export let servers = [];
   export let availableServices = []; // ✅ NOUVEAU
+  export let availableImages = []; // ✅ NOUVEAU
   export let user = {};
   export let errors = {};
   export let flash = {};
@@ -40,6 +41,7 @@
     {service}
     {servers}
     {availableServices}
+    {availableImages}
     {errors}
     isEdit={true}
   />
