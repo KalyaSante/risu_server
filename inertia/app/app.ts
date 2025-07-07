@@ -1,7 +1,7 @@
 /// <reference path="../../adonisrc.ts" />
 /// <reference path="../../config/inertia.ts" />
 
-import '../css/app.css';
+import '../css/app.css'
 
 import { createInertiaApp, type ResolvedComponent } from '@inertiajs/svelte'
 import { resolvePageComponent } from '@adonisjs/inertia/helpers'
@@ -13,7 +13,7 @@ createInertiaApp({
   resolve: (name) => {
     return resolvePageComponent<ResolvedComponent>(
       `../pages/${name}.svelte`,
-      import.meta.glob<ResolvedComponent>('../pages/**/*.svelte'),
+      import.meta.glob<ResolvedComponent>('../pages/**/*.svelte')
     )
   },
 

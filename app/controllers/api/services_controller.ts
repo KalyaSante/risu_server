@@ -26,9 +26,7 @@ export default class ServicesApiController {
         query = query.where('server_id', serverId)
       }
 
-      const services = await query
-        .orderBy('nom', 'asc')
-        .paginate(page, limit)
+      const services = await query.orderBy('nom', 'asc').paginate(page, limit)
 
       // ✅ FIX: Utiliser extendPaginator pour calculer hasNextPage/hasPreviousPage
       const extendedServices = extendPaginator(services)
@@ -42,13 +40,13 @@ export default class ServicesApiController {
           currentPage: extendedServices.currentPage,
           lastPage: extendedServices.lastPage,
           hasNextPage: extendedServices.hasNextPage,
-          hasPreviousPage: extendedServices.hasPreviousPage
-        }
+          hasPreviousPage: extendedServices.hasPreviousPage,
+        },
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        error: 'Erreur lors de la récupération des services'
+        error: 'Erreur lors de la récupération des services',
       })
     }
   }
@@ -71,12 +69,12 @@ export default class ServicesApiController {
 
       return response.json({
         success: true,
-        data: service.serialize()
+        data: service.serialize(),
       })
     } catch (error) {
       return response.status(404).json({
         success: false,
-        error: 'Service non trouvé'
+        error: 'Service non trouvé',
       })
     }
   }
@@ -96,13 +94,13 @@ export default class ServicesApiController {
         data: services.map((service: any) => service.serialize()),
         meta: {
           count: services.length,
-          serverId: params.serverId
-        }
+          serverId: params.serverId,
+        },
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        error: 'Erreur lors de la récupération des services du serveur'
+        error: 'Erreur lors de la récupération des services du serveur',
       })
     }
   }
@@ -124,18 +122,18 @@ export default class ServicesApiController {
         name: service.nom,
         status: Math.random() > 0.1 ? 'running' : 'stopped', // 90% running
         serverId: service.serverId,
-        serverName: service.server?.nom
+        serverName: service.server?.nom,
       }))
 
       return response.json({
         success: true,
         data: servicesWithStatus,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        error: 'Erreur lors de la vérification du statut des services'
+        error: 'Erreur lors de la vérification du statut des services',
       })
     }
   }
@@ -152,7 +150,8 @@ export default class ServicesApiController {
       // Pour l'instant, on simule juste un toggle
       const newStatus = Math.random() > 0.5 ? 'running' : 'stopped'
 
-      session.flash('success',
+      session.flash(
+        'success',
         `Service "${service.nom}" ${newStatus === 'running' ? 'démarré' : 'arrêté'} avec succès!`
       )
 
@@ -161,14 +160,14 @@ export default class ServicesApiController {
         data: {
           id: service.id,
           name: service.nom,
-          status: newStatus
+          status: newStatus,
         },
-        message: `Service ${newStatus === 'running' ? 'démarré' : 'arrêté'}`
+        message: `Service ${newStatus === 'running' ? 'démarré' : 'arrêté'}`,
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        error: 'Erreur lors du toggle du service'
+        error: 'Erreur lors du toggle du service',
       })
     }
   }

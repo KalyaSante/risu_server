@@ -15,7 +15,9 @@ export const createServerValidator = vine.compile(
       .trim()
       .minLength(7)
       .maxLength(45)
-      .regex(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/)
+      .regex(
+        /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/
+      )
       .transform((value) => value.trim()),
 
     hebergeur: vine
@@ -23,7 +25,17 @@ export const createServerValidator = vine.compile(
       .trim()
       .minLength(2)
       .maxLength(50)
-      .in(['OVH', 'Scaleway', 'AWS', 'Azure', 'Google Cloud', 'DigitalOcean', 'Hetzner', 'Local', 'Autre']),
+      .in([
+        'OVH',
+        'Scaleway',
+        'AWS',
+        'Azure',
+        'Google Cloud',
+        'DigitalOcean',
+        'Hetzner',
+        'Local',
+        'Autre',
+      ]),
 
     localisation: vine
       .string()
@@ -50,7 +62,7 @@ export const createServerValidator = vine.compile(
         }
         // Si c'est un nombre ou string numérique, le convertir en nombre
         const num = Number(value)
-        return isNaN(num) || num <= 0 ? null : Math.floor(num)
+        return Number.isNaN(num) || num <= 0 ? null : Math.floor(num)
       })
       .optional(),
   })
@@ -71,7 +83,9 @@ export const updateServerValidator = vine.compile(
       .trim()
       .minLength(7)
       .maxLength(45)
-      .regex(/^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/)
+      .regex(
+        /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$|^(?:[0-9a-fA-F]{1,4}:){7}[0-9a-fA-F]{1,4}$/
+      )
       .transform((value) => value.trim()),
 
     hebergeur: vine
@@ -79,7 +93,17 @@ export const updateServerValidator = vine.compile(
       .trim()
       .minLength(2)
       .maxLength(50)
-      .in(['OVH', 'Scaleway', 'AWS', 'Azure', 'Google Cloud', 'DigitalOcean', 'Hetzner', 'Local', 'Autre']),
+      .in([
+        'OVH',
+        'Scaleway',
+        'AWS',
+        'Azure',
+        'Google Cloud',
+        'DigitalOcean',
+        'Hetzner',
+        'Local',
+        'Autre',
+      ]),
 
     localisation: vine
       .string()
@@ -106,7 +130,7 @@ export const updateServerValidator = vine.compile(
         }
         // Si c'est un nombre ou string numérique, le convertir en nombre
         const num = Number(value)
-        return isNaN(num) || num <= 0 ? null : Math.floor(num)
+        return Number.isNaN(num) || num <= 0 ? null : Math.floor(num)
       })
       .optional(),
   })

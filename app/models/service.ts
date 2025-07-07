@@ -2,6 +2,7 @@ import { DateTime } from 'luxon'
 import { BaseModel, column, belongsTo, manyToMany } from '@adonisjs/lucid/orm'
 import type { BelongsTo, ManyToMany } from '@adonisjs/lucid/types/relations'
 import Server from './server.js'
+import ServiceImage from './service_image.js'
 import type { ServicePort } from '#types/oauth'
 
 export default class Service extends BaseModel {
@@ -16,6 +17,10 @@ export default class Service extends BaseModel {
 
   @column()
   declare icon: string | null
+
+  // ✅ NOUVEAU: Relation vers ServiceImage
+  @column()
+  declare serviceImageId: number | null
 
   @column()
   declare path: string | null
@@ -36,8 +41,8 @@ export default class Service extends BaseModel {
   // ✅ SIMPLE: Ports multiples en JSON avec juste port + label
   @column({
     serialize: (value: ServicePort[] | null) => value,
-    prepare: (value: ServicePort[] | null) => value ? JSON.stringify(value) : null,
-    consume: (value: string | null) => value ? JSON.parse(value) : null,
+    prepare: (value: ServicePort[] | null) => (value ? JSON.stringify(value) : null),
+    consume: (value: string | null) => (value ? JSON.parse(value) : null),
   })
   declare ports: ServicePort[] | null
 
@@ -52,6 +57,10 @@ export default class Service extends BaseModel {
 
   @belongsTo(() => Server)
   declare server: BelongsTo<typeof Server>
+
+  // ✅ NOUVEAU: Relation vers ServiceImage
+  @belongsTo(() => ServiceImage)
+  declare serviceImage: BelongsTo<typeof ServiceImage>
 
   @manyToMany(() => Service, {
     pivotTable: 'service_dependencies',
@@ -73,14 +82,38 @@ export default class Service extends BaseModel {
   })
   declare dependents: ManyToMany<typeof Service>
 
+  // ✅ NOUVEAU: Getter intelligent pour l'icône
+  get iconUrl(): string | null {
+    // Priorité 1: Image gérée via ServiceImage
+    if (this.serviceImage) {
+      return this.serviceImage.url
+    }
+    // Priorité 2: URL custom dans le champ icon
+    return this.icon
+  }
+
+  // ✅ NOUVEAU: Getter pour les métadonnées de l'image
+  get imageMetadata(): any {
+    if (this.serviceImage) {
+      return {
+        id: this.serviceImage.id,
+        label: this.serviceImage.label,
+        description: this.serviceImage.description,
+        filename: this.serviceImage.filename,
+        url: this.serviceImage.url,
+      }
+    }
+    return null
+  }
+
   // ✅ Getters simples
   get primaryPort(): number | null {
-    const portValue = this.ports?.[0]?.port;
+    const portValue = this.ports?.[0]?.port
     if (typeof portValue === 'string') {
-      const parsedPort = parseInt(portValue, 10);
-      return isNaN(parsedPort) ? null : parsedPort;
+      const parsedPort = Number.parseInt(portValue, 10)
+      return Number.isNaN(parsedPort) ? null : parsedPort
     }
-    return portValue || null;
+    return portValue || null
   }
 
   get allPorts(): ServicePort[] {

@@ -23,7 +23,7 @@ export default class AuthController {
       client_id: oauthConfig.clientId,
       redirect_uri: oauthConfig.redirectUri,
       response_type: 'code',
-      state: state
+      state: state,
     })
 
     // Ajouter les scopes seulement s'ils existent
@@ -45,7 +45,7 @@ export default class AuthController {
     console.log('🔄 OAuth callback reçu:', {
       hasCode: !!code,
       hasState: !!state,
-      error
+      error,
     })
 
     // Vérifier les erreurs
@@ -70,15 +70,15 @@ export default class AuthController {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
         },
         body: JSON.stringify({
           grant_type: 'authorization_code',
           client_id: oauthConfig.clientId,
           client_secret: oauthConfig.clientSecret,
           redirect_uri: oauthConfig.redirectUri,
-          code: code
-        })
+          code: code,
+        }),
       })
 
       if (!tokenResponse.ok) {
@@ -88,16 +88,16 @@ export default class AuthController {
       }
 
       // ✅ FIX: Typage explicite pour tokenData
-      const tokenData = await tokenResponse.json() as TokenData
+      const tokenData = (await tokenResponse.json()) as TokenData
       console.log('✅ Token OAuth obtenu')
 
       // Récupérer les infos utilisateur
       console.log('👤 Récupération des infos utilisateur...')
       const userResponse = await fetch(`${oauthConfig.baseUrl}${oauthConfig.endpoints.userInfo}`, {
         headers: {
-          'Authorization': `Bearer ${tokenData.access_token}`,
-          'Accept': 'application/json'
-        }
+          Authorization: `Bearer ${tokenData.access_token}`,
+          Accept: 'application/json',
+        },
       })
 
       if (!userResponse.ok) {
@@ -107,11 +107,11 @@ export default class AuthController {
       }
 
       // ✅ FIX: Typage explicite pour userData
-      const userData = await userResponse.json() as UserData
+      const userData = (await userResponse.json()) as UserData
       console.log('✅ Données utilisateur récupérées:', {
         id: userData.id,
         email: userData.email,
-        name: userData.name
+        name: userData.name,
       })
 
       // ✅ Créer ou mettre à jour l'utilisateur local
@@ -121,14 +121,14 @@ export default class AuthController {
           id: userData.id,
           fullName: userData.name || userData.email,
           email: userData.email,
-          password: null // Pas de password local avec OAuth
+          password: null, // Pas de password local avec OAuth
         }
       )
 
       console.log('✅ Utilisateur sauvegardé en BDD:', {
         id: user.id,
         email: user.email,
-        fullName: user.fullName
+        fullName: user.fullName,
       })
 
       // ✅ FIX: Stocker les données utilisateur COMPLÈTES en session
@@ -136,7 +136,7 @@ export default class AuthController {
       if (tokenData.refresh_token) {
         session.put('refresh_token', tokenData.refresh_token)
       }
-      session.put('token_expires_at', Date.now() + (tokenData.expires_in * 1000))
+      session.put('token_expires_at', Date.now() + tokenData.expires_in * 1000)
       session.put('user_id', user.id)
       session.put('user_email', user.email)
       session.put('user_name', user.fullName || user.email)
@@ -146,7 +146,7 @@ export default class AuthController {
         user_id: session.get('user_id'),
         user_email: session.get('user_email'),
         user_name: session.get('user_name'),
-        has_token: !!session.get('access_token')
+        has_token: !!session.get('access_token'),
       })
 
       session.flash('success', `Bienvenue ${user.fullName || user.email} !`)
@@ -157,10 +157,9 @@ export default class AuthController {
 
       console.log('🎯 Redirection vers:', intendedUrl)
       return response.redirect(intendedUrl)
-
-    } catch (error) {
-      console.error('💥 Erreur callback OAuth:', error)
-      session.flash('error', 'Erreur lors de l\'authentification OAuth: ' + (error as Error).message)
+    } catch (e) {
+      console.error('💥 Erreur callback OAuth:', e)
+      session.flash('error', "Erreur lors de l'authentification OAuth: " + (e as Error).message)
       return response.redirect('/login')
     }
   }
@@ -179,8 +178,8 @@ export default class AuthController {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'Authorization': `Bearer ${accessToken}`
-          }
+            'Authorization': `Bearer ${accessToken}`,
+          },
         })
         console.log('✅ Token OAuth révoqué')
       } catch (error) {
@@ -196,10 +195,10 @@ export default class AuthController {
       'user_id',
       'user_email',
       'user_name',
-      'oauth_state'
+      'oauth_state',
     ]
 
-    sessionKeys.forEach(key => session.forget(key))
+    sessionKeys.forEach((key) => session.forget(key))
 
     console.log('🗑️ Session nettoyée')
     session.flash('success', 'Déconnexion réussie')
@@ -214,7 +213,7 @@ export default class AuthController {
       flashMessages: {
         error: session.flashMessages.get('error'),
         success: session.flashMessages.get('success'),
-      }
+      },
     })
   }
 
@@ -230,27 +229,27 @@ export default class AuthController {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Accept': 'application/json'
+          'Accept': 'application/json',
         },
         body: JSON.stringify({
           grant_type: 'refresh_token',
           refresh_token: refreshToken,
           client_id: oauthConfig.clientId,
-          client_secret: oauthConfig.clientSecret
-        })
+          client_secret: oauthConfig.clientSecret,
+        }),
       })
 
       if (!response.ok) return false
 
       // ✅ FIX: Typage du token refresh
-      const tokenData = await response.json() as TokenData
+      const tokenData = (await response.json()) as TokenData
 
       // Mettre à jour les tokens en session
       session.put('access_token', tokenData.access_token)
       if (tokenData.refresh_token) {
         session.put('refresh_token', tokenData.refresh_token)
       }
-      session.put('token_expires_at', Date.now() + (tokenData.expires_in * 1000))
+      session.put('token_expires_at', Date.now() + tokenData.expires_in * 1000)
 
       return true
     } catch (error) {

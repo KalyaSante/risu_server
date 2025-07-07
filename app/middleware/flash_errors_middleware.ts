@@ -16,13 +16,13 @@ export default class FlashErrorsMiddleware {
       if (error.code === 'E_VALIDATION_ERROR') {
         // Flash les erreurs de validation
         const errors = error.messages
-        Object.keys(errors).forEach(field => {
+        Object.keys(errors).forEach((field) => {
           session.flash(`errors.${field}`, errors[field][0])
         })
 
         // Flash les anciennes valeurs (sauf les mots de passe)
         const oldValues = request.all()
-        Object.keys(oldValues).forEach(key => {
+        Object.keys(oldValues).forEach((key) => {
           if (!key.toLowerCase().includes('password') && !key.includes('_token')) {
             session.flash(`old.${key}`, oldValues[key])
           }

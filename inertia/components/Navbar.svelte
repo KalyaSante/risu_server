@@ -1,61 +1,15 @@
 <script>
   import { router } from '@inertiajs/svelte';
-  import { onMount } from 'svelte';
   import CryptoJS from 'crypto-js';
 
   // Props
   export let user = null;
   export let currentRoute = '';
 
-  // State
-  let currentTheme = 'light';
-
-  // Thèmes DaisyUI officiels (35 thèmes disponibles dans v5)
-  const themes = [
-    { value: 'light', name: '☀️ Clair', icon: '☀️' },
-    { value: 'dark', name: '🌙 Sombre', icon: '🌙' },
-    { value: 'cupcake', name: '🧁 Cupcake', icon: '🧁' },
-    { value: 'bumblebee', name: '🐝 Bumblebee', icon: '🐝' },
-    { value: 'emerald', name: '💚 Emerald', icon: '💚' },
-    { value: 'corporate', name: '🏢 Corporate', icon: '🏢' },
-    { value: 'synthwave', name: '🌆 Synthwave', icon: '🌆' },
-    { value: 'retro', name: '📺 Retro', icon: '📺' },
-    { value: 'cyberpunk', name: '🤖 Cyberpunk', icon: '🤖' },
-    { value: 'valentine', name: '💝 Valentine', icon: '💝' },
-    { value: 'halloween', name: '🎃 Halloween', icon: '🎃' },
-    { value: 'garden', name: '🌻 Garden', icon: '🌻' },
-    { value: 'forest', name: '🌲 Forest', icon: '🌲' },
-    { value: 'aqua', name: '🌊 Aqua', icon: '🌊' },
-    { value: 'lofi', name: '🎵 Lo-Fi', icon: '🎵' },
-    { value: 'pastel', name: '🎨 Pastel', icon: '🎨' },
-    { value: 'fantasy', name: '🦄 Fantasy', icon: '🦄' },
-    { value: 'wireframe', name: '📐 Wireframe', icon: '📐' },
-    { value: 'black', name: '⚫ Black', icon: '⚫' },
-    { value: 'luxury', name: '💎 Luxury', icon: '💎' },
-    { value: 'dracula', name: '🧛 Dracula', icon: '🧛' },
-    { value: 'cmyk', name: '🖨️ CMYK', icon: '🖨️' },
-    { value: 'autumn', name: '🍂 Autumn', icon: '🍂' },
-    { value: 'business', name: '💼 Business', icon: '💼' },
-    { value: 'acid', name: '🧪 Acid', icon: '🧪' },
-    { value: 'lemonade', name: '🍋 Lemonade', icon: '🍋' },
-    { value: 'night', name: '🌌 Night', icon: '🌌' },
-    { value: 'coffee', name: '☕ Coffee', icon: '☕' },
-    { value: 'winter', name: '❄️ Winter', icon: '❄️' },
-    { value: 'dim', name: '🔅 Dim', icon: '🔅' },
-    { value: 'nord', name: '🧊 Nord', icon: '🧊' },
-    { value: 'sunset', name: '🌅 Sunset', icon: '🌅' }
-  ];
-
   // Functions
   function logout() {
     // ✅ FIX: Forcer une redirection complète pour le logout
     window.location.href = '/logout';
-  }
-
-  function changeTheme(theme) {
-    currentTheme = theme;
-    document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('kalya-theme', theme);
   }
 
   function getInitials(name) {
@@ -100,53 +54,49 @@
     return null;
   }
 
-  // Lifecycle
-  onMount(() => {
-    // Charger le thème sauvegardé
-    const savedTheme = localStorage.getItem('kalya-theme') || 'light';
-    changeTheme(savedTheme);
-  });
-
   // Reactive
   $: userName = user?.fullName || user?.name || user?.email || 'Utilisateur';
   $: userAvatar = getUserAvatarUrl(user, 32); // Taille 32px pour la navbar
-  $: currentThemeData = themes.find(t => t.value === currentTheme) || themes[0];
 </script>
 
 <!-- Modern Navbar -->
 <div class="navbar bg-base-100 shadow-lg px-4">
   <!-- Logo/Brand -->
   <div class="navbar-start">
-    <a href="/" class="btn btn-ghost text-xl font-bold text-primary">
-      🔷 Kalya
-    </a>
+    <button
+      on:click={() => router.visit('/')}
+      class="btn btn-ghost text-xl font-bold text-primary flex align-items-center"
+    >
+      <img src="/risu_128.png" alt="logo" class="w-8 h-8">
+      <span>Risu Server</span>
+    </button>
 
     <!-- Navigation Menu -->
     <div class="hidden lg:flex ml-8">
       <ul class="menu menu-horizontal px-1 gap-2">
         <li>
-          <a
-            href="/"
+          <button
+            on:click={() => router.visit('/')}
             class="btn btn-ghost btn-sm {currentRoute === 'dashboard' ? 'bg-primary text-primary-content' : ''}"
           >
             📊 Dashboard
-          </a>
+          </button>
         </li>
         <li>
-          <a
-            href="/servers"
+          <button
+            on:click={() => router.visit('/servers')}
             class="btn btn-ghost btn-sm {currentRoute === 'servers' ? 'bg-primary text-primary-content' : ''}"
           >
             🖥️ Serveurs
-          </a>
+          </button>
         </li>
         <li>
-          <a
-            href="/services"
+          <button
+            on:click={() => router.visit('/services')}
             class="btn btn-ghost btn-sm {currentRoute === 'services' ? 'bg-primary text-primary-content' : ''}"
           >
             ⚙️ Services
-          </a>
+          </button>
         </li>
       </ul>
     </div>
@@ -155,6 +105,7 @@
   <!-- User Menu -->
   <div class="navbar-end gap-2">
     {#if user}
+
       <!-- User Profile -->
       <div class="flex items-center gap-3">
         <div class="avatar">
@@ -171,27 +122,15 @@
         <span class="text-sm font-medium hidden sm:block">{userName}</span>
       </div>
 
-      <!-- Theme Selector -->
-      <div class="dropdown dropdown-end">
-        <div tabindex="0" role="button" class="btn btn-ghost btn-circle" title="Changer le thème">
-          <span class="text-lg">{currentThemeData.icon}</span>
-        </div>
-        <div class="dropdown-content z-[1] card card-compact w-64 p-2 shadow-xl bg-base-100 border border-base-300">
-          <div>
-            <h3 class="card-title text-sm mb-3">🎨 Choisir un thème</h3>
-            <div class="grid grid-cols-2 gap-1 max-h-64 overflow-y-auto">
-              {#each themes as theme}
-                <button
-                  class="btn btn-sm btn-ghost justify-start {currentTheme === theme.value ? 'bg-primary text-primary-content' : ''}"
-                  on:click={() => changeTheme(theme.value)}
-                >
-                  <span class="text-xs">{theme.name}</span>
-                </button>
-              {/each}
-            </div>
-          </div>
-        </div>
-      </div>
+      <!-- Settings Button -->
+      <button
+        on:click={() => router.visit('/settings')}
+        class="btn btn-ghost btn-circle {currentRoute.startsWith('settings') ? 'bg-primary text-primary-content' : ''}"
+        title="Paramètres"
+        aria-label="Paramètres"
+      >
+        ⚙️
+      </button>
 
       <!-- Logout Button -->
       <button
@@ -207,9 +146,12 @@
 
     {:else}
       <!-- Login Link -->
-      <a href="/login" class="btn btn-primary btn-sm">
+      <button
+        on:click={() => router.visit('/login')}
+        class="btn btn-primary btn-sm"
+      >
         Se connecter
-      </a>
+      </button>
     {/if}
 
     <!-- Mobile Menu (Hamburger) -->
@@ -221,28 +163,28 @@
       </div>
       <div class="menu menu-sm dropdown-content mt-3 z-[1] p-2 shadow-xl bg-base-100 rounded-box w-52 border border-base-300">
         <li>
-          <a
-            href="/"
+          <button
+            on:click={() => router.visit('/')}
             class="{currentRoute === 'dashboard' ? 'active' : ''}"
           >
             📊 Dashboard
-          </a>
+          </button>
         </li>
         <li>
-          <a
-            href="/servers"
+          <button
+            on:click={() => router.visit('/servers')}
             class="{currentRoute === 'servers' ? 'active' : ''}"
           >
             🖥️ Serveurs
-          </a>
+          </button>
         </li>
         <li>
-          <a
-            href="/services"
+          <button
+            on:click={() => router.visit('/services')}
             class="{currentRoute === 'services' ? 'active' : ''}"
           >
             ⚙️ Services
-          </a>
+          </button>
         </li>
       </div>
     </div>

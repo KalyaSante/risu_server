@@ -10,12 +10,11 @@ export default class DashboardApiController {
    */
   async networkData({ response }: HttpContext) {
     try {
-      const servers = await Server.query()
-        .preload('services', (servicesQuery) => {
-          servicesQuery.preload('dependencies', (depQuery) => {
-            depQuery.pivotColumns(['label', 'type'])
-          })
+      const servers = await Server.query().preload('services', (servicesQuery) => {
+        servicesQuery.preload('dependencies', (depQuery) => {
+          depQuery.pivotColumns(['label', 'type'])
         })
+      })
 
       const services = await Service.query()
         .preload('server')
@@ -32,13 +31,13 @@ export default class DashboardApiController {
           serversCount: servers.length,
           servicesCount: services.length,
           dependenciesCount: graphData.edges.length,
-          lastUpdated: new Date().toISOString()
-        }
+          lastUpdated: new Date().toISOString(),
+        },
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        error: 'Erreur lors de la récupération des données du réseau'
+        error: 'Erreur lors de la récupération des données du réseau',
       })
     }
   }
@@ -53,7 +52,7 @@ export default class DashboardApiController {
         Service.query().count('* as total'),
         Service.query()
           .join('service_dependencies', 'services.id', 'service_dependencies.service_id')
-          .count('* as total')
+          .count('* as total'),
       ])
 
       return response.json({
@@ -61,13 +60,13 @@ export default class DashboardApiController {
         data: {
           servers: serversCount[0].$extras.total,
           services: servicesCount[0].$extras.total,
-          dependencies: dependenciesCount[0].$extras.total
-        }
+          dependencies: dependenciesCount[0].$extras.total,
+        },
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        error: 'Erreur lors de la récupération des statistiques'
+        error: 'Erreur lors de la récupération des statistiques',
       })
     }
   }
@@ -88,7 +87,7 @@ export default class DashboardApiController {
         ip: server.ip,
         hebergeur: server.hebergeur,
         localisation: server.localisation,
-        services_count: server.services?.length || 0
+        services_count: server.services?.length || 0,
       })),
 
       ...services.map((service: any) => ({
@@ -103,8 +102,8 @@ export default class DashboardApiController {
         path: service.path,
         repo_url: service.repoUrl,
         doc_path: service.docPath,
-        last_maintenance_at: service.lastMaintenanceAt?.toISO()
-      }))
+        last_maintenance_at: service.lastMaintenanceAt?.toISO(),
+      })),
     ]
 
     const edges = [
@@ -120,9 +119,9 @@ export default class DashboardApiController {
           arrows: 'to',
           smooth: { type: 'continuous' },
           type: dep.$pivot?.type,
-          dependency_label: dep.$pivot?.label
+          dependency_label: dep.$pivot?.label,
         }))
-      )
+      ),
     ]
 
     return { nodes, edges }

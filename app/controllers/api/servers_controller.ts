@@ -18,9 +18,7 @@ export default class ServersApiController {
         query = query.where('nom', 'LIKE', `%${search}%`)
       }
 
-      const servers = await query
-        .orderBy('nom', 'asc')
-        .paginate(page, limit)
+      const servers = await query.orderBy('nom', 'asc').paginate(page, limit)
 
       // ✅ FIX: Utiliser extendPaginator pour calculer hasNextPage/hasPreviousPage
       const extendedServers = extendPaginator(servers)
@@ -34,13 +32,13 @@ export default class ServersApiController {
           currentPage: extendedServers.currentPage,
           lastPage: extendedServers.lastPage,
           hasNextPage: extendedServers.hasNextPage,
-          hasPreviousPage: extendedServers.hasPreviousPage
-        }
+          hasPreviousPage: extendedServers.hasPreviousPage,
+        },
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        error: 'Erreur lors de la récupération des serveurs'
+        error: 'Erreur lors de la récupération des serveurs',
       })
     }
   }
@@ -61,12 +59,12 @@ export default class ServersApiController {
 
       return response.json({
         success: true,
-        data: server.serialize()
+        data: server.serialize(),
       })
     } catch (error) {
       return response.status(404).json({
         success: false,
-        error: 'Serveur non trouvé'
+        error: 'Serveur non trouvé',
       })
     }
   }
@@ -89,18 +87,18 @@ export default class ServersApiController {
         ip: server.ip,
         status: Math.random() > 0.05 ? 'online' : 'offline', // 95% online
         hebergeur: server.hebergeur,
-        servicesCount: server.services?.length || 0
+        servicesCount: server.services?.length || 0,
       }))
 
       return response.json({
         success: true,
         data: serversWithStatus,
-        timestamp: new Date().toISOString()
+        timestamp: new Date().toISOString(),
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        error: 'Erreur lors de la vérification du statut des serveurs'
+        error: 'Erreur lors de la vérification du statut des serveurs',
       })
     }
   }

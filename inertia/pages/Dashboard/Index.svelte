@@ -4,6 +4,7 @@
   import { router } from '@inertiajs/svelte';
   import { DashboardLayout } from '../../app';
   import { ActionButton, StatsCard } from '../../components';
+  import ServiceImg from "~/components/ServiceImg.svelte";
 
   // Props from Inertia
   export let servers = [];
@@ -614,20 +615,26 @@
             </div>
 
             <div class="grid grid-cols-1 gap-6 mt-4">
-              <!-- Informations du service -->
+              <!-- Informations du service avec image -->
               <div class="space-y-4">
-                <div>
-                  <h4 class="font-bold text-lg flex items-center gap-2">
+                <!-- Header avec image -->
+                <div class="flex items-start gap-3">
+                  <!-- ✅ NOUVEAU: Image du service -->
+                  <div class="flex-shrink-0 w-12">
                     {#if selectedService.icon}
-                      <img src="/icons/{selectedService.icon}" alt={selectedService.name} class="w-6 h-6" />
-                    {:else}
-                      ⚙️
+                      <ServiceImg service="{selectedService}"></ServiceImg>
                     {/if}
-                    {selectedService.name}
-                  </h4>
-                  <p class="text-base-content/70">
-                    Service dans {selectedService.serverName || 'serveur inconnu'}
-                  </p>
+                  </div>
+
+                  <!-- Titre et serveur -->
+                  <div class="flex-1 min-w-0">
+                    <h4 class="font-bold text-lg leading-tight">
+                      {selectedService.name}
+                    </h4>
+                    <p class="text-base-content/70 text-sm mt-1">
+                      Service dans {selectedService.serverName || 'serveur inconnu'}
+                    </p>
+                  </div>
                 </div>
 
                 <div class="space-y-2 text-sm">

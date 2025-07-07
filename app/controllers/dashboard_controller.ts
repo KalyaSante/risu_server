@@ -19,7 +19,7 @@ export default class DashboardController {
       user_id: sessionUserId,
       user_email: sessionUserEmail,
       user_name: sessionUserName,
-      hasToken: !!session.get('access_token')
+      hasToken: !!session.get('access_token'),
     })
 
     // ✅ Si les données sont manquantes, forcer la déconnexion
@@ -33,14 +33,17 @@ export default class DashboardController {
     // Récupérer toutes les données nécessaires
     const servers = await Server.query()
       .preload('services', (servicesQuery) => {
-        servicesQuery.preload('dependencies', (depQuery) => {
-          depQuery.pivotColumns(['label', 'type'])
-        })
+        servicesQuery
+          .preload('serviceImage') // ✅ NOUVEAU: Preload de l'image pour les services des serveurs
+          .preload('dependencies', (depQuery) => {
+            depQuery.pivotColumns(['label', 'type'])
+          })
       })
       .preload('parent')
 
     const services = await Service.query()
       .preload('server')
+      .preload('serviceImage') // ✅ NOUVEAU: Preload de l'image pour le dashboard
       .preload('dependencies', (query) => {
         query.pivotColumns(['label', 'type'])
       })
@@ -55,15 +58,16 @@ export default class DashboardController {
     const stats = {
       totalServers: servers.length,
       totalServices: services.length,
-      totalDependencies: graphData.elements.filter((el: any) => el.data?.type === 'dependency').length,
-      uptime: 98 // Tu peux calculer ça dynamiquement plus tard
+      totalDependencies: graphData.elements.filter((el: any) => el.data?.type === 'dependency')
+        .length,
+      uptime: 98, // Tu peux calculer ça dynamiquement plus tard
     }
 
     // ✅ FIX: Utilisateur connecté sans valeurs par défaut problématiques
     const user = {
       id: sessionUserId,
       email: sessionUserEmail,
-      fullName: sessionUserName
+      fullName: sessionUserName,
     }
 
     console.log('👤 Utilisateur pour le rendu:', user)
@@ -78,12 +82,12 @@ export default class DashboardController {
         servicesCount: server.services?.length || 0,
         hebergeur: server.hebergeur,
         localisation: server.localisation,
-        services: server.services || []
+        services: server.services || [],
       })),
       services,
       stats,
       user,
-      graphData // Pour la cartographie interactive si tu veux la garder
+      graphData, // Pour la cartographie interactive si tu veux la garder
     })
   }
 
@@ -112,15 +116,15 @@ export default class DashboardController {
         name: dep.nom,
         type: dep.$pivot?.type,
         label: dep.$pivot?.label,
-        server: (dep as any).server?.nom
+        server: (dep as any).server?.nom,
       })),
       dependents: service.dependents.map((dep: ServiceDependency) => ({
         id: dep.id,
         name: dep.nom,
         type: dep.$pivot?.type,
         label: dep.$pivot?.label,
-        server: (dep as any).server?.nom
-      }))
+        server: (dep as any).server?.nom,
+      })),
     })
   }
 
@@ -129,15 +133,17 @@ export default class DashboardController {
    * (Garde ça pour AJAX si besoin)
    */
   async networkData({ response }: HttpContext) {
-    const servers = await Server.query()
-      .preload('services', (servicesQuery) => {
-        servicesQuery.preload('dependencies', (depQuery) => {
+    const servers = await Server.query().preload('services', (servicesQuery) => {
+      servicesQuery
+        .preload('serviceImage') // ✅ NOUVEAU: Preload de l'image pour l'API
+        .preload('dependencies', (depQuery) => {
           depQuery.pivotColumns(['label', 'type'])
         })
-      })
+    })
 
     const services = await Service.query()
       .preload('server')
+      .preload('serviceImage') // ✅ NOUVEAU: Preload de l'image pour l'API
       .preload('dependencies', (query) => {
         query.pivotColumns(['label', 'type'])
       })
@@ -150,8 +156,9 @@ export default class DashboardController {
       meta: {
         serversCount: servers.length,
         servicesCount: services.length,
-        dependenciesCount: graphData.elements.filter((el: any) => el.data?.type === 'dependency').length
-      }
+        dependenciesCount: graphData.elements.filter((el: any) => el.data?.type === 'dependency')
+          .length,
+      },
     })
   }
 
@@ -172,8 +179,8 @@ export default class DashboardController {
           ip: server.ip,
           hebergeur: server.hebergeur,
           localisation: server.localisation,
-          services_count: server.services?.length || 0
-        }
+          services_count: server.services?.length || 0,
+        },
       })),
 
       // Services comme nœuds enfants (avec parent = serveur)
@@ -186,12 +193,12 @@ export default class DashboardController {
           // Données supplémentaires pour les détails
           server_id: service.serverId,
           server_name: service.server.nom,
-          icon: service.icon,
+          icon: service.iconUrl || service.icon, // ✅ NOUVEAU: Utilise le getter intelligent
           path: service.path,
           repo_url: service.repoUrl,
           doc_path: service.docPath,
-          last_maintenance_at: service.lastMaintenanceAt?.toISO()
-        }
+          last_maintenance_at: service.lastMaintenanceAt?.toISO(),
+        },
       })),
 
       // Edges de dépendances entre services
@@ -206,10 +213,10 @@ export default class DashboardController {
             label: dep.$pivot?.label,
             color: this.getEdgeColor(dep.$pivot?.type || 'fallback'),
             dependency_type: dep.$pivot?.type,
-            dependency_label: dep.$pivot?.label
-          }
+            dependency_label: dep.$pivot?.label,
+          },
         }))
-      )
+      ),
     ]
 
     return { elements }

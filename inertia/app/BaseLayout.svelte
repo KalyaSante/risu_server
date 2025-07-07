@@ -1,6 +1,6 @@
 <script>
   // Base layout for public pages
-  export let title = 'Kalya';
+  export let title = 'Risu Server';
   export let description = 'Server and Service Management Platform';
 </script>
 
@@ -17,17 +17,17 @@
     <!-- Public header content -->
     <nav class="base-layout__nav">
       <a href="/" class="base-layout__logo">Kalya</a>
-      
+
       <div class="base-layout__nav-links">
         <a href="/login" class="base-layout__nav-link">Login</a>
       </div>
     </nav>
   </header>
-  
+
   <main class="base-layout__main">
     <slot />
   </main>
-  
+
   <footer class="base-layout__footer">
     <p>&copy; 2024 Kalya. All rights reserved.</p>
   </footer>
@@ -38,31 +38,31 @@
   .base-layout {
     /* Main container styles */
   }
-  
+
   .base-layout__header {
     /* Header styles */
   }
-  
+
   .base-layout__nav {
     /* Navigation styles */
   }
-  
+
   .base-layout__logo {
     /* Logo styles */
   }
-  
+
   .base-layout__nav-links {
     /* Nav links container */
   }
-  
+
   .base-layout__nav-link {
     /* Nav link styles */
   }
-  
+
   .base-layout__main {
     /* Main content area */
   }
-  
+
   .base-layout__footer {
     /* Footer styles */
   }

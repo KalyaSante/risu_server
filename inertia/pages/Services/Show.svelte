@@ -3,6 +3,7 @@
   import { DashboardLayout } from '../../app';
   import { ActionButton, MarkdownViewer } from '../../components';
   import ServicePorts from '../../components/ServicePorts.svelte';
+  import ServiceImg from "~/components/ServiceImg.svelte";
 
   // Props from Inertia
   export let service = {};
@@ -109,27 +110,39 @@
         </ul>
       </div>
 
-      <!-- Title -->
-      <h1 class="text-3xl font-bold mt-2 flex items-center gap-3">
-        {#if service.icon}
-          <img src="/icons/{service.icon}" alt={service.nom} class="w-8 h-8" on:error={(e) => e.target.style.display='none'} />
-        {:else}
-          ⚙️
-        {/if}
-        {service.nom}
-      </h1>
+      <!-- Title avec image -->
+      <div class="flex items-center gap-4 mt-2">
+        <!-- ✅ NOUVEAU: Image du service (prominente) -->
+        <div class="flex-shrink-0 w-20">
+          {#if service.icon}
+            <ServiceImg {service}></ServiceImg>
+          {/if}
+        </div>
 
-      <!-- Server info -->
-      <p class="text-base-content/70 mt-1">
-        📍 Hébergé sur
-        <button class="link" on:click={goToServer}>
-          {service.server?.nom}
-        </button>
-      </p>
+        <!-- Titre et informations -->
+        <div class="flex-1">
+          <h1 class="text-4xl font-bold text-base-content">
+            {service.nom}
+          </h1>
 
-      <!-- ✅ NOUVEAU: Description -->
+          <!-- Server info -->
+          <p class="text-lg text-base-content/70 mt-2">
+            📍 Hébergé sur
+            <button class="link link-primary font-semibold" on:click={goToServer}>
+              {service.server?.nom}
+            </button>
+            {#if service.server?.ip}
+              <span class="badge badge-outline badge-sm ml-2">{service.server.ip}</span>
+            {/if}
+          </p>
+        </div>
+      </div>
+
+      <!-- ✅ AMÉLIORÉ: Description -->
       {#if service.description}
-        <p class="text-base-content/60 mt-2">{service.description}</p>
+        <div class="mt-4 p-4 bg-base-200 rounded-lg">
+          <p class="text-base-content/80 leading-relaxed">{service.description}</p>
+        </div>
       {/if}
     </div>
 
@@ -312,18 +325,33 @@
                   <div class="card-body">
                     <div class="flex items-center justify-between">
 
-                      <!-- Service info -->
+                      <!-- Service info avec image -->
                       <div class="flex items-center gap-3">
-                        {#if dependency.icon}
-                          <img
-                            src="/icons/{dependency.icon}"
-                            alt={dependency.name}
-                            class="w-6 h-6"
-                            on:error={(e) => e.target.style.display='none'}
-                          />
-                        {:else}
-                          ⚙️
-                        {/if}
+                        <!-- ✅ NOUVEAU: Image du service dans les dépendances -->
+                        <div class="flex-shrink-0">
+                          {#if dependency.icon}
+                            <div class="w-10 h-10 bg-white border border-base-300 rounded-lg p-1.5 flex items-center justify-center">
+                              <img
+                                src={dependency.icon}
+                                alt={dependency.name}
+                                class="w-full h-full object-contain"
+                                on:error={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextElementSibling.style.display = 'flex';
+                                }}
+                              />
+                              <!-- Fallback icon -->
+                              <div class="w-full h-full flex items-center justify-center text-sm text-base-content/50" style="display: none;">
+                                ⚙️
+                              </div>
+                            </div>
+                          {:else}
+                            <div class="w-10 h-10 bg-base-200 border border-base-300 rounded-lg flex items-center justify-center text-sm text-base-content/50">
+                              ⚙️
+                            </div>
+                          {/if}
+                        </div>
+
                         <div>
                           <h4 class="font-semibold">
                             <button class="link" on:click={() => goToService(dependency.id)}>
@@ -378,18 +406,33 @@
                   <div class="card-body">
                     <div class="flex items-center justify-between">
 
-                      <!-- Service info -->
+                      <!-- Service info avec image -->
                       <div class="flex items-center gap-3">
-                        {#if dependent.icon}
-                          <img
-                            src="/icons/{dependent.icon}"
-                            alt={dependent.name}
-                            class="w-6 h-6"
-                            on:error={(e) => e.target.style.display='none'}
-                          />
-                        {:else}
-                          ⚙️
-                        {/if}
+                        <!-- ✅ NOUVEAU: Image du service dans les dépendants -->
+                        <div class="flex-shrink-0">
+                          {#if dependent.icon}
+                            <div class="w-10 h-10 bg-white border border-base-300 rounded-lg p-1.5 flex items-center justify-center">
+                              <img
+                                src={dependent.icon}
+                                alt={dependent.name}
+                                class="w-full h-full object-contain"
+                                on:error={(e) => {
+                                  e.target.style.display = 'none';
+                                  e.target.nextElementSibling.style.display = 'flex';
+                                }}
+                              />
+                              <!-- Fallback icon -->
+                              <div class="w-full h-full flex items-center justify-center text-sm text-base-content/50" style="display: none;">
+                                ⚙️
+                              </div>
+                            </div>
+                          {:else}
+                            <div class="w-10 h-10 bg-base-200 border border-base-300 rounded-lg flex items-center justify-center text-sm text-base-content/50">
+                              ⚙️
+                            </div>
+                          {/if}
+                        </div>
+
                         <div>
                           <h4 class="font-semibold">
                             <button class="link" on:click={() => goToService(dependent.id)}>

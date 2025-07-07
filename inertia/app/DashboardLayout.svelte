@@ -1,4 +1,6 @@
 <script>
+  import { page } from '@inertiajs/svelte';
+  import { onMount } from 'svelte';
   import Navbar from '../components/Navbar.svelte';
   import Alert from '../components/Alert.svelte';
 
@@ -8,6 +10,12 @@
   export let user = null;
   export let currentRoute = '';
   export let flash = {};
+
+  // Initialiser le thème au chargement de l'app
+  onMount(() => {
+    const savedTheme = localStorage.getItem('kalya-theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+  });
 </script>
 
 <svelte:head>
@@ -15,6 +23,7 @@
   <meta name="description" content={description} />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta charset="utf-8" />
+  <meta name="csrf-token" content={$page.props.csrfToken} />
 </svelte:head>
 
 <!-- Dashboard Layout -->

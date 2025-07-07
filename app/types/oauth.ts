@@ -22,6 +22,6 @@ export interface ServiceDependency {
 
 // ✅ MODIFIÉ: Ports optionnels pour plus de flexibilité
 export interface ServicePort {
-  port?: number | string  // ✅ Optionnel maintenant
-  label?: string          // ✅ Optionnel maintenant
+  port?: number | string // ✅ Optionnel maintenant
+  label?: string // ✅ Optionnel maintenant
 }

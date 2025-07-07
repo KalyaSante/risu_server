@@ -1,4 +1,3 @@
-
 import { createInertiaApp, type ResolvedComponent } from '@inertiajs/svelte'
 import { render as svelteRender } from 'svelte/server'
 
