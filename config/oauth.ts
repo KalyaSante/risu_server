@@ -18,6 +18,6 @@ export const oauthConfig = {
   endpoints: {
     authorize: '/oauth/authorize',
     token: '/oauth/token',
-    userInfo: '/api/user/me'
-  }
+    userInfo: '/api/user/me',
+  },
 }

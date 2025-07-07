@@ -2,47 +2,23 @@ import vine from '@vinejs/vine'
 
 // ✅ Définition du schéma pour les ports (simple)
 const portSchema = vine.object({
-  port: vine
-    .number()
-    .positive()
-    .withoutDecimals()
-    .range([1, 65535])
-    .optional(),
+  port: vine.number().positive().withoutDecimals().range([1, 65535]).optional(),
 
-  label: vine
-    .string()
-    .trim()
-    .minLength(1)
-    .maxLength(50)
-    .optional()
+  label: vine.string().trim().minLength(1).maxLength(50).optional(),
 })
 
 // ✅ NOUVEAU: Schéma pour les dépendances
 const dependencySchema = vine.object({
-  serviceId: vine
-    .number()
-    .positive()
-    .withoutDecimals(),
+  serviceId: vine.number().positive().withoutDecimals(),
 
-  label: vine
-    .string()
-    .trim()
-    .minLength(1)
-    .maxLength(100)
-    .optional(),
+  label: vine.string().trim().minLength(1).maxLength(100).optional(),
 
-  type: vine
-    .string()
-    .in(['required', 'optional', 'fallback'])
-    .optional()
+  type: vine.string().in(['required', 'optional', 'fallback']).optional(),
 })
 
 export const createServiceValidator = vine.compile(
   vine.object({
-    serverId: vine
-      .number()
-      .positive()
-      .withoutDecimals(),
+    serverId: vine.number().positive().withoutDecimals(),
 
     nom: vine
       .string()
@@ -68,20 +44,20 @@ export const createServiceValidator = vine.compile(
       .transform((value) => value?.trim() || null),
 
     // ✅ FIX: Ports simples (nettoyage dans le contrôleur)
-    ports: vine
-      .array(portSchema)
-      .optional(),
+    ports: vine.array(portSchema).optional(),
 
     // ✅ NOUVEAU: Dépendances
-    dependencies: vine
-      .array(dependencySchema)
-      .optional(),
+    dependencies: vine.array(dependencySchema).optional(),
 
+    // ✅ NOUVEAU: Champ pour l'ID de l'image sélectionnée (priorité)
+    selectedImageId: vine.number().positive().withoutDecimals().optional(),
+
+    // ✅ MODIFIÉ: icon devient optionnel et pour URL custom uniquement
     icon: vine
       .string()
       .trim()
-      .maxLength(100)
-      .regex(/^[a-zA-Z0-9\-_\.]+\.(svg|png|jpg|jpeg|gif|webp)$/)
+      .url()
+      .maxLength(500)
       .optional()
       .transform((value) => value?.trim()),
 
@@ -113,20 +89,17 @@ export const createServiceValidator = vine.compile(
         formats: [
           'YYYY-MM-DD',
           'YYYY-MM-DD HH:mm:ss',
-          'YYYY-MM-DDTHH:mm',     // ✨ Format datetime-local
-          'YYYY-MM-DDTHH:mm:ss'   // ✨ Format ISO complet
-        ]
+          'YYYY-MM-DDTHH:mm', // ✨ Format datetime-local
+          'YYYY-MM-DDTHH:mm:ss', // ✨ Format ISO complet
+        ],
       })
-      .optional()
+      .optional(),
   })
 )
 
 export const updateServiceValidator = vine.compile(
   vine.object({
-    serverId: vine
-      .number()
-      .positive()
-      .withoutDecimals(),
+    serverId: vine.number().positive().withoutDecimals(),
 
     nom: vine
       .string()
@@ -152,20 +125,20 @@ export const updateServiceValidator = vine.compile(
       .transform((value) => value?.trim() || null),
 
     // ✅ FIX: Ports simples (nettoyage dans le contrôleur)
-    ports: vine
-      .array(portSchema)
-      .optional(),
+    ports: vine.array(portSchema).optional(),
 
     // ✅ NOUVEAU: Dépendances
-    dependencies: vine
-      .array(dependencySchema)
-      .optional(),
+    dependencies: vine.array(dependencySchema).optional(),
 
+    // ✅ NOUVEAU: Champ pour l'ID de l'image sélectionnée (priorité)
+    selectedImageId: vine.number().positive().withoutDecimals().optional(),
+
+    // ✅ MODIFIÉ: icon devient optionnel et pour URL custom uniquement
     icon: vine
       .string()
       .trim()
-      .maxLength(100)
-      .regex(/^[a-zA-Z0-9\-_\.]+\.(svg|png|jpg|jpeg|gif|webp)$/)
+      .url()
+      .maxLength(500)
       .optional()
       .transform((value) => value?.trim()),
 
@@ -197,25 +170,19 @@ export const updateServiceValidator = vine.compile(
         formats: [
           'YYYY-MM-DD',
           'YYYY-MM-DD HH:mm:ss',
-          'YYYY-MM-DDTHH:mm',     // ✨ Format datetime-local
-          'YYYY-MM-DDTHH:mm:ss'   // ✨ Format ISO complet
-        ]
+          'YYYY-MM-DDTHH:mm', // ✨ Format datetime-local
+          'YYYY-MM-DDTHH:mm:ss', // ✨ Format ISO complet
+        ],
       })
-      .optional()
+      .optional(),
   })
 )
 
 export const createServiceDependencyValidator = vine.compile(
   vine.object({
-    serviceId: vine
-      .number()
-      .positive()
-      .withoutDecimals(),
+    serviceId: vine.number().positive().withoutDecimals(),
 
-    dependsOnServiceId: vine
-      .number()
-      .positive()
-      .withoutDecimals(),
+    dependsOnServiceId: vine.number().positive().withoutDecimals(),
 
     label: vine
       .string()
@@ -224,17 +191,13 @@ export const createServiceDependencyValidator = vine.compile(
       .maxLength(100)
       .transform((value) => value.trim()),
 
-    type: vine
-      .string()
-      .in(['required', 'optional', 'fallback'])
+    type: vine.string().in(['required', 'optional', 'fallback']),
   })
 )
 
 // ✅ NOUVEAU: Validator pour la mise à jour des dépendances en lot
 export const updateServiceDependenciesValidator = vine.compile(
   vine.object({
-    dependencies: vine
-      .array(dependencySchema)
-      .optional()
+    dependencies: vine.array(dependencySchema).optional(),
   })
 )

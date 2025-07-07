@@ -2,6 +2,7 @@
   import { router } from '@inertiajs/svelte';
   import ActionButton from './ActionButton.svelte';
   import ServicePorts from './ServicePorts.svelte';
+  import ServiceImg from "~/components/ServiceImg.svelte";
 
   // Props
   export let service = {};
@@ -42,69 +43,52 @@
     });
   }
 
-  // ✅ NOUVEAU: Helper pour gérer les icônes (ancien + nouveau système)
-  function getIconUrl(icon) {
-    if (!icon) return null;
-
-    // Si l'icône commence par '/uploads/', c'est le nouveau système (URL complète)
-    if (icon.startsWith('/uploads/')) {
-      return icon;
-    }
-
-    // Si l'icône commence par 'http', c'est une URL externe
-    if (icon.startsWith('http')) {
-      return icon;
-    }
-
-    // Sinon, c'est l'ancien système (nom de fichier dans /icons/)
-    return `/icons/${icon}`;
-  }
-
   // Reactive variables
   $: maintenance = getMaintenanceStatus(service.lastMaintenanceAt);
   $: serviceName = service.name || service.nom || 'Service sans nom';
   $: serverName = service.server?.name || service.server?.nom;
   $: serverIp = service.server?.ip;
-  $: iconUrl = getIconUrl(service.icon);
+  $: iconUrl = service.icon;
 </script>
 
 <!-- Service Card Component -->
 <div class="card bg-base-100 shadow-xl hover:shadow-2xl transition-shadow {variant === 'compact' ? 'bg-base-200' : ''}">
   <div class="card-body {variant === 'compact' ? 'p-4' : ''}">
 
-    <!-- Header -->
-    <div class="flex justify-between items-start">
-      <div class="flex-1">
-        <h3 class="card-title {variant === 'compact' ? 'text-base' : ''}">{serviceName}</h3>
-
-        {#if showServer && serverName}
-          <p class="text-sm text-base-content/70">📍 {serverName}</p>
-        {/if}
-
-        {#if service.description}
-          <p class="text-sm text-base-content/60 mt-1">{service.description}</p>
-        {/if}
-
-        {#if service.path}
-          <p class="text-xs text-base-content/50 mt-1">{service.path}</p>
+    <!-- Header avec image prominente -->
+    <div class="flex items-start gap-4">
+      <!-- ✅ NOUVEAU: Image prominente à gauche -->
+      <div class="flex-shrink-0 w-20">
+        {#if service.icon}
+          <ServiceImg {service}></ServiceImg>
         {/if}
       </div>
 
-      {#if iconUrl}
-        <div class="w-12 h-12 bg-white border border-base-200 p-2 rounded-full flex-shrink-0 ml-3">
-          <img
-            src={iconUrl}
-            alt={serviceName}
-            class="w-full h-full object-contain"
-            on:error={(e) => e.target.style.display='none'}
-          />
-        </div>
-      {/if}
+      <!-- Informations du service -->
+      <div class="flex-1 min-w-0">
+        <h3 class="card-title {variant === 'compact' ? 'text-base' : 'text-lg'} line-clamp-2">
+          {serviceName}
+        </h3>
+
+        {#if showServer && serverName}
+          <p class="text-sm text-base-content/70 mt-1">📍 {serverName}</p>
+        {/if}
+
+        {#if service.description}
+          <p class="text-sm text-base-content/60 mt-2 line-clamp-2">{service.description}</p>
+        {/if}
+
+        {#if service.path}
+          <p class="text-xs text-base-content/50 mt-1 font-mono bg-base-200 px-2 py-1 rounded inline-block">
+            {service.path}
+          </p>
+        {/if}
+      </div>
     </div>
 
     <!-- ✅ NOUVEAU: Affichage des ports -->
     {#if service.ports && service.ports.length > 0}
-      <div class="mt-3">
+      <div class="mt-4">
         <ServicePorts
           ports={service.ports}
           {serverIp}
@@ -114,7 +98,8 @@
       </div>
     {/if}
 
-    <div class="mt-3 flex flex-wrap gap-2 items-center">
+    <!-- Badges et statuts -->
+    <div class="mt-4 flex flex-wrap gap-2 items-center">
       <!-- Status et maintenance -->
       <div class="badge {maintenance.badge} badge-sm">
         {maintenance.text}
@@ -131,6 +116,17 @@
       {#if service.status}
         <div class="badge {service.status === 'running' ? 'badge-success' : 'badge-error'} badge-sm">
           {service.status === 'running' ? '🟢 Running' : '🔴 Stopped'}
+        </div>
+      {/if}
+
+      <!-- ✅ NOUVEAU: Badge si image custom vs gérée -->
+      {#if iconUrl && service.imageMetadata}
+        <div class="badge badge-primary badge-xs" title="Image gérée: {service.imageMetadata.label}">
+          🎨 Gérée
+        </div>
+      {:else if iconUrl}
+        <div class="badge badge-accent badge-xs" title="Image externe">
+          🔗 Externe
         </div>
       {/if}
     </div>
@@ -160,5 +156,24 @@
   /* Effet hover pour soulever légèrement la card */
   .card:hover {
     transform: translateY(-2px);
+  }
+
+  /* Line clamp utilities */
+  .line-clamp-2 {
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+  }
+
+  /* Amélioration responsive */
+  @media (max-width: 640px) {
+    .card-body {
+      padding: 1rem;
+    }
+
+    .flex-1 {
+      min-width: 0; /* Permet le text-wrap dans flexbox */
+    }
   }
 </style>

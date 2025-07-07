@@ -13,7 +13,7 @@ export default class extends BaseSchema {
       table.string('repo_url').nullable()
       table.string('doc_path').nullable()
       table.timestamp('last_maintenance_at').nullable()
-      
+
       table.timestamp('created_at')
       table.timestamp('updated_at')
     })

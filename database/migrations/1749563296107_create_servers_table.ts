@@ -10,7 +10,7 @@ export default class extends BaseSchema {
       table.string('ip').notNullable()
       table.string('hebergeur').notNullable()
       table.string('localisation').notNullable()
-      
+
       table.timestamp('created_at')
       table.timestamp('updated_at')
     })

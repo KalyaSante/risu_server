@@ -25,7 +25,7 @@ export default class ServersController {
     const user = {
       id: sessionUserId,
       email: sessionUserEmail || 'email-non-defini@kalya.com',
-      fullName: sessionUserName || 'Utilisateur non défini'
+      fullName: sessionUserName || 'Utilisateur non défini',
     }
 
     // Debug
@@ -39,10 +39,7 @@ export default class ServersController {
    * ✅ MIGRÉ VERS INERTIA
    */
   async index({ inertia, session }: HttpContext) {
-    const servers = await Server.query()
-      .preload('services')
-      .preload('parent')
-      .orderBy('nom', 'asc')
+    const servers = await Server.query().preload('services').preload('parent').orderBy('nom', 'asc')
 
     // Formater les données pour Svelte
     const formattedServers = servers.map((server: any) => ({
@@ -55,15 +52,14 @@ export default class ServersController {
       localisation: server.localisation,
       description: server.description || '',
       note: server.note || '', // ✅ AJOUT: Note
-      parentServer: server.parent
-        ? { id: server.parent.id, name: server.parent.nom }
-        : null,
-      services: server.services?.map((service: any) => ({
-        id: service.id,
-        name: service.nom,
-        path: service.path,
-        icon: service.icon
-      })) || []
+      parentServer: server.parent ? { id: server.parent.id, name: server.parent.nom } : null,
+      services:
+        server.services?.map((service: any) => ({
+          id: service.id,
+          name: service.nom,
+          path: service.path,
+          icon: service.icon,
+        })) || [],
     }))
 
     const user = this.getAuthenticatedUser(session)
@@ -73,8 +69,8 @@ export default class ServersController {
       user,
       flash: {
         success: session.flashMessages.get('success'),
-        error: session.flashMessages.get('error')
-      }
+        error: session.flashMessages.get('error'),
+      },
     })
   }
 
@@ -94,8 +90,8 @@ export default class ServersController {
       errors: {},
       flash: {
         success: session.flashMessages.get('success'),
-        error: session.flashMessages.get('error')
-      }
+        error: session.flashMessages.get('error'),
+      },
     })
   }
 
@@ -115,7 +111,10 @@ export default class ServersController {
         payload = await createServerValidator.validate(formData)
       } catch (validationError) {
         // Gestion des erreurs VineJS typées
-        if ('messages' in validationError && Array.isArray((validationError as ValidationError).messages)) {
+        if (
+          'messages' in validationError &&
+          Array.isArray((validationError as ValidationError).messages)
+        ) {
           const errorMessages = (validationError as ValidationError).messages
             .map((msg: ValidationMessage) => msg.message)
             .join(', ')
@@ -164,18 +163,17 @@ export default class ServersController {
       description: server.description || '',
       note: server.note || '', // ✅ AJOUT: Note
       createdAt: server.createdAt?.toISO(),
-      parentServer: server.parent
-        ? { id: server.parent.id, name: server.parent.nom }
-        : null,
-      services: server.services?.map((service: any) => ({
-        id: service.id,
-        name: service.nom,
-        path: service.path,
-        icon: service.icon,
-        dependenciesCount: service.dependencies?.length || 0,
-        repoUrl: service.repoUrl,
-        lastMaintenanceAt: service.lastMaintenanceAt?.toISO()
-      })) || []
+      parentServer: server.parent ? { id: server.parent.id, name: server.parent.nom } : null,
+      services:
+        server.services?.map((service: any) => ({
+          id: service.id,
+          name: service.nom,
+          path: service.path,
+          icon: service.icon,
+          dependenciesCount: service.dependencies?.length || 0,
+          repoUrl: service.repoUrl,
+          lastMaintenanceAt: service.lastMaintenanceAt?.toISO(),
+        })) || [],
     }
 
     const user = this.getAuthenticatedUser(session)
@@ -185,8 +183,8 @@ export default class ServersController {
       user,
       flash: {
         success: session.flashMessages.get('success'),
-        error: session.flashMessages.get('error')
-      }
+        error: session.flashMessages.get('error'),
+      },
     })
   }
 
@@ -208,7 +206,7 @@ export default class ServersController {
       localisation: server.localisation,
       description: server.description || '',
       note: server.note || '', // ✅ AJOUT: Note
-      parentServerId: server.parentServerId
+      parentServerId: server.parentServerId,
     }
 
     const user = this.getAuthenticatedUser(session)
@@ -220,8 +218,8 @@ export default class ServersController {
       errors: {},
       flash: {
         success: session.flashMessages.get('success'),
-        error: session.flashMessages.get('error')
-      }
+        error: session.flashMessages.get('error'),
+      },
     })
   }
 
@@ -242,7 +240,10 @@ export default class ServersController {
         payload = await updateServerValidator.validate(formData)
       } catch (validationError) {
         // Gestion des erreurs VineJS typées
-        if ('messages' in validationError && Array.isArray((validationError as ValidationError).messages)) {
+        if (
+          'messages' in validationError &&
+          Array.isArray((validationError as ValidationError).messages)
+        ) {
           const errorMessages = (validationError as ValidationError).messages
             .map((msg: ValidationMessage) => msg.message)
             .join(', ')
@@ -256,7 +257,6 @@ export default class ServersController {
       await server.merge(payload).save()
       session.flash('success', `Serveur "${server.nom}" mis à jour avec succès!`)
       return response.redirect().toRoute('servers.show', { id: server.id })
-
     } catch (error) {
       // 🔍 DEBUG: Log de l'erreur complète
       console.error('💥 Erreur complète lors de la mise à jour:', error)
@@ -279,19 +279,17 @@ export default class ServersController {
    */
   async destroy({ params, response, session }: HttpContext) {
     try {
-      const server = await Server.query()
-        .where('id', params.id)
-        .preload('services')
-        .firstOrFail()
+      const server = await Server.query().where('id', params.id).preload('services').firstOrFail()
 
       const serverName = server.nom
       const servicesCount = server.services.length
 
       await server.delete()
 
-      session.flash('success',
+      session.flash(
+        'success',
         `Serveur "${serverName}" supprimé avec succès` +
-        (servicesCount > 0 ? ` (${servicesCount} services supprimés)` : '')
+          (servicesCount > 0 ? ` (${servicesCount} services supprimés)` : '')
       )
       return response.redirect().toRoute('servers.index')
     } catch (error) {

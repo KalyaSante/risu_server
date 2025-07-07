@@ -14,15 +14,10 @@ export const createHosterValidator = vine.compile(
         const hoster = await db.from('hosters').where('name', value).first()
         return !hoster
       }),
-    
+
     type: vine.enum(['vps', 'dedicated', 'cloud', 'shared']),
-    
-    description: vine
-      .string()
-      .trim()
-      .maxLength(500)
-      .optional()
-      .nullable()
+
+    description: vine.string().trim().maxLength(500).optional().nullable(),
   })
 )
 
@@ -44,15 +39,10 @@ export const updateHosterValidator = vine.compile(
           .first()
         return !hoster
       }),
-    
+
     type: vine.enum(['vps', 'dedicated', 'cloud', 'shared']),
-    
-    description: vine
-      .string()
-      .trim()
-      .maxLength(500)
-      .optional()
-      .nullable()
+
+    description: vine.string().trim().maxLength(500).optional().nullable(),
   })
 )
 
@@ -63,21 +53,12 @@ export const importHostersValidator = vine.compile(
   vine.object({
     hosters: vine.array(
       vine.object({
-        name: vine
-          .string()
-          .trim()
-          .minLength(2)
-          .maxLength(100),
-        
+        name: vine.string().trim().minLength(2).maxLength(100),
+
         type: vine.enum(['vps', 'dedicated', 'cloud', 'shared']),
-        
-        description: vine
-          .string()
-          .trim()
-          .maxLength(500)
-          .optional()
-          .nullable()
+
+        description: vine.string().trim().maxLength(500).optional().nullable(),
       })
-    )
+    ),
   })
 )

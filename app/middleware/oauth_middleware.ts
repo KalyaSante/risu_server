@@ -38,12 +38,11 @@ export default class OAuthMiddleware {
       ctx.user = {
         id: user.id,
         email: user.email,
-        fullName: user.fullName || ''
+        fullName: user.fullName || '',
       }
 
       // Rendre l'utilisateur disponible dans les vues
       view.share({ auth: { user } })
-
     } catch (error) {
       console.error('OAuth middleware error:', error)
       session.clear()

@@ -5,7 +5,7 @@ import ServiceImage from '#models/service_image'
 import {
   createServiceValidator,
   updateServiceValidator,
-  createServiceDependencyValidator
+  createServiceDependencyValidator,
 } from '#validators/service'
 import { DateTime } from 'luxon'
 
@@ -22,14 +22,43 @@ interface ValidationError extends Error {
 
 export default class ServicesController {
   /**
+   * ✅ NOUVEAU: Helper pour traiter la sélection d'image
+   */
+  private async processImageSelection(
+    imageData: any
+  ): Promise<{ serviceImageId: number | null; icon: string | null }> {
+    if (!imageData) {
+      return { serviceImageId: null, icon: null }
+    }
+
+    // Si c'est un ID d'image ServiceImage
+    if (
+      typeof imageData === 'number' ||
+      (typeof imageData === 'string' && /^\d+$/.test(imageData))
+    ) {
+      const imageId = Number.parseInt(imageData.toString(), 10)
+      const serviceImage = await ServiceImage.find(imageId)
+
+      if (serviceImage) {
+        return { serviceImageId: imageId, icon: null }
+      }
+    }
+
+    // Si c'est une URL custom (fallback)
+    if (typeof imageData === 'string' && imageData.startsWith('http')) {
+      return { serviceImageId: null, icon: imageData }
+    }
+
+    return { serviceImageId: null, icon: null }
+  }
+
+  /**
    * ✅ NOUVEAU: Helper pour nettoyer les ports
    */
   private cleanPorts(ports: any[]): any[] | null {
     if (!ports || !Array.isArray(ports)) return null
 
-    const validPorts = ports.filter(port =>
-      port && (port.port || port.label)
-    )
+    const validPorts = ports.filter((port) => port && (port.port || port.label))
 
     return validPorts.length > 0 ? validPorts : null
   }
@@ -38,9 +67,7 @@ export default class ServicesController {
    * ✅ NOUVEAU: Helper pour récupérer les services disponibles pour les dépendances
    */
   private async getAvailableServices(excludeId?: number) {
-    const query = Service.query()
-      .preload('server')
-      .orderBy('nom', 'asc')
+    const query = Service.query().preload('server').orderBy('nom', 'asc')
 
     if (excludeId) {
       query.where('id', '!=', excludeId)
@@ -52,7 +79,7 @@ export default class ServicesController {
       id: service.id,
       name: service.nom,
       serverName: service.server?.nom || 'Unknown',
-      serverId: service.serverId
+      serverId: service.serverId,
     }))
   }
 
@@ -70,20 +97,26 @@ export default class ServicesController {
 
       console.log('🔍 DEBUG ServicesController: Images trouvées:', images.length)
 
-      const formattedImages = images.map(image => ({
+      const formattedImages = images.map((image) => ({
         id: image.id,
         label: image.label,
         description: image.description,
         url: image.url,
         filename: image.filename,
-        file_extension: image.fileExtension
+        file_extension: image.fileExtension,
       }))
 
-      console.log('🔍 DEBUG ServicesController: Images formatées:', JSON.stringify(formattedImages, null, 2))
+      console.log(
+        '🔍 DEBUG ServicesController: Images formatées:',
+        JSON.stringify(formattedImages, null, 2)
+      )
 
       return formattedImages
     } catch (error) {
-      console.error('❌ DEBUG ServicesController: Erreur lors de la récupération des images:', error)
+      console.error(
+        '❌ DEBUG ServicesController: Erreur lors de la récupération des images:',
+        error
+      )
       return []
     }
   }
@@ -105,8 +138,8 @@ export default class ServicesController {
         await service.related('dependencies').attach({
           [dep.serviceId]: {
             label: dep.label || '',
-            type: dep.type || 'required'
-          }
+            type: dep.type || 'required',
+          },
         })
       }
     }
@@ -123,6 +156,7 @@ export default class ServicesController {
 
     let query = Service.query()
       .preload('server')
+      .preload('serviceImage') // ✅ NOUVEAU: Preload de l'image
       .preload('dependencies', (q) => q.pivotColumns(['label', 'type']))
 
     if (search) {
@@ -133,9 +167,7 @@ export default class ServicesController {
       query = query.where('server_id', serverId)
     }
 
-    const services = await query
-      .orderBy('nom', 'asc')
-      .paginate(page, 20)
+    const services = await query.orderBy('nom', 'asc').paginate(page, 20)
 
     const servers = await Server.query().orderBy('nom', 'asc')
 
@@ -143,33 +175,35 @@ export default class ServicesController {
     const formattedServices = services.serialize().data.map((service: any) => ({
       id: service.id,
       name: service.nom,
-      // ✅ SUPPRIMÉ: status: 'running' hardcodé
       primaryPort: service.primaryPort,
       ports: service.allPorts,
       path: service.path,
-      icon: service.icon,
+      icon: service.iconUrl, // ✅ NOUVEAU: Utilise le getter intelligent
+      imageMetadata: service.imageMetadata, // ✅ NOUVEAU: Métadonnées image
       description: service.description || '',
       note: service.note || '', // ✅ AJOUT: Note
-      server: service.server ? {
-        id: service.server.id,
-        name: service.server.nom,
-        ip: service.server.ip
-      } : null,
+      server: service.server
+        ? {
+            id: service.server.id,
+            name: service.server.nom,
+            ip: service.server.ip,
+          }
+        : null,
       dependenciesCount: service.dependencies?.length || 0,
       repoUrl: service.repoUrl,
       docPath: service.docPath,
-      lastMaintenanceAt: service.lastMaintenanceAt
+      lastMaintenanceAt: service.lastMaintenanceAt,
     }))
 
     const formattedServers = servers.map((server: any) => ({
       id: server.id,
       name: server.nom,
-      ip: server.ip
+      ip: server.ip,
     }))
 
     const user = {
       email: session.get('user_email') || 'admin@kalya.com',
-      fullName: session.get('user_name') || 'Admin Kalya'
+      fullName: session.get('user_name') || 'Admin Kalya',
     }
 
     return inertia.render('Services/Index', {
@@ -179,17 +213,17 @@ export default class ServicesController {
         currentPage: services.currentPage,
         lastPage: services.lastPage,
         total: services.total,
-        perPage: services.perPage
+        perPage: services.perPage,
       },
       filters: {
         search: search,
-        selectedServerId: serverId
+        selectedServerId: serverId,
       },
       user,
       flash: {
         success: session.flashMessages.get('success'),
-        error: session.flashMessages.get('error')
-      }
+        error: session.flashMessages.get('error'),
+      },
     })
   }
 
@@ -212,18 +246,20 @@ export default class ServicesController {
     const formattedServers = servers.map((server: any) => ({
       id: server.id,
       name: server.nom,
-      ip: server.ip
+      ip: server.ip,
     }))
 
-    const formattedSelectedServer = selectedServer ? {
-      id: selectedServer.id,
-      name: selectedServer.nom,
-      ip: selectedServer.ip
-    } : null
+    const formattedSelectedServer = selectedServer
+      ? {
+          id: selectedServer.id,
+          name: selectedServer.nom,
+          ip: selectedServer.ip,
+        }
+      : null
 
     const user = {
       email: session.get('user_email') || 'admin@kalya.com',
-      fullName: session.get('user_name') || 'Admin Kalya'
+      fullName: session.get('user_name') || 'Admin Kalya',
     }
 
     return inertia.render('Services/Create', {
@@ -235,8 +271,8 @@ export default class ServicesController {
       errors: {},
       flash: {
         success: session.flashMessages.get('success'),
-        error: session.flashMessages.get('error')
-      }
+        error: session.flashMessages.get('error'),
+      },
     })
   }
 
@@ -252,21 +288,28 @@ export default class ServicesController {
       const validatedData = await request.validateUsing(createServiceValidator)
       console.log('🔍 DEBUG: Données validées:', JSON.stringify(validatedData, null, 2))
 
+      // ✅ NOUVEAU: Traiter la sélection d'image
+      const imageSelection = await this.processImageSelection(
+        validatedData.selectedImageId || validatedData.icon
+      )
+
       // ✅ NOUVEAU: Nettoyer les ports après validation
       const cleanedPorts = this.cleanPorts(validatedData.ports || [])
 
       const payload = {
         ...validatedData,
         ports: cleanedPorts,
+        serviceImageId: imageSelection.serviceImageId, // ✅ NOUVEAU
+        icon: imageSelection.icon, // ✅ NOUVEAU: URL custom ou null
         lastMaintenanceAt: validatedData.lastMaintenanceAt
           ? DateTime.fromJSDate(new Date(validatedData.lastMaintenanceAt))
-          : null
+          : null,
       }
 
       console.log('🔍 DEBUG: Payload final:', JSON.stringify(payload, null, 2))
 
       // Enlever les dépendances du payload principal
-      const { dependencies, ...serviceData } = payload
+      const { dependencies, selectedImageId, ...serviceData } = payload
 
       const service = await Service.create(serviceData)
       console.log('🔍 DEBUG: Service créé:', JSON.stringify(service.toJSON(), null, 2))
@@ -288,9 +331,9 @@ export default class ServicesController {
           validationErrors[msg.field] = msg.message
         })
 
-        session.flash({ errors: validationErrors });
-        session.flashAll();
-        return response.redirect().back();
+        session.flash({ errors: validationErrors })
+        session.flashAll()
+        return response.redirect().back()
       } else {
         session.flash('error', 'Erreur lors de la création du service')
         return response.redirect().back()
@@ -306,11 +349,12 @@ export default class ServicesController {
     const service = await Service.query()
       .where('id', params.id)
       .preload('server')
+      .preload('serviceImage') // ✅ NOUVEAU: Preload de l'image
       .preload('dependencies', (query) => {
-        query.pivotColumns(['label', 'type']).preload('server')
+        query.pivotColumns(['label', 'type']).preload('server').preload('serviceImage') // ✅ NOUVEAU: Preload de l'image pour les dépendances
       })
       .preload('dependents', (query) => {
-        query.pivotColumns(['label', 'type']).preload('server')
+        query.pivotColumns(['label', 'type']).preload('server').preload('serviceImage') // ✅ NOUVEAU: Preload de l'image pour les dépendants
       })
       .firstOrFail()
 
@@ -320,33 +364,39 @@ export default class ServicesController {
     const formattedService = {
       id: service.id,
       nom: service.nom,
-      // ✅ SUPPRIMÉ: status: 'running' hardcodé
       primaryPort: service.primaryPort,
       ports: service.allPorts,
       path: service.path,
-      icon: service.icon,
+      icon: service.iconUrl, // ✅ NOUVEAU: Utilise le getter intelligent
+      imageMetadata: service.imageMetadata, // ✅ NOUVEAU: Métadonnées
       description: service.description || '',
       note: service.note || '', // ✅ AJOUT: Note
       repoUrl: service.repoUrl,
       docPath: service.docPath,
       createdAt: service.createdAt?.toISO(),
       lastMaintenanceAt: service.lastMaintenanceAt?.toISO(),
-      server: service.server ? {
-        id: service.server.id,
-        nom: service.server.nom,
-        ip: service.server.ip
-      } : null
+      server: service.server
+        ? {
+            id: service.server.id,
+            nom: service.server.nom,
+            ip: service.server.ip,
+          }
+        : null,
     }
 
     // 🔍 DEBUG: Log du service formaté
-    console.log('🔍 DEBUG: Service formaté pour frontend:', JSON.stringify(formattedService, null, 2))
+    console.log(
+      '🔍 DEBUG: Service formaté pour frontend:',
+      JSON.stringify(formattedService, null, 2)
+    )
 
     const formattedDependencies = service.dependencies.map((dep: any) => ({
       id: dep.id,
       name: dep.nom,
       type: dep.$extras.pivot_type,
       label: dep.$extras.pivot_label,
-      server: dep.server?.nom
+      server: dep.server?.nom,
+      icon: dep.iconUrl || dep.icon, // ✅ NOUVEAU: Ajouter l'icône pour les dépendances
     }))
 
     const formattedDependents = service.dependents.map((dep: any) => ({
@@ -354,12 +404,13 @@ export default class ServicesController {
       name: dep.nom,
       type: dep.$extras.pivot_type,
       label: dep.$extras.pivot_label,
-      server: dep.server?.nom
+      server: dep.server?.nom,
+      icon: dep.iconUrl || dep.icon, // ✅ NOUVEAU: Ajouter l'icône pour les dépendants
     }))
 
     const user = {
       email: session.get('user_email') || 'admin@kalya.com',
-      fullName: session.get('user_name') || 'Admin Kalya'
+      fullName: session.get('user_name') || 'Admin Kalya',
     }
 
     return inertia.render('Services/Show', {
@@ -369,8 +420,8 @@ export default class ServicesController {
       user,
       flash: {
         success: session.flashMessages.get('success'),
-        error: session.flashMessages.get('error')
-      }
+        error: session.flashMessages.get('error'),
+      },
     })
   }
 
@@ -381,8 +432,9 @@ export default class ServicesController {
     const service = await Service.query()
       .where('id', params.id)
       .preload('server')
+      .preload('serviceImage') // ✅ NOUVEAU: Preload de l'image
       .preload('dependencies', (query) => {
-        query.pivotColumns(['label', 'type'])
+        query.pivotColumns(['label', 'type']).preload('serviceImage') // ✅ NOUVEAU: Preload de l'image pour les dépendances
       })
       .firstOrFail()
 
@@ -404,11 +456,13 @@ export default class ServicesController {
       nom: service.nom,
       primaryPort: service.primaryPort,
       // ✅ AMÉLIORÉ: S'assurer qu'il y a toujours au moins un port par défaut
-      ports: service.allPorts && service.allPorts.length > 0
-        ? service.allPorts
-        : [{ port: '', label: 'web' }],
+      ports:
+        service.allPorts && service.allPorts.length > 0
+          ? service.allPorts
+          : [{ port: '', label: 'web' }],
       path: service.path,
-      icon: service.icon,
+      icon: service.icon, // ✅ NOUVEAU: Garde l'URL custom pour le frontend
+      imageMetadata: service.imageMetadata, // ✅ NOUVEAU: Métadonnées image
       description: service.description || '',
       note: service.note || '', // ✅ AJOUT: Note
       repoUrl: service.repoUrl,
@@ -416,28 +470,31 @@ export default class ServicesController {
       serverId: service.serverId,
       // ✅ NOUVEAU: Formater la date pour l'input datetime-local
       lastMaintenanceAt: service.lastMaintenanceAt
-        ? service.lastMaintenanceAt.toFormat('yyyy-MM-dd\'T\'HH:mm')
+        ? service.lastMaintenanceAt.toFormat("yyyy-MM-dd'T'HH:mm")
         : '',
       // ✅ NOUVEAU: Dépendances actuelles
       dependencies: service.dependencies.map((dep: any) => ({
         serviceId: dep.id,
         label: dep.$extras.pivot_label,
-        type: dep.$extras.pivot_type
-      }))
+        type: dep.$extras.pivot_type,
+      })),
     }
 
     // 🔍 DEBUG: Log du service formaté pour édition
-    console.log('🔍 DEBUG: Service formaté pour édition:', JSON.stringify(formattedService, null, 2))
+    console.log(
+      '🔍 DEBUG: Service formaté pour édition:',
+      JSON.stringify(formattedService, null, 2)
+    )
 
     const formattedServers = servers.map((server: any) => ({
       id: server.id,
       name: server.nom,
-      ip: server.ip
+      ip: server.ip,
     }))
 
     const user = {
       email: session.get('user_email') || 'admin@kalya.com',
-      fullName: session.get('user_name') || 'Admin Kalya'
+      fullName: session.get('user_name') || 'Admin Kalya',
     }
 
     return inertia.render('Services/Edit', {
@@ -449,8 +506,8 @@ export default class ServicesController {
       errors: {},
       flash: {
         success: session.flashMessages.get('success'),
-        error: session.flashMessages.get('error')
-      }
+        error: session.flashMessages.get('error'),
+      },
     })
   }
 
@@ -468,21 +525,28 @@ export default class ServicesController {
       const validatedData = await request.validateUsing(updateServiceValidator)
       console.log('🔍 DEBUG: Données validées pour update:', JSON.stringify(validatedData, null, 2))
 
+      // ✅ NOUVEAU: Traiter la sélection d'image
+      const imageSelection = await this.processImageSelection(
+        validatedData.selectedImageId || validatedData.icon
+      )
+
       // ✅ NOUVEAU: Nettoyer les ports après validation
       const cleanedPorts = this.cleanPorts(validatedData.ports || [])
 
       const payload = {
         ...validatedData,
         ports: cleanedPorts,
+        serviceImageId: imageSelection.serviceImageId, // ✅ NOUVEAU
+        icon: imageSelection.icon, // ✅ NOUVEAU
         lastMaintenanceAt: validatedData.lastMaintenanceAt
           ? DateTime.fromJSDate(new Date(validatedData.lastMaintenanceAt))
-          : null
+          : null,
       }
 
       console.log('🔍 DEBUG: Payload final pour update:', JSON.stringify(payload, null, 2))
 
       // Enlever les dépendances du payload principal
-      const { dependencies, ...serviceData } = payload
+      const { dependencies, selectedImageId, ...serviceData } = payload
 
       await service.merge(serviceData).save()
       console.log('🔍 DEBUG: Service mis à jour:', JSON.stringify(service.toJSON(), null, 2))
@@ -502,9 +566,9 @@ export default class ServicesController {
           validationErrors[msg.field] = msg.message
         })
 
-        session.flash({ errors: validationErrors });
-        session.flashAll();
-        return response.redirect().back();
+        session.flash({ errors: validationErrors })
+        session.flashAll()
+        return response.redirect().back()
       } else {
         session.flash('error', 'Erreur lors de la mise à jour du service')
         return response.redirect().back()
@@ -528,9 +592,10 @@ export default class ServicesController {
 
       await service.delete()
 
-      session.flash('success',
+      session.flash(
+        'success',
         `Service "${serviceName}" supprimé avec succès` +
-        (dependenciesCount > 0 ? ` (${dependenciesCount} relations supprimées)` : '')
+          (dependenciesCount > 0 ? ` (${dependenciesCount} relations supprimées)` : '')
       )
       return response.redirect().toRoute('services.index')
     } catch (error) {
@@ -572,14 +637,14 @@ export default class ServicesController {
       await service.related('dependencies').attach({
         [dependencyService.id]: {
           label: validatedData.label,
-          type: validatedData.type
-        }
+          type: validatedData.type,
+        },
       })
 
       session.flash('success', `Dépendance vers "${dependencyService.nom}" ajoutée avec succès`)
       return response.redirect().toRoute('services.show', { id: service.id })
     } catch (error) {
-      session.flash('error', 'Erreur lors de l\'ajout de la dépendance')
+      session.flash('error', "Erreur lors de l'ajout de la dépendance")
       return response.redirect().back()
     }
   }
@@ -614,12 +679,12 @@ export default class ServicesController {
 
       return response.json({
         success: true,
-        data: availableServices
+        data: availableServices,
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        message: 'Erreur lors de la récupération des services'
+        message: 'Erreur lors de la récupération des services',
       })
     }
   }
@@ -635,28 +700,32 @@ export default class ServicesController {
       if (serviceId === dependencyId) {
         return response.json({
           success: false,
-          message: 'Un service ne peut pas dépendre de lui-même'
+          message: 'Un service ne peut pas dépendre de lui-même',
         })
       }
 
       // Vérifier les dépendances circulaires récursives
-      const hasCircularDependency = await this.hasCircularDependency(dependencyId, serviceId, new Set())
+      const hasCircularDependency = await this.hasCircularDependency(
+        dependencyId,
+        serviceId,
+        new Set()
+      )
 
       if (hasCircularDependency) {
         return response.json({
           success: false,
-          message: 'Cette dépendance créerait une dépendance circulaire'
+          message: 'Cette dépendance créerait une dépendance circulaire',
         })
       }
 
       return response.json({
         success: true,
-        message: 'Dépendance valide'
+        message: 'Dépendance valide',
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        message: 'Erreur lors de la vérification'
+        message: 'Erreur lors de la vérification',
       })
     }
   }
@@ -664,7 +733,11 @@ export default class ServicesController {
   /**
    * ✅ NOUVEAU: Helper récursif pour détecter les dépendances circulaires
    */
-  private async hasCircularDependency(serviceId: number, targetId: number, visited: Set<number>): Promise<boolean> {
+  private async hasCircularDependency(
+    serviceId: number,
+    targetId: number,
+    visited: Set<number>
+  ): Promise<boolean> {
     if (visited.has(serviceId)) {
       return false // Éviter les boucles infinies
     }
@@ -675,10 +748,7 @@ export default class ServicesController {
 
     visited.add(serviceId)
 
-    const service = await Service.query()
-      .where('id', serviceId)
-      .preload('dependencies')
-      .first()
+    const service = await Service.query().where('id', serviceId).preload('dependencies').first()
 
     if (!service) {
       return false

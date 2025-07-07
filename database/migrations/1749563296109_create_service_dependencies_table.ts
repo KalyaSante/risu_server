@@ -6,8 +6,18 @@ export default class extends BaseSchema {
   async up() {
     this.schema.createTable(this.tableName, (table) => {
       table.increments('id')
-      table.integer('service_id').unsigned().references('id').inTable('services').onDelete('CASCADE')
-      table.integer('depends_on_service_id').unsigned().references('id').inTable('services').onDelete('CASCADE')
+      table
+        .integer('service_id')
+        .unsigned()
+        .references('id')
+        .inTable('services')
+        .onDelete('CASCADE')
+      table
+        .integer('depends_on_service_id')
+        .unsigned()
+        .references('id')
+        .inTable('services')
+        .onDelete('CASCADE')
       table.string('label').nullable()
       table.enum('type', ['required', 'optional', 'fallback']).defaultTo('required')
 

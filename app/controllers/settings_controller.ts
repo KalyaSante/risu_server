@@ -1,14 +1,21 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Hoster from '#models/hoster'
 import ServiceImage from '#models/service_image'
-import { createHosterValidator, updateHosterValidator, importHostersValidator } from '#validators/hoster'
-import { createServiceImageValidator, updateServiceImageValidator, reorderServiceImagesValidator } from '#validators/service_image'
+import {
+  createHosterValidator,
+  updateHosterValidator,
+  importHostersValidator,
+} from '#validators/hoster'
+import {
+  createServiceImageValidator,
+  updateServiceImageValidator,
+  reorderServiceImagesValidator,
+} from '#validators/service_image'
 import { cuid } from '@adonisjs/core/helpers'
 import app from '@adonisjs/core/services/app'
 import { unlink } from 'node:fs/promises'
 
 export default class SettingsController {
-
   /**
    * Méthode privée pour récupérer les données utilisateur
    */
@@ -16,7 +23,7 @@ export default class SettingsController {
     return {
       id: session.get('user_id'),
       email: session.get('user_email'),
-      fullName: session.get('user_name')
+      fullName: session.get('user_name'),
     }
   }
 
@@ -29,9 +36,9 @@ export default class SettingsController {
       .orderBy('order', 'asc')
       .orderBy('name', 'asc')
 
-    return hosters.map(hoster => ({
+    return hosters.map((hoster) => ({
       ...hoster.serialize(),
-      hasApi: false
+      hasApi: false,
     }))
   }
 
@@ -49,9 +56,9 @@ export default class SettingsController {
 
       console.log('🔍 DEBUG: Images trouvées:', images.length)
 
-      const formattedImages = images.map(image => ({
+      const formattedImages = images.map((image) => ({
         ...image.serialize(),
-        file_extension: image.fileExtension
+        file_extension: image.fileExtension,
       }))
 
       console.log('🔍 DEBUG: Images formatées:', JSON.stringify(formattedImages, null, 2))
@@ -74,7 +81,7 @@ export default class SettingsController {
       currentSection: 'hosters',
       user,
       hosters,
-      currentRoute: 'settings/hosters'
+      currentRoute: 'settings/hosters',
     })
   }
 
@@ -93,7 +100,7 @@ export default class SettingsController {
       user,
       hosters,
       images,
-      currentRoute: 'settings/service-images'
+      currentRoute: 'settings/service-images',
     })
   }
 
@@ -109,7 +116,7 @@ export default class SettingsController {
       user,
       hosters,
       settings: {}, // Ici tu peux ajouter les vrais paramètres généraux
-      currentRoute: 'settings/general'
+      currentRoute: 'settings/general',
     })
   }
 
@@ -125,7 +132,7 @@ export default class SettingsController {
       user,
       hosters,
       notifications: {}, // Ici tu peux ajouter les vraies notifications
-      currentRoute: 'settings/notifications'
+      currentRoute: 'settings/notifications',
     })
   }
 
@@ -141,7 +148,7 @@ export default class SettingsController {
       user,
       hosters,
       security: {}, // Ici tu peux ajouter les vraies données de sécurité
-      currentRoute: 'settings/security'
+      currentRoute: 'settings/security',
     })
   }
 
@@ -161,13 +168,13 @@ export default class SettingsController {
         type: data.type,
         description: data.description || null,
         isActive: true,
-        order: nextOrder
+        order: nextOrder,
       })
 
       session.flash('success', 'Hébergeur ajouté avec succès')
       return response.redirect().toRoute('settings.hosters')
     } catch (error) {
-      session.flash('error', 'Erreur lors de l\'ajout de l\'hébergeur')
+      session.flash('error', "Erreur lors de l'ajout de l'hébergeur")
       return response.redirect().back().withInput().flashErrors()
     }
   }
@@ -180,13 +187,13 @@ export default class SettingsController {
 
     try {
       const data = await request.validateUsing(updateHosterValidator, {
-        meta: { hosterId: hoster.id }
+        meta: { hosterId: hoster.id },
       })
 
       hoster.merge({
         name: data.name,
         type: data.type,
-        description: data.description || null
+        description: data.description || null,
       })
 
       await hoster.save()
@@ -194,7 +201,7 @@ export default class SettingsController {
       session.flash('success', 'Hébergeur modifié avec succès')
       return response.redirect().toRoute('settings.hosters')
     } catch (error) {
-      session.flash('error', 'Erreur lors de la modification de l\'hébergeur')
+      session.flash('error', "Erreur lors de la modification de l'hébergeur")
       return response.redirect().back().withInput().flashErrors()
     }
   }
@@ -210,7 +217,7 @@ export default class SettingsController {
       session.flash('success', 'Hébergeur supprimé avec succès')
       return response.redirect().toRoute('settings.hosters')
     } catch (error) {
-      session.flash('error', 'Erreur lors de la suppression de l\'hébergeur')
+      session.flash('error', "Erreur lors de la suppression de l'hébergeur")
       return response.redirect().back()
     }
   }
@@ -225,9 +232,7 @@ export default class SettingsController {
 
       for (const hosterData of data.hosters) {
         // Vérifier si un hébergeur avec ce nom existe déjà
-        const existingHoster = await Hoster.query()
-          .where('name', hosterData.name)
-          .first()
+        const existingHoster = await Hoster.query().where('name', hosterData.name).first()
 
         if (existingHoster) {
           continue // Skip les doublons
@@ -242,7 +247,7 @@ export default class SettingsController {
           type: hosterData.type,
           description: hosterData.description || null,
           isActive: true,
-          order: nextOrder
+          order: nextOrder,
         })
 
         importedCount++
@@ -251,7 +256,7 @@ export default class SettingsController {
       session.flash('success', `${importedCount} hébergeur(s) importé(s) avec succès`)
       return response.redirect().toRoute('settings.hosters')
     } catch (error) {
-      session.flash('error', 'Erreur lors de l\'import : ' + (error.message || 'Données invalides'))
+      session.flash('error', "Erreur lors de l'import : " + (error.message || 'Données invalides'))
       return response.redirect().back().withInput().flashErrors()
     }
   }
@@ -264,21 +269,19 @@ export default class SettingsController {
 
     try {
       // Mettre à jour l'ordre de chaque hébergeur
-      for (let i = 0; i < orderedIds.length; i++) {
-        await Hoster.query()
-          .where('id', orderedIds[i])
-          .update({ order: i })
+      for (const [i, orderedId] of orderedIds.entries()) {
+        await Hoster.query().where('id', orderedId).update({ order: i })
       }
 
       // Retourner une réponse JSON pour les requêtes AJAX
       return response.json({
         success: true,
-        message: 'Ordre mis à jour avec succès'
+        message: 'Ordre mis à jour avec succès',
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        message: `Erreur lors de la mise à jour: ${error.message}`
+        message: `Erreur lors de la mise à jour: ${error.message}`,
       })
     }
   }
@@ -313,13 +316,13 @@ export default class SettingsController {
         fileSize: data.image.size,
         url: `/uploads/service-images/${filename}`,
         order: nextOrder,
-        isActive: true
+        isActive: true,
       })
 
       session.flash('success', 'Image ajoutée avec succès')
       return response.redirect().toRoute('settings.images')
     } catch (error) {
-      session.flash('error', 'Erreur lors de l\'ajout de l\'image')
+      session.flash('error', "Erreur lors de l'ajout de l'image")
       return response.redirect().back().withInput().flashErrors()
     }
   }
@@ -335,7 +338,7 @@ export default class SettingsController {
 
       let updateData: any = {
         label: data.label,
-        description: data.description || null
+        description: data.description || null,
       }
 
       // Si une nouvelle image est fournie
@@ -345,7 +348,7 @@ export default class SettingsController {
         try {
           await unlink(oldPath)
         } catch (e) {
-          console.warn('Impossible de supprimer l\'ancienne image:', e.message)
+          console.warn("Impossible de supprimer l'ancienne image:", e.message)
         }
 
         // Générer un nouveau nom de fichier
@@ -363,7 +366,7 @@ export default class SettingsController {
           originalName: data.image.clientName,
           mimeType: data.image.type || 'image/jpeg',
           fileSize: data.image.size,
-          url: `/uploads/service-images/${filename}`
+          url: `/uploads/service-images/${filename}`,
         }
       }
 
@@ -373,7 +376,7 @@ export default class SettingsController {
       session.flash('success', 'Image modifiée avec succès')
       return response.redirect().toRoute('settings.images')
     } catch (error) {
-      session.flash('error', 'Erreur lors de la modification de l\'image')
+      session.flash('error', "Erreur lors de la modification de l'image")
       return response.redirect().back().withInput().flashErrors()
     }
   }
@@ -399,7 +402,7 @@ export default class SettingsController {
       session.flash('success', 'Image supprimée avec succès')
       return response.redirect().toRoute('settings.images')
     } catch (error) {
-      session.flash('error', 'Erreur lors de la suppression de l\'image')
+      session.flash('error', "Erreur lors de la suppression de l'image")
       return response.redirect().back()
     }
   }
@@ -412,20 +415,18 @@ export default class SettingsController {
 
     try {
       // Mettre à jour l'ordre de chaque image
-      for (let i = 0; i < orderedIds.length; i++) {
-        await ServiceImage.query()
-          .where('id', orderedIds[i])
-          .update({ order: i })
+      for (const [i, orderedId] of orderedIds.entries()) {
+        await ServiceImage.query().where('id', orderedId).update({ order: i })
       }
 
       return response.json({
         success: true,
-        message: 'Ordre mis à jour avec succès'
+        message: 'Ordre mis à jour avec succès',
       })
     } catch (error) {
       return response.status(500).json({
         success: false,
-        message: `Erreur lors de la mise à jour: ${error.message}`
+        message: `Erreur lors de la mise à jour: ${error.message}`,
       })
     }
   }

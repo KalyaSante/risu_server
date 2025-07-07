@@ -9,8 +9,8 @@
   export let service = {};
   export let servers = [];
   export let selectedServer = null;
-  export let availableServices = []; // ✅ NOUVEAU
-  export let availableImages = []; // ✅ NOUVEAU
+  export let availableServices = [];
+  export let availableImages = [];
   export let errors = {};
   export let isEdit = false;
 
@@ -23,7 +23,8 @@
   let formData = {
     nom: service.nom || '',
     serverId: service.serverId || selectedServer?.id || '',
-    icon: service.icon || '',
+    selectedImageId: null, // ✅ NOUVEAU: ID de l'image sélectionnée
+    icon: service.icon || '', // ✅ CHANGÉ: Garde pour rétrocompatibilité/URL custom
     path: service.path || '',
     repoUrl: service.repoUrl || '',
     docPath: service.docPath || '',
@@ -32,25 +33,61 @@
     lastMaintenanceAt: service.lastMaintenanceAt ? formatDatetimeLocal(service.lastMaintenanceAt) : ''
   };
 
-  // ✅ NOUVEAU: Ports multiples
+  // Ports et dépendances
   let ports = service.ports || [{ port: '', label: 'web' }];
-
-  // ✅ NOUVEAU: Dépendances
   let dependencies = service.dependencies || [];
 
-  // ✅ NOUVEAU: État pour la modal de sélection d'images
+  // État pour la modal de sélection d'images
   let showImageSelector = false;
   let selectedImage = null;
 
   // State
   let isSubmitting = false;
 
-  // ✅ NOUVEAU: Chercher l'image actuellement sélectionnée
+  // ✅ NOUVEAU: Initialiser l'image sélectionnée au chargement
   $: {
-    if (formData.icon && availableImages.length > 0) {
-      selectedImage = availableImages.find(img => img.url === formData.icon) || null;
+    if (availableImages.length > 0) {
+      // Si le service a une imageMetadata (nouvelle relation)
+      if (service.imageMetadata) {
+        selectedImage = availableImages.find(img => img.id === service.imageMetadata.id) || null;
+        formData.selectedImageId = service.imageMetadata.id;
+        formData.icon = ''; // Clear l'URL custom
+      }
+      // Sinon, chercher par URL (ancien système)
+      else if (formData.icon && !selectedImage) {
+        selectedImage = availableImages.find(img => img.url === formData.icon) || null;
+        if (selectedImage) {
+          formData.selectedImageId = selectedImage.id;
+          formData.icon = ''; // Migrer vers le nouveau système
+        }
+      }
+    }
+  }
+
+  // ✅ NOUVEAU: Gestionnaire de sélection d'image amélioré
+  function handleImageSelect(event) {
+    const image = event.detail;
+    if (image) {
+      formData.selectedImageId = image.id; // ✅ NOUVEAU: Envoie l'ID
+      formData.icon = ''; // Clear l'URL custom
+      selectedImage = image;
+      console.log('🔍 DEBUG: Image sélectionnée:', { id: image.id, label: image.label });
     } else {
+      formData.selectedImageId = null;
+      formData.icon = '';
       selectedImage = null;
+      console.log('🔍 DEBUG: Aucune image sélectionnée');
+    }
+  }
+
+  // ✅ NOUVEAU: Support pour URL custom (fallback)
+  function handleCustomIconUrl(event) {
+    const url = event.target.value.trim();
+    if (url) {
+      formData.icon = url;
+      formData.selectedImageId = null; // Clear la sélection gérée
+      selectedImage = null;
+      console.log('🔍 DEBUG: URL custom définie:', url);
     }
   }
 
@@ -66,25 +103,11 @@
     return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
-  // ✅ NOUVEAU: Gestionnaire de sélection d'image
-  function handleImageSelect(event) {
-    const image = event.detail;
-    if (image) {
-      formData.icon = image.url;
-      selectedImage = image;
-    } else {
-      formData.icon = '';
-      selectedImage = null;
-    }
-  }
-
-  // ✅ NOUVEAU: Ouvrir la modal de sélection d'images
   function openImageSelector() {
     console.log('🔍 DEBUG: Ouverture du sélecteur avec', availableImages.length, 'images');
     showImageSelector = true;
   }
 
-  // ✅ NOUVEAU: Fermer la modal de sélection d'images
   function closeImageSelector() {
     showImageSelector = false;
   }
@@ -96,12 +119,20 @@
 
     const submitData = { ...formData };
 
-    // ✅ NOUVEAU: Ajouter les ports et dépendances au payload
+    // Ajouter les ports et dépendances au payload
     submitData.ports = ports;
     submitData.dependencies = dependencies;
 
+    // ✅ NOUVEAU: Debug du payload
+    console.log('🔍 DEBUG: Payload envoyé:', {
+      selectedImageId: submitData.selectedImageId,
+      icon: submitData.icon,
+      hasSelectedImage: !!selectedImage
+    });
+
     // Convert empty strings to null for optional fields
     if (!submitData.icon) submitData.icon = null;
+    if (!submitData.selectedImageId) submitData.selectedImageId = null;
     if (!submitData.path) submitData.path = null;
     if (!submitData.repoUrl) submitData.repoUrl = null;
     if (!submitData.docPath) submitData.docPath = null;
@@ -152,6 +183,12 @@
         <!-- 🔍 DEBUG: Affichage du nombre d'images -->
         <div class="mb-4 p-2 bg-base-200 rounded text-sm">
           <strong>DEBUG Form.svelte:</strong> {availableImages.length} images disponibles
+          {#if selectedImage}
+            • Image sélectionnée: {selectedImage.label} (ID: {selectedImage.id})
+          {/if}
+          {#if formData.icon}
+            • URL custom: {formData.icon}
+          {/if}
         </div>
 
         <form on:submit|preventDefault={handleSubmit}>
@@ -202,97 +239,156 @@
               {/if}
             </div>
 
-            <!-- ✅ NOUVEAU: Sélection d'image avec modal -->
+            <!-- ✅ AMÉLIORÉ: Sélection d'image avec support URL custom -->
             <div class="form-control">
               <label class="label" for="service_icon">
                 <span class="label-text font-semibold">Icône du service</span>
                 <span class="label-text-alt">Optionnel</span>
               </label>
 
-              <!-- Affichage de l'image sélectionnée -->
-              <div class="flex items-center gap-4">
-                <!-- Prévisualisation -->
-                <div class="flex-shrink-0">
-                  {#if selectedImage}
-                    <div class="w-16 h-16 bg-white border-2 border-base-300 rounded-lg p-2 flex items-center justify-center">
-                      <img
-                        src={selectedImage.url}
-                        alt={selectedImage.label}
-                        class="w-full h-full object-contain"
-                      />
-                    </div>
-                  {:else}
-                    <div class="w-16 h-16 bg-base-200 border-2 border-base-300 rounded-lg flex items-center justify-center text-base-content/50">
-                      <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                      </svg>
-                    </div>
-                  {/if}
-                </div>
-
-                <!-- Informations et actions -->
-                <div class="flex-1">
-                  {#if selectedImage}
-                    <div class="mb-2">
-                      <div class="font-semibold text-base-content">{selectedImage.label}</div>
-                      {#if selectedImage.description}
-                        <div class="text-sm text-base-content/70">{selectedImage.description}</div>
-                      {/if}
-                      <div class="text-xs text-base-content/50 mt-1">{selectedImage.filename}</div>
-                    </div>
-                  {:else}
-                    <div class="text-base-content/70 mb-2">
-                      Aucune image sélectionnée
-                    </div>
-                  {/if}
-
-                  <!-- Boutons d'action -->
-                  <div class="flex gap-2">
-                    <button
-                      type="button"
-                      class="btn btn-outline btn-sm"
-                      on:click={openImageSelector}
-                    >
-                      🎨 {selectedImage ? 'Changer' : 'Choisir'} l'image
-                    </button>
-                    {#if selectedImage}
-                      <button
-                        type="button"
-                        class="btn btn-ghost btn-sm"
-                        on:click={() => { formData.icon = ''; selectedImage = null; }}
-                      >
-                        🗑️ Supprimer
-                      </button>
-                    {/if}
-                  </div>
-                </div>
+              <!-- Onglets pour choisir le mode -->
+              <div class="tabs tabs-boxed mb-4">
+                <button
+                  type="button"
+                  class="tab {!formData.icon ? 'tab-active' : ''}"
+                  on:click={() => {
+                    formData.icon = '';
+                    if (!selectedImage) openImageSelector();
+                  }}
+                >
+                  🎨 Bibliothèque
+                </button>
+                <button
+                  type="button"
+                  class="tab {formData.icon ? 'tab-active' : ''}"
+                  on:click={() => {
+                    formData.selectedImageId = null;
+                    selectedImage = null;
+                  }}
+                >
+                  🔗 URL custom
+                </button>
               </div>
 
-              {#if errors.icon}
-                <label class="label" for="service_icon_error">
-                  <span class="label-text-alt text-error">{errors.icon}</span>
+              <!-- Mode bibliothèque -->
+              {#if !formData.icon}
+                <div class="flex items-center gap-4">
+                  <!-- Prévisualisation -->
+                  <div class="flex-shrink-0">
+                    {#if selectedImage}
+                      <div class="w-16 h-16 bg-base-100 rounded-lg flex items-center justify-center">
+                        <img
+                          src={selectedImage.url}
+                          alt={selectedImage.label}
+                          class="w-full h-full object-cover rounded-lg"
+                        />
+                      </div>
+                    {:else}
+                      <div class="w-16 h-16 bg-base-200 border-2 border-base-300 rounded-lg flex items-center justify-center text-base-content/50">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
+                    {/if}
+                  </div>
+
+                  <!-- Informations et actions -->
+                  <div class="flex-1">
+                    {#if selectedImage}
+                      <div class="mb-2">
+                        <div class="font-semibold text-base-content">{selectedImage.label}</div>
+                        {#if selectedImage.description}
+                          <div class="text-sm text-base-content/70">{selectedImage.description}</div>
+                        {/if}
+                        <div class="text-xs text-base-content/50 mt-1">
+                          ID: {selectedImage.id} • {selectedImage.filename}
+                        </div>
+                      </div>
+                    {:else}
+                      <div class="text-base-content/70 mb-2">
+                        Aucune image sélectionnée
+                      </div>
+                    {/if}
+
+                    <!-- Boutons d'action -->
+                    <div class="flex gap-2">
+                      <button
+                        type="button"
+                        class="btn btn-outline btn-sm"
+                        on:click={openImageSelector}
+                      >
+                        🎨 {selectedImage ? 'Changer' : 'Choisir'} l'image
+                      </button>
+                      {#if selectedImage}
+                        <button
+                          type="button"
+                          class="btn btn-ghost btn-sm"
+                          on:click={() => { formData.selectedImageId = null; selectedImage = null; }}
+                        >
+                          🗑️ Supprimer
+                        </button>
+                      {/if}
+                    </div>
+                  </div>
+                </div>
+              {:else}
+                <!-- Mode URL custom -->
+                <div class="space-y-3">
+                  <input
+                    type="url"
+                    placeholder="ex: https://example.com/icon.png"
+                    bind:value={formData.icon}
+                    on:input={handleCustomIconUrl}
+                    class="input input-bordered w-full"
+                  />
+
+                  <!-- Prévisualisation URL custom -->
+                  {#if formData.icon}
+                    <div class="flex items-center gap-3 p-3 bg-base-200 rounded-lg">
+                      <div class="w-12 h-12 bg-base-100 flex items-center justify-center">
+                        <img
+                          src={formData.icon}
+                          alt="Icône custom"
+                          class="w-full h-full object-cover"
+                          on:error={(e) => e.target.style.display = 'none'}
+                        />
+                      </div>
+                      <div class="text-sm">
+                        <div class="font-medium">URL custom</div>
+                        <div class="text-base-content/70 break-all">{formData.icon}</div>
+                      </div>
+                    </div>
+                  {/if}
+                </div>
+              {/if}
+
+              {#if errors.icon || errors.selectedImageId}
+                <label class="label">
+                  <span class="label-text-alt text-error">
+                    {errors.icon || errors.selectedImageId}
+                  </span>
                 </label>
               {/if}
 
               <!-- Info sur la gestion des images -->
               <label class="label">
                 <span class="label-text-alt">
-                  💡 Gérez vos images depuis
+                  💡 Utilisez la bibliothèque pour une gestion centralisée ou une URL pour des icônes externes.
                   <button
                     type="button"
                     class="link link-primary"
                     on:click={() => window.open('/settings/service-images', '_blank')}
                   >
-                    les paramètres
+                    Gérer les images
                   </button>
                 </span>
               </label>
             </div>
 
-            <!-- ✅ NOUVEAU: Ports multiples -->
+            <!-- ✅ Ports multiples -->
             <PortsEditor bind:ports disabled={isSubmitting} />
 
-            <!-- ✅ NOUVEAU: Gestion des dépendances -->
+            <!-- ✅ Gestion des dépendances -->
             <DependenciesEditor
               bind:dependencies
               {availableServices}
@@ -318,7 +414,7 @@
               {/if}
             </div>
 
-            <!-- ✅ NOUVEAU: Champ Note avec éditeur Markdown -->
+            <!-- ✅ Champ Note avec éditeur Markdown -->
             <MarkdownEditor
               bind:value={formData.note}
               label="📝 Notes techniques"
@@ -441,7 +537,7 @@
 
           <div>
             <h3 class="font-semibold">🎨 Icône</h3>
-            <p class="text-base-content/70">Sélectionnez une image depuis la bibliothèque ou ajoutez-en de nouvelles dans les paramètres.</p>
+            <p class="text-base-content/70">Sélectionnez une image depuis la bibliothèque ou utilisez une URL custom pour des icônes externes.</p>
           </div>
 
           <div>
@@ -478,7 +574,7 @@
       </div>
     </div>
 
-    <!-- ✅ NOUVEAU: Types de dépendances -->
+    <!-- ✅ Types de dépendances -->
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
         <h2 class="card-title text-lg">🔗 Types de dépendances</h2>
@@ -503,7 +599,7 @@
       </div>
     </div>
 
-    <!-- ✅ NOUVEAU: Gestion des images -->
+    <!-- ✅ Gestion des images -->
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
         <h2 class="card-title text-lg">🎨 Gestion des images</h2>
@@ -569,7 +665,7 @@
 <!-- Modal de sélection d'images -->
 <ImageSelector
   {availableImages}
-  selectedImageUrl={formData.icon}
+  selectedImageUrl={selectedImage?.url || ''}
   bind:isOpen={showImageSelector}
   on:select={handleImageSelect}
   on:close={closeImageSelector}

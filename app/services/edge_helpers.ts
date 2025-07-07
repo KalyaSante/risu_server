@@ -6,7 +6,6 @@ import { getStatusColor as getStatusColorHelper } from '#types/pagination'
  * Helpers personnalisés pour Edge.js
  */
 export function registerEdgeHelpers() {
-
   /**
    * Helper pour formater les dates en français
    */
@@ -54,7 +53,7 @@ export function registerEdgeHelpers() {
     } else if (diff.minutes > 0) {
       return `il y a ${Math.floor(diff.minutes)} minute${Math.floor(diff.minutes) > 1 ? 's' : ''}`
     } else {
-      return 'à l\'instant'
+      return "à l'instant"
     }
   })
 
@@ -110,7 +109,7 @@ export function registerEdgeHelpers() {
       '#10b981': 'success',
       '#f59e0b': 'warning',
       '#ef4444': 'error',
-      '#6b7280': 'neutral'
+      '#6b7280': 'neutral',
     }
 
     return cssClasses[color] || 'neutral'
@@ -127,8 +126,8 @@ export function registerEdgeHelpers() {
 
     return `data:image/svg+xml,${encodeURIComponent(`
       <svg width="${size}" height="${size}" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="${size/2}" cy="${size/2}" r="${size/2}" fill="${color}"/>
-        <text x="${size/2}" y="${size/2 + 6}" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="${size/2}" font-weight="bold">${initial}</text>
+        <circle cx="${size / 2}" cy="${size / 2}" r="${size / 2}" fill="${color}"/>
+        <text x="${size / 2}" y="${size / 2 + 6}" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-size="${size / 2}" font-weight="bold">${initial}</text>
       </svg>
     `)}`
   })

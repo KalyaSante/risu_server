@@ -15,10 +15,10 @@ export default class extends BaseSchema {
       table.string('url').notNullable()
       table.integer('order').defaultTo(0)
       table.boolean('is_active').defaultTo(true)
-      
+
       table.timestamp('created_at')
       table.timestamp('updated_at')
-      
+
       // Index pour l'ordre et la recherche
       table.index(['order', 'is_active'])
       table.index(['label'])
