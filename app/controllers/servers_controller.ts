@@ -39,7 +39,9 @@ export default class ServersController {
    * ✅ MIGRÉ VERS INERTIA
    */
   async index({ inertia, session }: HttpContext) {
-    const servers = await Server.query().preload('services').preload('parent').orderBy('nom', 'asc')
+    const servers = await Server.query().preload('services', (query) => {
+      query.preload('serviceImage') // ✅ FIX: Preload de l'image gérée
+    }).preload('parent').orderBy('nom', 'asc')
 
     // Formater les données pour Svelte
     const formattedServers = servers.map((server: any) => ({
@@ -58,7 +60,7 @@ export default class ServersController {
           id: service.id,
           name: service.nom,
           path: service.path,
-          icon: service.icon,
+          icon: service.iconUrl, // ✅ FIX: Utilise le getter intelligent
         })) || [],
     }))
 
@@ -144,6 +146,7 @@ export default class ServersController {
     const server = await Server.query()
       .where('id', params.id)
       .preload('services', (query) => {
+        query.preload('serviceImage') // ✅ FIX: Preload de l'image gérée
         query.preload('dependencies', (depQuery) => {
           depQuery.pivotColumns(['label', 'type'])
         })
@@ -169,7 +172,8 @@ export default class ServersController {
           id: service.id,
           name: service.nom,
           path: service.path,
-          icon: service.icon,
+          icon: service.iconUrl, // ✅ FIX: Utilise le getter intelligent
+          imageMetadata: service.imageMetadata, // ✅ FIX: Ajoute les métadonnées
           dependenciesCount: service.dependencies?.length || 0,
           repoUrl: service.repoUrl,
           lastMaintenanceAt: service.lastMaintenanceAt?.toISO(),

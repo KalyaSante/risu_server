@@ -171,17 +171,16 @@ export default class ServicesController {
 
     const servers = await Server.query().orderBy('nom', 'asc')
 
-    // ✅ Formater les données pour Svelte avec ports simples
-    const formattedServices = services.serialize().data.map((service: any) => ({
+    const formattedServices = services.all().map((service) => ({
       id: service.id,
       name: service.nom,
       primaryPort: service.primaryPort,
       ports: service.allPorts,
       path: service.path,
-      icon: service.iconUrl, // ✅ NOUVEAU: Utilise le getter intelligent
-      imageMetadata: service.imageMetadata, // ✅ NOUVEAU: Métadonnées image
+      icon: service.iconUrl,
+      imageMetadata: service.imageMetadata,
       description: service.description || '',
-      note: service.note || '', // ✅ AJOUT: Note
+      note: service.note || '',
       server: service.server
         ? {
             id: service.server.id,

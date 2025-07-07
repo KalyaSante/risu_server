@@ -57,7 +57,6 @@
 
     <!-- Header avec image prominente -->
     <div class="flex items-start gap-4">
-      <!-- ✅ NOUVEAU: Image prominente à gauche -->
       <div class="flex-shrink-0 w-20">
         {#if service.icon}
           <ServiceImg {service}></ServiceImg>
@@ -116,17 +115,6 @@
       {#if service.status}
         <div class="badge {service.status === 'running' ? 'badge-success' : 'badge-error'} badge-sm">
           {service.status === 'running' ? '🟢 Running' : '🔴 Stopped'}
-        </div>
-      {/if}
-
-      <!-- ✅ NOUVEAU: Badge si image custom vs gérée -->
-      {#if iconUrl && service.imageMetadata}
-        <div class="badge badge-primary badge-xs" title="Image gérée: {service.imageMetadata.label}">
-          🎨 Gérée
-        </div>
-      {:else if iconUrl}
-        <div class="badge badge-accent badge-xs" title="Image externe">
-          🔗 Externe
         </div>
       {/if}
     </div>

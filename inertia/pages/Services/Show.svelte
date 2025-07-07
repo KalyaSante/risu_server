@@ -135,24 +135,6 @@
               <span class="badge badge-outline badge-sm ml-2">{service.server.ip}</span>
             {/if}
           </p>
-
-          <!-- ✅ NOUVEAU: Badges d'information image -->
-          <div class="flex items-center gap-2 mt-3">
-            {#if service.icon && service.imageMetadata}
-              <div class="badge badge-primary badge-sm" title="Image gérée: {service.imageMetadata.label}">
-                🎨 Image gérée
-              </div>
-            {:else if service.icon}
-              <div class="badge badge-accent badge-sm" title="Image externe">
-                🔗 Image externe
-              </div>
-            {/if}
-            {#if service.description}
-              <div class="badge badge-ghost badge-sm">
-                📝 Description
-              </div>
-            {/if}
-          </div>
         </div>
       </div>
 
