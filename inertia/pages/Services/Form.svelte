@@ -25,6 +25,7 @@
     docPath: service.docPath || '',
     description: service.description || '',
     note: service.note || '',
+    color: service.color || 'neutral', // ✅ AJOUT: Couleur
     lastMaintenanceAt: service.lastMaintenanceAt ? formatDatetimeLocal(service.lastMaintenanceAt) : ''
   };
 
@@ -395,6 +396,44 @@
               error={errors.note}
               rows="10"
             />
+
+            <!-- ✅ NOUVEAU: Couleur du service -->
+            <div class="form-control">
+              <label class="label" for="service_color">
+                <span class="label-text font-semibold">🎨 Couleur</span>
+              </label>
+              <div class="flex flex-wrap gap-2">
+                {#each ['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'] as colorOption}
+                  <label class="cursor-pointer flex items-center gap-2">
+                    <input
+                      type="radio"
+                      bind:group={formData.color}
+                      value={colorOption}
+                      class="radio radio-{colorOption} radio-sm"
+                    />
+                    <span class="badge badge-sm capitalize text-white" 
+                          style="background-color: {colorOption === 'primary' ? '#3b82f6' : 
+                                                 colorOption === 'secondary' ? '#f59e0b' :
+                                                 colorOption === 'accent' ? '#10b981' :
+                                                 colorOption === 'neutral' ? '#6b7280' :
+                                                 colorOption === 'info' ? '#06b6d4' :
+                                                 colorOption === 'success' ? '#10b981' :
+                                                 colorOption === 'warning' ? '#f59e0b' :
+                                                 colorOption === 'error' ? '#ef4444' : '#6b7280'}">
+                      {colorOption}
+                    </span>
+                  </label>
+                {/each}
+              </div>
+              <label class="label">
+                <span class="label-text-alt">Cette couleur sera utilisée dans le graphique et les listes</span>
+              </label>
+              {#if errors.color}
+                <label class="label" for="service_color_error">
+                  <span class="label-text-alt text-error">{errors.color}</span>
+                </label>
+              {/if}
+            </div>
 
             <!-- Installation path -->
             <div class="form-control">

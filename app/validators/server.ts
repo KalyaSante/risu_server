@@ -7,7 +7,7 @@ export const createServerValidator = vine.compile(
       .trim()
       .minLength(2)
       .maxLength(100)
-      .regex(/^[a-zA-Z0-9\s\-_]+$/)
+      .regex(/^[a-zA-Z0-9\sÀ-ÿ\-_\.]+$/)
       .transform((value) => value.trim()),
 
     ip: vine
@@ -51,6 +51,14 @@ export const createServerValidator = vine.compile(
       .maxLength(10000)
       .optional()
       .transform((value) => value?.trim() || null),
+
+    // ✅ AJOUT: Couleur DaisyUI
+    color: vine
+      .string()
+      .trim()
+      .in(['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'])
+      .optional()
+      .transform((value) => value || 'neutral'),
 
     // 🔧 FIX: parentServerId simplifié - accepte null/undefined plus facilement
     parentServerId: vine
@@ -75,7 +83,7 @@ export const updateServerValidator = vine.compile(
       .trim()
       .minLength(2)
       .maxLength(100)
-      .regex(/^[a-zA-Z0-9\s\-_]+$/)
+      .regex(/^[a-zA-Z0-9\sÀ-ÿ\-_\.]+$/)
       .transform((value) => value.trim()),
 
     ip: vine
@@ -119,6 +127,14 @@ export const updateServerValidator = vine.compile(
       .maxLength(10000)
       .optional()
       .transform((value) => value?.trim() || null),
+
+    // ✅ AJOUT: Couleur DaisyUI
+    color: vine
+      .string()
+      .trim()
+      .in(['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'])
+      .optional()
+      .transform((value) => value || 'neutral'),
 
     // 🔧 FIX: parentServerId simplifié - accepte null/undefined plus facilement
     parentServerId: vine

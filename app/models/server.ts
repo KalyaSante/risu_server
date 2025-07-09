@@ -27,6 +27,10 @@ export default class Server extends BaseModel {
   @column()
   declare note: string | null
 
+  // ✅ AJOUT: Couleur du serveur (DaisyUI)
+  @column()
+  declare color: string
+
   @column({ columnName: 'parent_server_id' })
   declare parentServerId: number | null
 

@@ -172,11 +172,13 @@ export default class ServicesController {
       imageMetadata: service.imageMetadata,
       description: service.description || '',
       note: service.note || '',
+      color: service.color || 'neutral', // ✅ AJOUT: Couleur
       server: service.server
         ? {
             id: service.server.id,
             name: service.server.nom,
             ip: service.server.ip,
+            color: service.server.color || 'neutral', // ✅ AJOUT: Couleur du serveur
           }
         : null,
       dependenciesCount: service.dependencies?.length || 0,
@@ -347,6 +349,7 @@ export default class ServicesController {
       imageMetadata: service.imageMetadata, // ✅ NOUVEAU: Métadonnées
       description: service.description || '',
       note: service.note || '', // ✅ AJOUT: Note
+      color: service.color || 'neutral', // ✅ AJOUT: Couleur
       repoUrl: service.repoUrl,
       docPath: service.docPath,
       createdAt: service.createdAt?.toISO(),
@@ -356,6 +359,7 @@ export default class ServicesController {
             id: service.server.id,
             nom: service.server.nom,
             ip: service.server.ip,
+            color: service.server.color || 'neutral', // ✅ AJOUT: Couleur du serveur
           }
         : null,
     }
@@ -430,6 +434,7 @@ export default class ServicesController {
       imageMetadata: service.imageMetadata, // ✅ NOUVEAU: Métadonnées image
       description: service.description || '',
       note: service.note || '', // ✅ AJOUT: Note
+      color: service.color || 'neutral', // ✅ AJOUT: Couleur
       repoUrl: service.repoUrl,
       docPath: service.docPath,
       serverId: service.serverId,

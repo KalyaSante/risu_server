@@ -51,6 +51,7 @@ export default class ServersController {
       localisation: server.localisation,
       description: server.description || '',
       note: server.note || '', // ✅ AJOUT: Note
+      color: server.color || 'neutral', // ✅ AJOUT: Couleur
       parentServer: server.parent ? { id: server.parent.id, name: server.parent.nom } : null,
       services:
         server.services?.map((service: any) => ({
@@ -58,6 +59,7 @@ export default class ServersController {
           name: service.nom,
           path: service.path,
           icon: service.iconUrl, // ✅ FIX: Utilise le getter intelligent
+          color: service.color || 'neutral', // ✅ AJOUT: Couleur du service
         })) || [],
     }))
 
@@ -161,6 +163,7 @@ export default class ServersController {
       localisation: server.localisation,
       description: server.description || '',
       note: server.note || '', // ✅ AJOUT: Note
+      color: server.color || 'neutral', // ✅ AJOUT: Couleur
       createdAt: server.createdAt?.toISO(),
       parentServer: server.parent ? { id: server.parent.id, name: server.parent.nom } : null,
       services:
@@ -170,6 +173,7 @@ export default class ServersController {
           path: service.path,
           icon: service.iconUrl, // ✅ FIX: Utilise le getter intelligent
           imageMetadata: service.imageMetadata, // ✅ FIX: Ajoute les métadonnées
+          color: service.color || 'neutral', // ✅ AJOUT: Couleur du service
           dependenciesCount: service.dependencies?.length || 0,
           repoUrl: service.repoUrl,
           lastMaintenanceAt: service.lastMaintenanceAt?.toISO(),
@@ -206,6 +210,7 @@ export default class ServersController {
       localisation: server.localisation,
       description: server.description || '',
       note: server.note || '', // ✅ AJOUT: Note
+      color: server.color || 'neutral', // ✅ AJOUT: Couleur
       parentServerId: server.parentServerId,
     }
 

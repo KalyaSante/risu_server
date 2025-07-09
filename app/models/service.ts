@@ -38,6 +38,10 @@ export default class Service extends BaseModel {
   @column()
   declare note: string | null
 
+  // ✅ AJOUT: Couleur du service (DaisyUI)
+  @column()
+  declare color: string
+
   // ✅ SIMPLE: Ports multiples en JSON avec juste port + label
   @column({
     serialize: (value: ServicePort[] | null) => value,
