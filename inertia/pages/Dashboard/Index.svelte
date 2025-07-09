@@ -170,7 +170,6 @@
     });
 
     currentLayout.run();
-    console.log('Layout initial démarré');
   };
 
   const startContinuousPhysics = (cy) => {
@@ -199,7 +198,6 @@
     });
 
     currentLayout.run();
-    console.log('Physique douce démarrée (très limitée)');
   };
 
   const stopPhysics = () => {
@@ -290,7 +288,6 @@
       startInitialLayout(cy);
 
       isLoading = false;
-      console.log('Réseau Cytoscape initialisé avec succès');
 
     } catch (error) {
       console.error('Erreur lors du chargement de Cytoscape:', error);
@@ -413,7 +410,6 @@
 
   function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
-      console.log('IP copiée dans le presse-papiers');
       // Tu peux ajouter une notification toast ici si tu veux
     }).catch(() => {
       // Fallback pour les navigateurs plus anciens

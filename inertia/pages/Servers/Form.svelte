@@ -32,10 +32,7 @@
   function handleSubmit() {
     const options = {
       data: { ...form, parentServerId: form.parentServerId ? Number(form.parentServerId) : null },
-      preserveScroll: true,
-      onError: (errors) => {
-        console.log('Form errors:', errors);
-      }
+      preserveScroll: true
     };
 
     if (isEdit) {

@@ -15,16 +15,8 @@ export default class DashboardController {
     const sessionUserEmail = session.get('user_email')
     const sessionUserName = session.get('user_name')
 
-    console.log('🔍 Debug session utilisateur:', {
-      user_id: sessionUserId,
-      user_email: sessionUserEmail,
-      user_name: sessionUserName,
-      hasToken: !!session.get('access_token'),
-    })
-
     // ✅ Si les données sont manquantes, forcer la déconnexion
     if (!sessionUserId || !sessionUserEmail) {
-      console.warn('⚠️ Données utilisateur manquantes en session, déconnexion forcée')
       session.clear()
       session.flash('error', 'Session expirée, veuillez vous reconnecter')
       return inertia.location('/auth/login')
@@ -69,8 +61,6 @@ export default class DashboardController {
       email: sessionUserEmail,
       fullName: sessionUserName,
     }
-
-    console.log('👤 Utilisateur pour le rendu:', user)
 
     // ✅ INERTIA: Rendu avec Svelte
     return inertia.render('Dashboard/Index', {
