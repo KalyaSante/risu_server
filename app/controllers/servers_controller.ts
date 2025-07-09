@@ -28,9 +28,6 @@ export default class ServersController {
       fullName: sessionUserName || 'Utilisateur non défini',
     }
 
-    // Debug
-    console.log('👤 Utilisateur récupéré servers_controller:', user)
-
     return user
   }
 
@@ -132,7 +129,6 @@ export default class ServersController {
       session.flash('success', `Serveur "${server.nom}" créé avec succès!`)
       return response.redirect().toRoute('servers.show', { id: server.id })
     } catch (error) {
-      console.error('💥 Erreur création serveur:', error)
       session.flash('error', 'Erreur lors de la création du serveur')
       return response.redirect().back()
     }
@@ -262,10 +258,6 @@ export default class ServersController {
       session.flash('success', `Serveur "${server.nom}" mis à jour avec succès!`)
       return response.redirect().toRoute('servers.show', { id: server.id })
     } catch (error) {
-      // 🔍 DEBUG: Log de l'erreur complète
-      console.error('💥 Erreur complète lors de la mise à jour:', error)
-      console.error('📍 Stack trace:', error.stack)
-
       // Message d'erreur plus détaillée pour le développement
       const isDevelopment = process.env.NODE_ENV === 'development'
       const errorMessage = isDevelopment

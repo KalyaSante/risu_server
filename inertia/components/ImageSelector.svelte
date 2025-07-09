@@ -13,11 +13,6 @@
   let searchQuery = '';
   let filteredImages = [...availableImages];
 
-  // 🔍 DEBUG: Log des images reçues
-  $: {
-    console.log('🔍 DEBUG ImageSelector: Images reçues:', availableImages.length, availableImages);
-  }
-
   // Reactive filtering
   $: {
     if (searchQuery.trim()) {

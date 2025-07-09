@@ -34,9 +34,9 @@
   function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
       // Could add toast notification here
-      console.log('Copied:', text);
     }).catch(() => {
-      console.log('Copy failed');
+      // Log or handle copy failure
+      console.error('Copy to clipboard failed');
     });
   }
 
