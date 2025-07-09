@@ -8,7 +8,7 @@ export default class extends BaseSchema {
 
     // Migration via SQL pur pour migrer les URLs existantes
     try {
-      const result = await this.raw(`
+      await this.raw(`
         UPDATE services 
         SET service_image_id = (
           SELECT id 

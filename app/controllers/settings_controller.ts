@@ -167,7 +167,7 @@ export default class SettingsController {
       return response.redirect().toRoute('settings.hosters')
     } catch (error) {
       session.flash('error', "Erreur lors de l'ajout de l'hébergeur")
-      return response.redirect().back().withInput().flashErrors()
+      return response.redirect().back()
     }
   }
 
@@ -194,7 +194,7 @@ export default class SettingsController {
       return response.redirect().toRoute('settings.hosters')
     } catch (error) {
       session.flash('error', "Erreur lors de la modification de l'hébergeur")
-      return response.redirect().back().withInput().flashErrors()
+      return response.redirect().back()
     }
   }
 
@@ -249,7 +249,7 @@ export default class SettingsController {
       return response.redirect().toRoute('settings.hosters')
     } catch (error) {
       session.flash('error', "Erreur lors de l'import : " + (error.message || 'Données invalides'))
-      return response.redirect().back().withInput().flashErrors()
+      return response.redirect().back()
     }
   }
 
@@ -315,7 +315,7 @@ export default class SettingsController {
       return response.redirect().toRoute('settings.images')
     } catch (error) {
       session.flash('error', "Erreur lors de l'ajout de l'image")
-      return response.redirect().back().withInput().flashErrors()
+      return response.redirect().back()
     }
   }
 
@@ -369,7 +369,7 @@ export default class SettingsController {
       return response.redirect().toRoute('settings.images')
     } catch (error) {
       session.flash('error', "Erreur lors de la modification de l'image")
-      return response.redirect().back().withInput().flashErrors()
+      return response.redirect().back()
     }
   }
 

@@ -133,7 +133,7 @@ export default class AuthController {
   /**
    * ✅ FIX: Déconnexion améliorée - Support POST et GET
    */
-  async logout({ session, response, request }: HttpContext) {
+  async logout({ session, response }: HttpContext) {
     // Optionnel : révoquer le token côté serveur OAuth
     const accessToken = session.get('access_token')
     if (accessToken) {
