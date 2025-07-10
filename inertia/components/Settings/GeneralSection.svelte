@@ -1,9 +1,6 @@
 <script>
   import { onMount } from 'svelte';
 
-  // Props pour futurs paramètres généraux
-  export let settings = {};
-
   // State pour la gestion des thèmes
   let currentTheme = 'light';
 
@@ -121,9 +118,9 @@
       <div class="space-y-4">
         <!-- Sélecteur de thème -->
         <div class="form-control">
-          <label class="label">
+          <div class="label">
             <span class="label-text font-medium">Thème actuel</span>
-          </label>
+          </div>
           <div class="flex items-center gap-3 mb-3">
             <span class="text-2xl">{currentThemeData.icon}</span>
             <span class="font-medium">{currentThemeData.name}</span>
@@ -151,9 +148,9 @@
             <input type="checkbox" class="checkbox" bind:checked={reducedAnimations} />
             <span class="label-text">Animations réduites</span>
           </label>
-          <label class="label">
-            <span class="label-text-alt">Réduit les animations pour améliorer les performances</span>
-          </label>
+          <div class="label-text-alt text-sm ml-10 -mt-2"> <!-- Ajustement pour aligner sous le checkbox text -->
+            Réduit les animations pour améliorer les performances
+          </div>
         </div>
       </div>
     </div>

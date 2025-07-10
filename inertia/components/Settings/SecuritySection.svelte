@@ -1,6 +1,5 @@
 <script>
   // Props pour futures données de sécurité
-  export let security = {};
 </script>
 
 <!-- Section Header -->
@@ -17,10 +16,10 @@
       <h4 class="card-title text-lg">🔑 Authentification</h4>
       <div class="space-y-3">
         <div class="form-control">
-          <label class="label">
+          <label class="label" for="session_duration">
             <span class="label-text">Durée de session</span>
           </label>
-          <select class="select select-bordered max-w-xs">
+          <select id="session_duration" class="select select-bordered max-w-xs">
             <option>1 heure</option>
             <option>4 heures</option>
             <option>1 jour</option>
@@ -44,21 +43,20 @@
       <h4 class="card-title text-lg">🔌 Accès API</h4>
       <div class="space-y-3">
         <div class="form-control">
-          <label class="label">
+          <label class="label" for="api_key">
             <span class="label-text">Clé API personnelle</span>
           </label>
           <div class="join max-w-md">
             <input 
               type="text" 
+              id="api_key"
               value="sk-************************************" 
               class="input input-bordered join-item flex-1" 
               readonly 
             />
             <button class="btn btn-outline join-item">🔄</button>
           </div>
-          <label class="label">
-            <span class="label-text-alt">Utilisée pour les intégrations externes</span>
-          </label>
+          <div class="label-text-alt text-sm mt-1">Utilisée pour les intégrations externes</div>
         </div>
         
         <div class="form-control">

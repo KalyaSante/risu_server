@@ -337,17 +337,14 @@
               {/if}
 
               {#if errors.icon || errors.selectedImageId}
-                <label class="label">
-                  <span class="label-text-alt text-error">
-                    {errors.icon || errors.selectedImageId}
-                  </span>
-                </label>
+                <div class="label-text-alt text-error mt-1">
+                  {errors.icon || errors.selectedImageId}
+                </div>
               {/if}
 
               <!-- Info sur la gestion des images -->
-              <label class="label">
-                <span class="label-text-alt">
-                  💡 Utilisez la bibliothèque pour une gestion centralisée ou une URL pour des icônes externes.
+              <div class="label-text-alt text-sm mt-1">
+                💡 Utilisez la bibliothèque pour une gestion centralisée ou une URL pour des icônes externes.
                   <button
                     type="button"
                     class="link link-primary"
@@ -355,8 +352,7 @@
                   >
                     Gérer les images
                   </button>
-                </span>
-              </label>
+              </div>
             </div>
 
             <!-- ✅ Ports multiples -->
@@ -425,9 +421,9 @@
                   </label>
                 {/each}
               </div>
-              <label class="label">
-                <span class="label-text-alt">Cette couleur sera utilisée dans le graphique et les listes</span>
-              </label>
+              <div class="label-text-alt text-sm mt-1">
+                Cette couleur sera utilisée dans le graphique et les listes
+              </div>
               {#if errors.color}
                 <label class="label" for="service_color_error">
                   <span class="label-text-alt text-error">{errors.color}</span>
