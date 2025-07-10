@@ -14,11 +14,6 @@
   export let errors = {};
   export let isEdit = false;
 
-  // 🔍 DEBUG: Log des props reçues
-  $: {
-    console.log('🔍 DEBUG Form.svelte: availableImages reçues:', availableImages.length, availableImages);
-  }
-
   // Form data
   let formData = {
     nom: service.nom || '',
@@ -30,6 +25,7 @@
     docPath: service.docPath || '',
     description: service.description || '',
     note: service.note || '',
+    color: service.color || 'neutral', // ✅ AJOUT: Couleur
     lastMaintenanceAt: service.lastMaintenanceAt ? formatDatetimeLocal(service.lastMaintenanceAt) : ''
   };
 
@@ -71,12 +67,10 @@
       formData.selectedImageId = image.id; // ✅ NOUVEAU: Envoie l'ID
       formData.icon = ''; // Clear l'URL custom
       selectedImage = image;
-      console.log('🔍 DEBUG: Image sélectionnée:', { id: image.id, label: image.label });
     } else {
       formData.selectedImageId = null;
       formData.icon = '';
       selectedImage = null;
-      console.log('🔍 DEBUG: Aucune image sélectionnée');
     }
   }
 
@@ -87,7 +81,6 @@
       formData.icon = url;
       formData.selectedImageId = null; // Clear la sélection gérée
       selectedImage = null;
-      console.log('🔍 DEBUG: URL custom définie:', url);
     }
   }
 
@@ -104,7 +97,6 @@
   }
 
   function openImageSelector() {
-    console.log('🔍 DEBUG: Ouverture du sélecteur avec', availableImages.length, 'images');
     showImageSelector = true;
   }
 
@@ -122,13 +114,6 @@
     // Ajouter les ports et dépendances au payload
     submitData.ports = ports;
     submitData.dependencies = dependencies;
-
-    // ✅ NOUVEAU: Debug du payload
-    console.log('🔍 DEBUG: Payload envoyé:', {
-      selectedImageId: submitData.selectedImageId,
-      icon: submitData.icon,
-      hasSelectedImage: !!selectedImage
-    });
 
     // Convert empty strings to null for optional fields
     if (!submitData.icon) submitData.icon = null;
@@ -179,17 +164,6 @@
   <div class="lg:col-span-2">
     <div class="card bg-base-100 shadow-xl">
       <div class="card-body">
-
-        <!-- 🔍 DEBUG: Affichage du nombre d'images -->
-        <div class="mb-4 p-2 bg-base-200 rounded text-sm">
-          <strong>DEBUG Form.svelte:</strong> {availableImages.length} images disponibles
-          {#if selectedImage}
-            • Image sélectionnée: {selectedImage.label} (ID: {selectedImage.id})
-          {/if}
-          {#if formData.icon}
-            • URL custom: {formData.icon}
-          {/if}
-        </div>
 
         <form on:submit|preventDefault={handleSubmit}>
           <div class="space-y-6">
@@ -363,17 +337,14 @@
               {/if}
 
               {#if errors.icon || errors.selectedImageId}
-                <label class="label">
-                  <span class="label-text-alt text-error">
-                    {errors.icon || errors.selectedImageId}
-                  </span>
-                </label>
+                <div class="label-text-alt text-error mt-1">
+                  {errors.icon || errors.selectedImageId}
+                </div>
               {/if}
 
               <!-- Info sur la gestion des images -->
-              <label class="label">
-                <span class="label-text-alt">
-                  💡 Utilisez la bibliothèque pour une gestion centralisée ou une URL pour des icônes externes.
+              <div class="label-text-alt text-sm mt-1">
+                💡 Utilisez la bibliothèque pour une gestion centralisée ou une URL pour des icônes externes.
                   <button
                     type="button"
                     class="link link-primary"
@@ -381,8 +352,7 @@
                   >
                     Gérer les images
                   </button>
-                </span>
-              </label>
+              </div>
             </div>
 
             <!-- ✅ Ports multiples -->
@@ -422,6 +392,44 @@
               error={errors.note}
               rows="10"
             />
+
+            <!-- ✅ NOUVEAU: Couleur du service -->
+            <div class="form-control">
+              <label class="label" for="service_color">
+                <span class="label-text font-semibold">🎨 Couleur</span>
+              </label>
+              <div class="flex flex-wrap gap-2">
+                {#each ['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'] as colorOption}
+                  <label class="cursor-pointer flex items-center gap-2">
+                    <input
+                      type="radio"
+                      bind:group={formData.color}
+                      value={colorOption}
+                      class="radio radio-{colorOption} radio-sm"
+                    />
+                    <span class="badge badge-sm capitalize text-white" 
+                          style="background-color: {colorOption === 'primary' ? '#3b82f6' : 
+                                                 colorOption === 'secondary' ? '#f59e0b' :
+                                                 colorOption === 'accent' ? '#10b981' :
+                                                 colorOption === 'neutral' ? '#6b7280' :
+                                                 colorOption === 'info' ? '#06b6d4' :
+                                                 colorOption === 'success' ? '#10b981' :
+                                                 colorOption === 'warning' ? '#f59e0b' :
+                                                 colorOption === 'error' ? '#ef4444' : '#6b7280'}">
+                      {colorOption}
+                    </span>
+                  </label>
+                {/each}
+              </div>
+              <div class="label-text-alt text-sm mt-1">
+                Cette couleur sera utilisée dans le graphique et les listes
+              </div>
+              {#if errors.color}
+                <label class="label" for="service_color_error">
+                  <span class="label-text-alt text-error">{errors.color}</span>
+                </label>
+              {/if}
+            </div>
 
             <!-- Installation path -->
             <div class="form-control">

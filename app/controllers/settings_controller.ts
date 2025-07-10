@@ -46,26 +46,20 @@ export default class SettingsController {
    * Méthode privée pour récupérer les images de services
    */
   private async getServiceImages() {
-    console.log('🔍 DEBUG: Récupération des images de services...')
-
     try {
       const images = await ServiceImage.query()
         .where('is_active', true)
         .orderBy('order', 'asc')
         .orderBy('label', 'asc')
 
-      console.log('🔍 DEBUG: Images trouvées:', images.length)
-
       const formattedImages = images.map((image) => ({
         ...image.serialize(),
         file_extension: image.fileExtension,
       }))
 
-      console.log('🔍 DEBUG: Images formatées:', JSON.stringify(formattedImages, null, 2))
-
       return formattedImages
     } catch (error) {
-      console.error('❌ DEBUG: Erreur lors de la récupération des images:', error)
+      console.error('❌ Erreur lors de la récupération des images de service:', error)
       return []
     }
   }
@@ -92,8 +86,6 @@ export default class SettingsController {
     const user = this.getUserFromSession(session)
     const hosters = await this.getHosters()
     const images = await this.getServiceImages()
-
-    console.log('🔍 DEBUG: Section images - Images à envoyer:', images.length)
 
     return inertia.render('Settings/Index', {
       currentSection: 'service-images',
@@ -175,7 +167,7 @@ export default class SettingsController {
       return response.redirect().toRoute('settings.hosters')
     } catch (error) {
       session.flash('error', "Erreur lors de l'ajout de l'hébergeur")
-      return response.redirect().back().withInput().flashErrors()
+      return response.redirect().back()
     }
   }
 
@@ -202,7 +194,7 @@ export default class SettingsController {
       return response.redirect().toRoute('settings.hosters')
     } catch (error) {
       session.flash('error', "Erreur lors de la modification de l'hébergeur")
-      return response.redirect().back().withInput().flashErrors()
+      return response.redirect().back()
     }
   }
 
@@ -257,7 +249,7 @@ export default class SettingsController {
       return response.redirect().toRoute('settings.hosters')
     } catch (error) {
       session.flash('error', "Erreur lors de l'import : " + (error.message || 'Données invalides'))
-      return response.redirect().back().withInput().flashErrors()
+      return response.redirect().back()
     }
   }
 
@@ -323,7 +315,7 @@ export default class SettingsController {
       return response.redirect().toRoute('settings.images')
     } catch (error) {
       session.flash('error', "Erreur lors de l'ajout de l'image")
-      return response.redirect().back().withInput().flashErrors()
+      return response.redirect().back()
     }
   }
 
@@ -377,7 +369,7 @@ export default class SettingsController {
       return response.redirect().toRoute('settings.images')
     } catch (error) {
       session.flash('error', "Erreur lors de la modification de l'image")
-      return response.redirect().back().withInput().flashErrors()
+      return response.redirect().back()
     }
   }
 

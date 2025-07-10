@@ -87,15 +87,11 @@ export default class ServicesController {
    * ✅ NOUVEAU: Helper pour récupérer les images de services disponibles
    */
   private async getAvailableImages() {
-    console.log('🔍 DEBUG ServicesController: Récupération des images...')
-
     try {
       const images = await ServiceImage.query()
         .where('is_active', true)
         .orderBy('order', 'asc')
         .orderBy('label', 'asc')
-
-      console.log('🔍 DEBUG ServicesController: Images trouvées:', images.length)
 
       const formattedImages = images.map((image) => ({
         id: image.id,
@@ -106,15 +102,10 @@ export default class ServicesController {
         file_extension: image.fileExtension,
       }))
 
-      console.log(
-        '🔍 DEBUG ServicesController: Images formatées:',
-        JSON.stringify(formattedImages, null, 2)
-      )
-
       return formattedImages
     } catch (error) {
       console.error(
-        '❌ DEBUG ServicesController: Erreur lors de la récupération des images:',
+        '❌ Erreur lors de la récupération des images de service:',
         error
       )
       return []
@@ -181,11 +172,13 @@ export default class ServicesController {
       imageMetadata: service.imageMetadata,
       description: service.description || '',
       note: service.note || '',
+      color: service.color || 'neutral', // ✅ AJOUT: Couleur
       server: service.server
         ? {
             id: service.server.id,
             name: service.server.nom,
             ip: service.server.ip,
+            color: service.server.color || 'neutral', // ✅ AJOUT: Couleur du serveur
           }
         : null,
       dependenciesCount: service.dependencies?.length || 0,
@@ -240,8 +233,6 @@ export default class ServicesController {
     // ✅ NOUVEAU: Récupérer toutes les images disponibles
     const availableImages = await this.getAvailableImages()
 
-    console.log('🔍 DEBUG create(): Envoie de', availableImages.length, 'images au frontend')
-
     const formattedServers = servers.map((server: any) => ({
       id: server.id,
       name: server.nom,
@@ -280,12 +271,7 @@ export default class ServicesController {
    */
   async store({ request, response, session }: HttpContext) {
     try {
-      // 🔍 DEBUG: Log des données reçues
-      const allData = request.all()
-      console.log('🔍 DEBUG: Données reçues dans store:', JSON.stringify(allData, null, 2))
-
       const validatedData = await request.validateUsing(createServiceValidator)
-      console.log('🔍 DEBUG: Données validées:', JSON.stringify(validatedData, null, 2))
 
       // ✅ NOUVEAU: Traiter la sélection d'image
       const imageSelection = await this.processImageSelection(
@@ -305,13 +291,10 @@ export default class ServicesController {
           : null,
       }
 
-      console.log('🔍 DEBUG: Payload final:', JSON.stringify(payload, null, 2))
-
       // Enlever les dépendances du payload principal
       const { dependencies, selectedImageId, ...serviceData } = payload
 
       const service = await Service.create(serviceData)
-      console.log('🔍 DEBUG: Service créé:', JSON.stringify(service.toJSON(), null, 2))
 
       // ✅ NOUVEAU: Gérer les dépendances
       if (dependencies && dependencies.length > 0) {
@@ -321,7 +304,6 @@ export default class ServicesController {
       session.flash('success', `Service "${service.nom}" créé avec succès!`)
       return response.redirect().toRoute('services.show', { id: service.id })
     } catch (error) {
-      console.error('💥 DEBUG: Erreur dans store:', error)
       // ✅ AMÉLIORÉ: Meilleure gestion des erreurs de validation
       if ('messages' in error && Array.isArray((error as ValidationError).messages)) {
         const validationErrors: Record<string, string> = {}
@@ -357,9 +339,6 @@ export default class ServicesController {
       })
       .firstOrFail()
 
-    // 🔍 DEBUG: Log du service récupéré
-    console.log('🔍 DEBUG: Service récupéré:', JSON.stringify(service.toJSON(), null, 2))
-
     const formattedService = {
       id: service.id,
       nom: service.nom,
@@ -370,6 +349,7 @@ export default class ServicesController {
       imageMetadata: service.imageMetadata, // ✅ NOUVEAU: Métadonnées
       description: service.description || '',
       note: service.note || '', // ✅ AJOUT: Note
+      color: service.color || 'neutral', // ✅ AJOUT: Couleur
       repoUrl: service.repoUrl,
       docPath: service.docPath,
       createdAt: service.createdAt?.toISO(),
@@ -379,15 +359,10 @@ export default class ServicesController {
             id: service.server.id,
             nom: service.server.nom,
             ip: service.server.ip,
+            color: service.server.color || 'neutral', // ✅ AJOUT: Couleur du serveur
           }
         : null,
     }
-
-    // 🔍 DEBUG: Log du service formaté
-    console.log(
-      '🔍 DEBUG: Service formaté pour frontend:',
-      JSON.stringify(formattedService, null, 2)
-    )
 
     const formattedDependencies = service.dependencies.map((dep: any) => ({
       id: dep.id,
@@ -437,9 +412,6 @@ export default class ServicesController {
       })
       .firstOrFail()
 
-    // 🔍 DEBUG: Log du service pour l'édition
-    console.log('🔍 DEBUG: Service pour édition:', JSON.stringify(service.toJSON(), null, 2))
-
     const servers = await Server.query().orderBy('nom', 'asc')
 
     // ✅ NOUVEAU: Récupérer tous les services sauf celui en cours d'édition
@@ -447,8 +419,6 @@ export default class ServicesController {
 
     // ✅ NOUVEAU: Récupérer toutes les images disponibles
     const availableImages = await this.getAvailableImages()
-
-    console.log('🔍 DEBUG edit(): Envoie de', availableImages.length, 'images au frontend')
 
     const formattedService = {
       id: service.id,
@@ -464,6 +434,7 @@ export default class ServicesController {
       imageMetadata: service.imageMetadata, // ✅ NOUVEAU: Métadonnées image
       description: service.description || '',
       note: service.note || '', // ✅ AJOUT: Note
+      color: service.color || 'neutral', // ✅ AJOUT: Couleur
       repoUrl: service.repoUrl,
       docPath: service.docPath,
       serverId: service.serverId,
@@ -478,12 +449,6 @@ export default class ServicesController {
         type: dep.$extras.pivot_type,
       })),
     }
-
-    // 🔍 DEBUG: Log du service formaté pour édition
-    console.log(
-      '🔍 DEBUG: Service formaté pour édition:',
-      JSON.stringify(formattedService, null, 2)
-    )
 
     const formattedServers = servers.map((server: any) => ({
       id: server.id,
@@ -517,12 +482,7 @@ export default class ServicesController {
     try {
       const service = await Service.findOrFail(params.id)
 
-      // 🔍 DEBUG: Log des données reçues
-      const allData = request.all()
-      console.log('🔍 DEBUG: Données reçues dans update:', JSON.stringify(allData, null, 2))
-
       const validatedData = await request.validateUsing(updateServiceValidator)
-      console.log('🔍 DEBUG: Données validées pour update:', JSON.stringify(validatedData, null, 2))
 
       // ✅ NOUVEAU: Traiter la sélection d'image
       const imageSelection = await this.processImageSelection(
@@ -542,13 +502,10 @@ export default class ServicesController {
           : null,
       }
 
-      console.log('🔍 DEBUG: Payload final pour update:', JSON.stringify(payload, null, 2))
-
       // Enlever les dépendances du payload principal
       const { dependencies, selectedImageId, ...serviceData } = payload
 
       await service.merge(serviceData).save()
-      console.log('🔍 DEBUG: Service mis à jour:', JSON.stringify(service.toJSON(), null, 2))
 
       // ✅ NOUVEAU: Gérer les dépendances
       await this.syncDependencies(service, dependencies || [])
@@ -556,7 +513,6 @@ export default class ServicesController {
       session.flash('success', `Service "${service.nom}" mis à jour avec succès!`)
       return response.redirect().toRoute('services.show', { id: service.id })
     } catch (error) {
-      console.error('💥 DEBUG: Erreur dans update:', error)
       // ✅ AMÉLIORÉ: Meilleure gestion des erreurs de validation
       if ('messages' in error && Array.isArray((error as ValidationError).messages)) {
         const validationErrors: Record<string, string> = {}

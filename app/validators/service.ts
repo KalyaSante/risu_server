@@ -43,6 +43,14 @@ export const createServiceValidator = vine.compile(
       .optional()
       .transform((value) => value?.trim() || null),
 
+    // ✅ AJOUT: Couleur DaisyUI
+    color: vine
+      .string()
+      .trim()
+      .in(['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'])
+      .optional()
+      .transform((value) => value || 'neutral'),
+
     // ✅ FIX: Ports simples (nettoyage dans le contrôleur)
     ports: vine.array(portSchema).optional(),
 
@@ -123,6 +131,14 @@ export const updateServiceValidator = vine.compile(
       .maxLength(10000)
       .optional()
       .transform((value) => value?.trim() || null),
+
+    // ✅ AJOUT: Couleur DaisyUI
+    color: vine
+      .string()
+      .trim()
+      .in(['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'])
+      .optional()
+      .transform((value) => value || 'neutral'),
 
     // ✅ FIX: Ports simples (nettoyage dans le contrôleur)
     ports: vine.array(portSchema).optional(),

@@ -17,6 +17,9 @@
   export let disabled = false;
   export let required = false;
 
+  // Unique ID for the editor
+  const editorId = `markdown-editor-${Math.random().toString(36).substring(2, 15)}`;
+
   // Instance Carta
   const carta = new Carta({
     sanitizer: false,
@@ -32,7 +35,7 @@
 <!-- Composant MarkdownEditor -->
 <div class="form-control w-full">
   {#if label}
-    <label class="label">
+    <label class="label" for={editorId}>
       <span class="label-text font-semibold">
         {label}
         {#if required}<span class="text-error">*</span>{/if}
@@ -40,7 +43,7 @@
     </label>
   {/if}
 
-  <div class="carta-container {error ? 'border-error' : ''}" style="min-height: {rows * 1.5}rem;">
+  <div id={editorId} class="carta-container {error ? 'border-error' : ''}" style="min-height: {rows * 1.5}rem;">
     <MarkdownEditor
       {carta}
       bind:value
@@ -51,16 +54,12 @@
   </div>
 
   {#if error}
-    <label class="label">
-      <span class="label-text-alt text-error">{error}</span>
-    </label>
+    <div class="label-text-alt text-error mt-1">{error}</div>
   {/if}
 
-  <label class="label">
-    <span class="label-text-alt text-xs opacity-70">
-      ✨ Éditeur markdown avec aperçu en temps réel
-    </span>
-  </label>
+  <div class="label-text-alt text-xs opacity-70 mt-1">
+    ✨ Éditeur markdown avec aperçu en temps réel
+  </div>
 </div>
 
 <style>

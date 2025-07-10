@@ -13,11 +13,6 @@
   let searchQuery = '';
   let filteredImages = [...availableImages];
 
-  // 🔍 DEBUG: Log des images reçues
-  $: {
-    console.log('🔍 DEBUG ImageSelector: Images reçues:', availableImages.length, availableImages);
-  }
-
   // Reactive filtering
   $: {
     if (searchQuery.trim()) {
@@ -61,11 +56,11 @@
 
 <!-- Modal de sélection d'images -->
 {#if isOpen}
-  <div class="modal modal-open" on:keydown={handleKeydown}>
+  <div class="modal modal-open" role="dialog" aria-modal="true" aria-labelledby="modal-title" on:keydown={handleKeydown} tabindex="-1">
     <div class="modal-box w-11/12 max-w-6xl max-h-screen">
       <!-- Header -->
       <div class="flex items-center justify-between mb-6">
-        <h3 class="font-bold text-lg">🎨 Sélectionner une image</h3>
+        <h3 class="font-bold text-lg" id="modal-title">🎨 Sélectionner une image</h3>
         <button
           type="button"
           class="btn btn-ghost btn-sm btn-circle"
@@ -231,7 +226,14 @@
       </div>
     </div>
     <!-- Backdrop -->
-    <div class="modal-backdrop" on:click={closeModal}></div>
+    <div
+      class="modal-backdrop"
+      on:click={closeModal}
+      on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && closeModal()}
+      role="button"
+      tabindex="0"
+      aria-label="Fermer la modal"
+    ></div>
   </div>
 {/if}
 

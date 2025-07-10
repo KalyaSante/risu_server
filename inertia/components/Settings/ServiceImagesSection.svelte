@@ -251,9 +251,10 @@
 
 <!-- Grille des images -->
 {#if localImages.length > 0}
-  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+  <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4" role="list">
     {#each localImages as image, index}
       <div 
+        role="listitem"
         class="card bg-base-100 shadow-lg hover:shadow-xl transition-all duration-200 cursor-move
                {draggedIndex === index ? 'scale-105 shadow-2xl' : ''}
                {hoveredIndex === index && draggedIndex !== null ? 'scale-102 border-2 border-primary' : ''}"
@@ -353,9 +354,7 @@
               on:change={handleFileChange}
               required
             />
-            <label class="label">
-              <span class="label-text-alt">Formats: PNG, JPG, JPEG, GIF, WebP (max 5MB)</span>
-            </label>
+            <div class="label-text-alt text-sm mt-1">Formats: PNG, JPG, JPEG, GIF, WebP (max 5MB)</div>
           </div>
         {:else}
           <div class="form-control">
@@ -369,9 +368,7 @@
               class="file-input file-input-bordered"
               on:change={handleFileChange}
             />
-            <label class="label">
-              <span class="label-text-alt">Laissez vide pour conserver l'image actuelle</span>
-            </label>
+            <div class="label-text-alt text-sm mt-1">Laissez vide pour conserver l'image actuelle</div>
           </div>
         {/if}
 
@@ -388,9 +385,7 @@
             class="input input-bordered"
             required
           />
-          <label class="label">
-            <span class="label-text-alt">Nom affiché pour identifier l'image dans vos services</span>
-          </label>
+          <div class="label-text-alt text-sm mt-1">Nom affiché pour identifier l'image dans vos services</div>
         </div>
 
         <!-- Description -->
@@ -405,17 +400,15 @@
             class="textarea textarea-bordered"
             rows="3"
           ></textarea>
-          <label class="label">
-            <span class="label-text-alt">Informations supplémentaires sur l'usage de cette image</span>
-          </label>
+          <div class="label-text-alt text-sm mt-1">Informations supplémentaires sur l'usage de cette image</div>
         </div>
 
         <!-- Aperçu -->
         {#if uploadFile}
           <div class="form-control">
-            <label class="label">
+            <div class="label">
               <span class="label-text font-semibold">Aperçu</span>
-            </label>
+            </div>
             <div class="border border-base-300 rounded-lg p-4 bg-white">
               <img 
                 src={URL.createObjectURL(uploadFile)} 
@@ -426,9 +419,9 @@
           </div>
         {:else if editingImage}
           <div class="form-control">
-            <label class="label">
+            <div class="label">
               <span class="label-text font-semibold">Image actuelle</span>
-            </label>
+            </div>
             <div class="border border-base-300 rounded-lg p-4 bg-white">
               <img 
                 src={editingImage.url} 
@@ -450,7 +443,14 @@
         </div>
       </form>
     </div>
-    <div class="modal-backdrop" on:click={closeModal}></div>
+    <div
+      class="modal-backdrop"
+      on:click={closeModal}
+      on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && closeModal()}
+      role="button"
+      tabindex="0"
+      aria-label="Fermer la modal"
+    ></div>
   </div>
 {/if}
 

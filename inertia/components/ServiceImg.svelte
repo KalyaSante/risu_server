@@ -16,12 +16,10 @@
 
   function handleImageError() {
     imageError = true;
-    console.warn(`❌ Échec du chargement d'image pour ${serviceName}:`, iconUrl);
   }
 
   function handleImageLoad() {
     imageError = false;
-    console.log(`✅ Image chargée avec succès pour ${serviceName}:`, iconUrl);
   }
 </script>
 

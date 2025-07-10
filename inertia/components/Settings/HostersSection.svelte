@@ -167,9 +167,10 @@
 
 <!-- Liste des hébergeurs avec drag & drop -->
 {#if localHosters.length > 0}
-  <div class="space-y-4 pr-2">
+  <div class="space-y-4 pr-2" role="list">
     {#each localHosters as hoster, index}
       <div
+        role="listitem"
         class="card bg-base-100 shadow-md hover:shadow-lg transition-all duration-200 cursor-move
                {draggedIndex === index ? 'scale-105 shadow-xl' : ''}
                {hoveredIndex === index && draggedIndex !== null ? 'scale-102 border-2 border-primary' : ''}"
@@ -304,7 +305,14 @@
         </div>
       </form>
     </div>
-    <div class="modal-backdrop" on:click={closeModal}></div>
+    <div
+      class="modal-backdrop"
+      on:click={closeModal}
+      on:keydown={(e) => (e.key === 'Enter' || e.key === ' ') && closeModal()}
+      role="button"
+      tabindex="0"
+      aria-label="Fermer la modal"
+    ></div>
   </div>
 {/if}
 
@@ -321,24 +329,5 @@
   /* Animation pour le feedback visuel */
   .card {
     transition: all 0.2s ease;
-  }
-
-  /* Scrollbar custom pour la liste */
-  .max-h-96::-webkit-scrollbar {
-    width: 6px;
-  }
-
-  .max-h-96::-webkit-scrollbar-track {
-    background: hsl(var(--b2));
-    border-radius: 3px;
-  }
-
-  .max-h-96::-webkit-scrollbar-thumb {
-    background: hsl(var(--bc) / 0.3);
-    border-radius: 3px;
-  }
-
-  .max-h-96::-webkit-scrollbar-thumb:hover {
-    background: hsl(var(--bc) / 0.5);
   }
 </style>

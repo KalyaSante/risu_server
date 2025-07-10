@@ -15,16 +15,8 @@ export default class DashboardController {
     const sessionUserEmail = session.get('user_email')
     const sessionUserName = session.get('user_name')
 
-    console.log('🔍 Debug session utilisateur:', {
-      user_id: sessionUserId,
-      user_email: sessionUserEmail,
-      user_name: sessionUserName,
-      hasToken: !!session.get('access_token'),
-    })
-
     // ✅ Si les données sont manquantes, forcer la déconnexion
     if (!sessionUserId || !sessionUserEmail) {
-      console.warn('⚠️ Données utilisateur manquantes en session, déconnexion forcée')
       session.clear()
       session.flash('error', 'Session expirée, veuillez vous reconnecter')
       return inertia.location('/auth/login')
@@ -70,8 +62,6 @@ export default class DashboardController {
       fullName: sessionUserName,
     }
 
-    console.log('👤 Utilisateur pour le rendu:', user)
-
     // ✅ INERTIA: Rendu avec Svelte
     return inertia.render('Dashboard/Index', {
       servers: servers.map((server: any) => ({
@@ -82,6 +72,7 @@ export default class DashboardController {
         servicesCount: server.services?.length || 0,
         hebergeur: server.hebergeur,
         localisation: server.localisation,
+        color: server.color || 'neutral', // ✅ AJOUT: Couleur
         services: server.services || [],
       })),
       services,
@@ -174,6 +165,8 @@ export default class DashboardController {
           label: server.nom,
           type: 'server',
           parent: server.parentServerId ? `server_${server.parentServerId}` : undefined,
+          // ✅ AJOUT: Couleur du serveur
+          color: server.color || 'neutral',
           // Données supplémentaires pour les détails
           server_id: server.id,
           ip: server.ip,
@@ -190,6 +183,8 @@ export default class DashboardController {
           label: service.nom,
           type: 'service',
           parent: `server_${service.serverId}`, // 🎯 Clé magique pour les nœuds composés !
+          // ✅ AJOUT: Couleur du service
+          color: service.color || 'neutral',
           // Données supplémentaires pour les détails
           server_id: service.serverId,
           server_name: service.server.nom,

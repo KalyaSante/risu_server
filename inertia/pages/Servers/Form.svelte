@@ -20,7 +20,8 @@
     hebergeur: server?.hebergeur || '',
     localisation: server?.localisation || '',
     parentServerId: server?.parentServerId || null,
-    note: server?.note || ''
+    note: server?.note || '',
+    color: server?.color || 'neutral'
   };
 
   // Reactive variables
@@ -32,10 +33,7 @@
   function handleSubmit() {
     const options = {
       data: { ...form, parentServerId: form.parentServerId ? Number(form.parentServerId) : null },
-      preserveScroll: true,
-      onError: (errors) => {
-        console.log('Form errors:', errors);
-      }
+      preserveScroll: true
     };
 
     if (isEdit) {
@@ -206,6 +204,44 @@
                 {#if errors.parentServerId}
                   <label class="label" for="server_parentServerId_error">
                     <span class="label-text-alt text-error">{errors.parentServerId}</span>
+                  </label>
+                {/if}
+              </div>
+
+              <!-- ✅ NOUVEAU: Couleur du serveur -->
+              <div class="form-control">
+                <label class="label" for="server_color">
+                  <span class="label-text font-semibold">🎨 Couleur</span>
+                </label>
+                <div class="flex flex-wrap gap-2">
+                  {#each ['primary', 'secondary', 'accent', 'neutral', 'info', 'success', 'warning', 'error'] as colorOption}
+                    <label class="cursor-pointer flex items-center gap-2">
+                      <input
+                        type="radio"
+                        bind:group={form.color}
+                        value={colorOption}
+                        class="radio radio-{colorOption} radio-sm"
+                      />
+                      <span class="badge badge-sm capitalize text-white" 
+                            style="background-color: {colorOption === 'primary' ? '#3b82f6' : 
+                                                   colorOption === 'secondary' ? '#f59e0b' :
+                                                   colorOption === 'accent' ? '#10b981' :
+                                                   colorOption === 'neutral' ? '#6b7280' :
+                                                   colorOption === 'info' ? '#06b6d4' :
+                                                   colorOption === 'success' ? '#10b981' :
+                                                   colorOption === 'warning' ? '#f59e0b' :
+                                                   colorOption === 'error' ? '#ef4444' : '#6b7280'}">
+                        {colorOption}
+                      </span>
+                    </label>
+                  {/each}
+                </div>
+                <div class="label-text-alt text-sm mt-1">
+                  Cette couleur sera utilisée dans le graphique et les listes
+                </div>
+                {#if errors.color}
+                  <label class="label" for="server_color_error">
+                    <span class="label-text-alt text-error">{errors.color}</span>
                   </label>
                 {/if}
               </div>

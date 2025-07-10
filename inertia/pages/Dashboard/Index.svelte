@@ -39,13 +39,25 @@
     wheelSensitivity: 1.0, // ⚡ Augmenté de 0.2 à 1.0 pour un zoom plus réactif !
   });
 
+  // ✅ NOUVEAU: Mapping direct des couleurs DaisyUI
+  const daisyUIColors = {
+    primary: { bg: '#3b82f6', content: '#ffffff' },
+    secondary: { bg: '#f59e0b', content: '#ffffff' }, 
+    accent: { bg: '#10b981', content: '#ffffff' },
+    neutral: { bg: '#6b7280', content: '#ffffff' },
+    info: { bg: '#06b6d4', content: '#ffffff' },
+    success: { bg: '#10b981', content: '#ffffff' },
+    warning: { bg: '#f59e0b', content: '#ffffff' },
+    error: { bg: '#ef4444', content: '#ffffff' },
+  };
+
   const getCytoscapeStyles = () => [
     // Serveurs (nœuds parents)
     {
       selector: 'node[type = "server"]',
       style: {
-        'background-color': '#3b82f6',
-        'border-color': '#1e40af',
+        'background-color': (node) => daisyUIColors[node.data('color')] ? daisyUIColors[node.data('color')].bg : daisyUIColors.neutral.bg,
+        'border-color': (node) => daisyUIColors[node.data('color')] ? daisyUIColors[node.data('color')].content : daisyUIColors.neutral.content,
         'border-width': 3,
         'shape': 'round-rectangle',
         'width': 300,
@@ -54,11 +66,11 @@
         'text-valign': 'top',
         'text-halign': 'center',
         'text-margin-y': -15,
-        'color': '#ffffff',
+        'color': (node) => daisyUIColors[node.data('color')] ? daisyUIColors[node.data('color')].content : daisyUIColors.neutral.content,
         'font-size': 18,
         'font-weight': 'bold',
         'font-family': 'Inter, system-ui, sans-serif',
-        'text-background-color': '#3b82f6',
+        'text-background-color': (node) => daisyUIColors[node.data('color')] ? daisyUIColors[node.data('color')].bg : daisyUIColors.neutral.bg,
         'text-background-opacity': 0.9,
         'text-background-padding': 6,
         'text-background-shape': 'round-rectangle',
@@ -68,8 +80,6 @@
     {
       selector: 'node[type = "server"]:selected',
       style: {
-        'background-color': '#60a5fa',
-        'border-color': '#1d4ed8',
         'border-width': 4
       }
     },
@@ -77,8 +87,8 @@
     {
       selector: 'node[type = "service"]',
       style: {
-        'background-color': '#10b981',
-        'border-color': '#059669',
+        'background-color': (node) => daisyUIColors[node.data('color')] ? daisyUIColors[node.data('color')].bg : daisyUIColors.neutral.bg,
+        'border-color': (node) => daisyUIColors[node.data('color')] ? daisyUIColors[node.data('color')].content : daisyUIColors.neutral.content,
         'border-width': 2,
         'shape': 'ellipse',
         'width': 60,
@@ -86,7 +96,7 @@
         'label': 'data(label)',
         'text-valign': 'center',
         'text-halign': 'center',
-        'color': '#ffffff',
+        'color': (node) => daisyUIColors[node.data('color')] ? daisyUIColors[node.data('color')].content : daisyUIColors.neutral.content,
         'font-size': 11,
         'font-family': 'Inter, system-ui, sans-serif',
         'text-wrap': 'wrap',
@@ -96,8 +106,6 @@
     {
       selector: 'node[type = "service"]:selected',
       style: {
-        'background-color': '#34d399',
-        'border-color': '#047857',
         'border-width': 3
       }
     },
@@ -170,7 +178,6 @@
     });
 
     currentLayout.run();
-    console.log('Layout initial démarré');
   };
 
   const startContinuousPhysics = (cy) => {
@@ -199,7 +206,6 @@
     });
 
     currentLayout.run();
-    console.log('Physique douce démarrée (très limitée)');
   };
 
   const stopPhysics = () => {
@@ -290,7 +296,6 @@
       startInitialLayout(cy);
 
       isLoading = false;
-      console.log('Réseau Cytoscape initialisé avec succès');
 
     } catch (error) {
       console.error('Erreur lors du chargement de Cytoscape:', error);
@@ -413,7 +418,6 @@
 
   function copyToClipboard(text) {
     navigator.clipboard.writeText(text).then(() => {
-      console.log('IP copiée dans le presse-papiers');
       // Tu peux ajouter une notification toast ici si tu veux
     }).catch(() => {
       // Fallback pour les navigateurs plus anciens

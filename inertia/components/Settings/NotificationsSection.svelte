@@ -1,6 +1,5 @@
 <script>
   // Props pour futures notifications
-  export let notifications = {};
 </script>
 
 <!-- Section Header -->
@@ -67,11 +66,12 @@
         </div>
         
         <div class="form-control">
-          <label class="label">
+          <label class="label" for="notification_email">
             <span class="label-text">Email de notification</span>
           </label>
           <input 
             type="email" 
+            id="notification_email"
             placeholder="votre@email.com" 
             class="input input-bordered max-w-xs" 
           />

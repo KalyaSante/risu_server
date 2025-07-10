@@ -28,9 +28,6 @@ export default class ServersController {
       fullName: sessionUserName || 'Utilisateur non défini',
     }
 
-    // Debug
-    console.log('👤 Utilisateur récupéré servers_controller:', user)
-
     return user
   }
 
@@ -54,6 +51,7 @@ export default class ServersController {
       localisation: server.localisation,
       description: server.description || '',
       note: server.note || '', // ✅ AJOUT: Note
+      color: server.color || 'neutral', // ✅ AJOUT: Couleur
       parentServer: server.parent ? { id: server.parent.id, name: server.parent.nom } : null,
       services:
         server.services?.map((service: any) => ({
@@ -61,6 +59,7 @@ export default class ServersController {
           name: service.nom,
           path: service.path,
           icon: service.iconUrl, // ✅ FIX: Utilise le getter intelligent
+          color: service.color || 'neutral', // ✅ AJOUT: Couleur du service
         })) || [],
     }))
 
@@ -132,7 +131,6 @@ export default class ServersController {
       session.flash('success', `Serveur "${server.nom}" créé avec succès!`)
       return response.redirect().toRoute('servers.show', { id: server.id })
     } catch (error) {
-      console.error('💥 Erreur création serveur:', error)
       session.flash('error', 'Erreur lors de la création du serveur')
       return response.redirect().back()
     }
@@ -165,6 +163,7 @@ export default class ServersController {
       localisation: server.localisation,
       description: server.description || '',
       note: server.note || '', // ✅ AJOUT: Note
+      color: server.color || 'neutral', // ✅ AJOUT: Couleur
       createdAt: server.createdAt?.toISO(),
       parentServer: server.parent ? { id: server.parent.id, name: server.parent.nom } : null,
       services:
@@ -174,6 +173,7 @@ export default class ServersController {
           path: service.path,
           icon: service.iconUrl, // ✅ FIX: Utilise le getter intelligent
           imageMetadata: service.imageMetadata, // ✅ FIX: Ajoute les métadonnées
+          color: service.color || 'neutral', // ✅ AJOUT: Couleur du service
           dependenciesCount: service.dependencies?.length || 0,
           repoUrl: service.repoUrl,
           lastMaintenanceAt: service.lastMaintenanceAt?.toISO(),
@@ -210,6 +210,7 @@ export default class ServersController {
       localisation: server.localisation,
       description: server.description || '',
       note: server.note || '', // ✅ AJOUT: Note
+      color: server.color || 'neutral', // ✅ AJOUT: Couleur
       parentServerId: server.parentServerId,
     }
 
@@ -262,10 +263,6 @@ export default class ServersController {
       session.flash('success', `Serveur "${server.nom}" mis à jour avec succès!`)
       return response.redirect().toRoute('servers.show', { id: server.id })
     } catch (error) {
-      // 🔍 DEBUG: Log de l'erreur complète
-      console.error('💥 Erreur complète lors de la mise à jour:', error)
-      console.error('📍 Stack trace:', error.stack)
-
       // Message d'erreur plus détaillée pour le développement
       const isDevelopment = process.env.NODE_ENV === 'development'
       const errorMessage = isDevelopment
