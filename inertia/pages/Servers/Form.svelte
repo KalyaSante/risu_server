@@ -236,9 +236,9 @@
                     </label>
                   {/each}
                 </div>
-                <label class="label">
-                  <span class="label-text-alt">Cette couleur sera utilisée dans le graphique et les listes</span>
-                </label>
+                <div class="label-text-alt text-sm mt-1">
+                  Cette couleur sera utilisée dans le graphique et les listes
+                </div>
                 {#if errors.color}
                   <label class="label" for="server_color_error">
                     <span class="label-text-alt text-error">{errors.color}</span>
