@@ -131,6 +131,22 @@ router
       router
         .post('/settings/images/reorder', '#controllers/settings_controller.reorderImages')
         .as('settings.images.reorder')
+
+      // ✅ NOUVEAU: Actions pour les clés API
+      router
+        .post('/settings/security/api-keys', '#controllers/settings_controller.createApiKey')
+        .as('settings.api-keys.create')
+      router
+        .delete('/settings/security/api-keys/:id', '#controllers/settings_controller.deleteApiKey')
+        .as('settings.api-keys.delete')
+      router
+        .patch('/settings/security/api-keys/:id/toggle', '#controllers/settings_controller.toggleApiKey')
+        .as('settings.api-keys.toggle')
+
+      // ✨ OPTIONNEL: Route pour régénérer une clé API
+      router
+        .patch('/settings/security/api-keys/:id/regenerate', '#controllers/settings_controller.regenerateApiKey')
+        .as('settings.api-keys.regenerate')
     })
 
     // Routes API pour les données (conservées pour AJAX/fetch)
@@ -172,6 +188,36 @@ router
     // ✅ Middleware OAuth personnalisé
     middleware.oauth(),
   ])
+
+/*
+|--------------------------------------------------------------------------
+| Routes API protégées par token
+|--------------------------------------------------------------------------
+*/
+router
+  .group(() => {
+    // Endpoints existants mais maintenant accessibles via API key
+    router.get('/servers', '#controllers/api/servers_controller.index')
+    router.get('/servers/:id', '#controllers/api/servers_controller.show')
+    router.get('/services', '#controllers/api/services_controller.index')
+
+    // Nouveau endpoint pour info utilisateur (via API key)
+    router.get('/me', ({ response, auth }: any) => {
+      return response.json({
+        success: true,
+        data: {
+          user: auth.user.serialize(),
+          apiKey: {
+            id: auth.apiKey.id,
+            name: auth.apiKey.name,
+            lastUsedAt: auth.apiKey.lastUsedAt,
+          }
+        }
+      })
+    })
+  })
+  .prefix('/api/v1')
+  .middleware([middleware.api_auth()])
 
 /*
 |--------------------------------------------------------------------------
@@ -226,5 +272,13 @@ router
 | ✅ PUT /settings/images/:id → Modification d'une image
 | ✅ DELETE /settings/images/:id → Suppression d'une image
 | ✅ POST /settings/images/reorder → Réorganisation de l'ordre
+|--------------------------------------------------------------------------
+| 🆕 NOUVEAU: Gestion des clés API
+| ✅ GET /settings/security → Interface de gestion des clés API
+| ✅ POST /settings/security/api-keys → Créer une nouvelle clé API
+| ✅ DELETE /settings/security/api-keys/:id → Supprimer une clé API
+| ✅ PATCH /settings/security/api-keys/:id/toggle → Activer/Désactiver une clé API
+| ✨ PATCH /settings/security/api-keys/:id/regenerate → Régénérer une clé API
+| ✅ API /api/v1/* → Endpoints protégés par clés API (Bearer token)
 |--------------------------------------------------------------------------
 */
