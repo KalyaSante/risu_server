@@ -2,6 +2,12 @@ import type { HttpContext } from '@adonisjs/core/http'
 import { oauthConfig } from '#config/oauth'
 import User from '#models/user'
 import type { TokenData, UserData } from '#types/oauth'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+
+const pkg = JSON.parse(
+  readFileSync(join(process.cwd(), 'package.json'), 'utf8')
+)
 
 export default class AuthController {
   /**
@@ -36,9 +42,6 @@ export default class AuthController {
     return response.redirect(authorizeUrl)
   }
 
-  /**
-   * ✅ FIX: Callback OAuth amélioré avec debug
-   */
   async callback({ request, response, session }: HttpContext) {
     const { code, state, error } = request.qs()
 
@@ -130,9 +133,6 @@ export default class AuthController {
     }
   }
 
-  /**
-   * ✅ FIX: Déconnexion améliorée - Support POST et GET
-   */
   async logout({ session, response }: HttpContext) {
     // Optionnel : révoquer le token côté serveur OAuth
     const accessToken = session.get('access_token')
@@ -171,6 +171,7 @@ export default class AuthController {
 
   async showLogin({ inertia, session }: HttpContext) {
     return inertia.render('Auth/Login', {
+      version: pkg.version,
       flashMessages: {
         error: session.flashMessages.get('error'),
         success: session.flashMessages.get('success'),
