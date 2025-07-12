@@ -4,7 +4,31 @@ import { extendPaginator } from '#types/pagination'
 
 export default class ServersApiController {
   /**
-   * Liste des serveurs en JSON
+   * @index
+   * @summary Récupérer la liste des serveurs
+   * @description Retourne la liste paginée de tous les serveurs avec leurs services associés
+   * @operationId getServers
+   * @tag Serveurs
+   * @requestQuery page - Numéro de page - @type(integer) @default(1) @minimum(1)
+   * @requestQuery limit - Nombre d'éléments par page - @type(integer) @default(20) @maximum(100) @minimum(1)
+   * @requestQuery search - Recherche par nom de serveur - @type(string)
+   * @responseBody 200 - Liste des serveurs avec pagination - application/json
+   * @responseSchema 200.application/json.properties.success.type boolean
+   * @responseSchema 200.application/json.properties.success.example true
+   * @responseSchema 200.application/json.properties.data.type array
+   * @responseSchema 200.application/json.properties.data.items.type object
+   * @responseSchema 200.application/json.properties.data.items.properties.id.type integer
+   * @responseSchema 200.application/json.properties.data.items.properties.nom.type string
+   * @responseSchema 200.application/json.properties.data.items.properties.ip.type string
+   * @responseSchema 200.application/json.properties.data.items.properties.hebergeur.type string
+   * @responseSchema 200.application/json.properties.data.items.properties.services.type array
+   * @responseSchema 200.application/json.properties.meta.type object
+   * @responseSchema 200.application/json.properties.meta.properties.total.type integer
+   * @responseSchema 200.application/json.properties.meta.properties.perPage.type integer
+   * @responseSchema 200.application/json.properties.meta.properties.currentPage.type integer
+   * @responseSchema 200.application/json.properties.meta.properties.lastPage.type integer
+   * @responseSchema 200.application/json.properties.meta.properties.hasNextPage.type boolean
+   * @responseSchema 200.application/json.properties.meta.properties.hasPreviousPage.type boolean
    */
   async index({ response, request }: HttpContext) {
     try {
@@ -44,7 +68,27 @@ export default class ServersApiController {
   }
 
   /**
-   * Détails d'un serveur en JSON
+   * @show
+   * @summary Récupérer un serveur spécifique
+   * @description Retourne les détails d'un serveur par son ID, incluant tous ses services et leurs dépendances
+   * @operationId getServer
+   * @tag Serveurs
+   * @paramPath id - ID du serveur - @type(integer) @required
+   * @responseBody 200 - Détails du serveur - application/json
+   * @responseSchema 200.application/json.properties.success.type boolean
+   * @responseSchema 200.application/json.properties.success.example true
+   * @responseSchema 200.application/json.properties.data.type object
+   * @responseSchema 200.application/json.properties.data.properties.id.type integer
+   * @responseSchema 200.application/json.properties.data.properties.nom.type string
+   * @responseSchema 200.application/json.properties.data.properties.ip.type string
+   * @responseSchema 200.application/json.properties.data.properties.hebergeur.type string
+   * @responseSchema 200.application/json.properties.data.properties.services.type array
+   * @responseSchema 200.application/json.properties.data.properties.services.items.type object
+   * @responseSchema 200.application/json.properties.data.properties.services.items.properties.id.type integer
+   * @responseSchema 200.application/json.properties.data.properties.services.items.properties.nom.type string
+   * @responseSchema 200.application/json.properties.data.properties.services.items.properties.image.type string
+   * @responseSchema 200.application/json.properties.data.properties.services.items.properties.port.type integer
+   * @responseBody 404 - Serveur non trouvé - application/json
    */
   async show({ params, response }: HttpContext) {
     try {
@@ -70,8 +114,25 @@ export default class ServersApiController {
   }
 
   /**
-   * Statut temps réel des serveurs (pour NetworkScript)
-   * ✅ NOUVEAU POUR INERTIA
+   * @status
+   * @summary Vérifier le statut des serveurs en temps réel
+   * @description Retourne le statut actuel de tous les serveurs (online/offline) avec le nombre de services par serveur
+   * @operationId getServersStatus
+   * @tag Serveurs
+   * @responseBody 200 - Statut des serveurs - application/json
+   * @responseSchema 200.application/json.properties.success.type boolean
+   * @responseSchema 200.application/json.properties.success.example true
+   * @responseSchema 200.application/json.properties.data.type array
+   * @responseSchema 200.application/json.properties.data.items.type object
+   * @responseSchema 200.application/json.properties.data.items.properties.id.type integer
+   * @responseSchema 200.application/json.properties.data.items.properties.name.type string
+   * @responseSchema 200.application/json.properties.data.items.properties.ip.type string
+   * @responseSchema 200.application/json.properties.data.items.properties.status.type string
+   * @responseSchema 200.application/json.properties.data.items.properties.status.enum ["online", "offline"]
+   * @responseSchema 200.application/json.properties.data.items.properties.hebergeur.type string
+   * @responseSchema 200.application/json.properties.data.items.properties.servicesCount.type integer
+   * @responseSchema 200.application/json.properties.timestamp.type string
+   * @responseSchema 200.application/json.properties.timestamp.format date-time
    */
   async status({ response }: HttpContext) {
     try {

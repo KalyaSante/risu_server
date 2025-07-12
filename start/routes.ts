@@ -9,6 +9,8 @@
 
 import router from '@adonisjs/core/services/router'
 import { middleware } from './kernel.js'
+import AutoSwagger from 'adonis-autoswagger'
+import swagger from '#config/swagger'
 
 /*
 |--------------------------------------------------------------------------
@@ -221,6 +223,20 @@ router
 
 /*
 |--------------------------------------------------------------------------
+| Documentation Swagger
+|--------------------------------------------------------------------------
+*/
+router.get('/swagger', async () => {
+  return AutoSwagger.default.docs(router.toJSON(), swagger)
+})
+
+// Interface Swagger UI (avec styling amélioré)
+router.get('/docs', async () => {
+  return AutoSwagger.default.ui('/swagger', swagger)
+}).as('swagger.docs')
+
+/*
+|--------------------------------------------------------------------------
 | Routes d'erreur (avec Inertia)
 |--------------------------------------------------------------------------
 */
@@ -280,5 +296,11 @@ router
 | ✅ PATCH /settings/security/api-keys/:id/toggle → Activer/Désactiver une clé API
 | ✨ PATCH /settings/security/api-keys/:id/regenerate → Régénérer une clé API
 | ✅ API /api/v1/* → Endpoints protégés par clés API (Bearer token)
+|--------------------------------------------------------------------------
+| 🆕 NOUVEAU: Documentation Swagger intégrée
+| ✅ GET /swagger → Spécification OpenAPI JSON
+| ✅ GET /docs → Interface Swagger UI interactive
+| ✅ Sécurité OAuth2 + Bearer Auth configurée
+| ✅ Schémas de réponse et erreurs standardisés
 |--------------------------------------------------------------------------
 */
