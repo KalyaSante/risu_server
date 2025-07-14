@@ -1,9 +1,19 @@
 {
-  "name": "RisuServer",
+  "name": "risu_server",
   "version": "0.4.0",
-  "private": true,
+  "private": false,
+  "description": "A self-hosted server and service management panel",
   "type": "module",
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "author": "KalyaSante",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/KalyaSante/risu_server.git"
+  },
+  "bugs": {
+    "url": "https://github.com/KalyaSante/risu_server/issues"
+  },
+  "homepage": "https://github.com/KalyaSante/risu_server#readme",
   "scripts": {
     "start": "node bin/server.js",
     "build": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" node ace build",
@@ -12,7 +22,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "typecheck": "tsc --noEmit"
-  },
+  }
+}
   "imports": {
     "#controllers/*": "./app/controllers/*.js",
     "#exceptions/*": "./app/exceptions/*.js",
