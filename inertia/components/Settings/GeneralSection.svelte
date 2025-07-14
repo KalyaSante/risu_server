@@ -49,14 +49,14 @@
   function changeTheme(theme) {
     currentTheme = theme;
     document.documentElement.setAttribute('data-theme', theme);
-    localStorage.setItem('kalya-theme', theme);
+    localStorage.setItem('Risu-theme', theme);
   }
 
   function saveSettings() {
     // Ici tu peux ajouter la logique pour sauvegarder tous les paramètres
-    localStorage.setItem('kalya-auto-refresh', autoRefresh.toString());
-    localStorage.setItem('kalya-refresh-interval', refreshInterval);
-    localStorage.setItem('kalya-reduced-animations', reducedAnimations.toString());
+    localStorage.setItem('Risu-auto-refresh', autoRefresh.toString());
+    localStorage.setItem('Risu-refresh-interval', refreshInterval);
+    localStorage.setItem('Risu-reduced-animations', reducedAnimations.toString());
 
     alert('Paramètres sauvegardés avec succès !');
   }
@@ -69,9 +69,9 @@
       reducedAnimations = false;
 
       changeTheme('light');
-      localStorage.removeItem('kalya-auto-refresh');
-      localStorage.removeItem('kalya-refresh-interval');
-      localStorage.removeItem('kalya-reduced-animations');
+      localStorage.removeItem('Risu-auto-refresh');
+      localStorage.removeItem('Risu-refresh-interval');
+      localStorage.removeItem('Risu-reduced-animations');
 
       alert('Paramètres réinitialisés !');
     }
@@ -80,10 +80,10 @@
   // Lifecycle
   onMount(() => {
     // Charger les paramètres sauvegardés
-    const savedTheme = localStorage.getItem('kalya-theme') || 'light';
-    const savedAutoRefresh = localStorage.getItem('kalya-auto-refresh');
-    const savedRefreshInterval = localStorage.getItem('kalya-refresh-interval') || '10';
-    const savedReducedAnimations = localStorage.getItem('kalya-reduced-animations');
+    const savedTheme = localStorage.getItem('Risu-theme') || 'light';
+    const savedAutoRefresh = localStorage.getItem('Risu-auto-refresh');
+    const savedRefreshInterval = localStorage.getItem('Risu-refresh-interval') || '10';
+    const savedReducedAnimations = localStorage.getItem('Risu-reduced-animations');
 
     currentTheme = savedTheme;
     changeTheme(savedTheme);

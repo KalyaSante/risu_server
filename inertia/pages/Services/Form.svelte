@@ -407,8 +407,8 @@
                       value={colorOption}
                       class="radio radio-{colorOption} radio-sm"
                     />
-                    <span class="badge badge-sm capitalize text-white" 
-                          style="background-color: {colorOption === 'primary' ? '#3b82f6' : 
+                    <span class="badge badge-sm capitalize text-white"
+                          style="background-color: {colorOption === 'primary' ? '#3b82f6' :
                                                  colorOption === 'secondary' ? '#f59e0b' :
                                                  colorOption === 'accent' ? '#10b981' :
                                                  colorOption === 'neutral' ? '#6b7280' :
@@ -459,7 +459,7 @@
                 type="url"
                 id="service_repoUrl"
                 bind:value={formData.repoUrl}
-                placeholder="ex: https://github.com/kalya/mon-service"
+                placeholder="ex: https://github.com/Risu/mon-service"
                 class="input input-bordered {errors.repoUrl ? 'input-error' : ''}"
               />
               {#if errors.repoUrl}

@@ -3,12 +3,19 @@ export interface TokenData {
   refresh_token?: string
   expires_in: number
   token_type: string
+  scope?: string
 }
 
-export interface UserData {
-  id: string
+// ✨ Interface flexible pour les données utilisateur
+export interface FlexibleUserData {
+  [key: string]: any // Permet n'importe quelle structure de données
+}
+
+// Interface stricte et simplifiée pour l'utilisation interne
+export interface MappedUserData {
+  providerId: string // ID du provider OAuth
   email: string
-  name?: string
+  fullName?: string | null // Nom complet pour la DB
 }
 
 export interface ServiceDependency {

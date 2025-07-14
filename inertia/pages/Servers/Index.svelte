@@ -36,10 +36,10 @@
 </script>
 
 <svelte:head>
-  <title>Serveurs - Kalya</title>
+  <title>Serveurs - Risu</title>
 </svelte:head>
 
-<DashboardLayout {user} {flash} title="Serveurs - Kalya" currentRoute="servers">
+<DashboardLayout {user} {flash} title="Serveurs - Risu" currentRoute="servers">
   <!-- En-tête -->
   <div class="flex justify-between items-center mb-6">
     <div>

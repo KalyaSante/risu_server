@@ -17,6 +17,7 @@
   export let user = null;
   export let hosters = [];
   export let images = [];
+  export let security = {}; // ✨ CORRECTION: Ajout de la prop security
   export let currentRoute = 'settings/hosters';
 
   // Sections disponibles
@@ -34,22 +35,10 @@
       description: 'Gérer les images/icônes des services'
     },
     {
-      id: 'images',
-      name: 'Images Générales',
-      icon: '🖼️',
-      description: 'Gérer les images générales'
-    },
-    {
       id: 'general',
       name: 'Général',
       icon: '⚙️',
       description: 'Paramètres généraux de l\'application'
-    },
-    {
-      id: 'notifications',
-      name: 'Notifications',
-      icon: '🔔',
-      description: 'Préférences de notifications'
     },
     {
       id: 'security',
@@ -115,7 +104,7 @@
               {:else if currentSection === 'notifications'}
                 <NotificationsSection notifications={{}} />
               {:else if currentSection === 'security'}
-                <SecuritySection security={{}} />
+                <SecuritySection {security} />
               {:else}
                 <!-- Section par défaut -->
                 <div class="text-center py-12">

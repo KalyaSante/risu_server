@@ -4,7 +4,27 @@ import { extendPaginator } from '#types/pagination'
 
 export default class ServicesApiController {
   /**
-   * Liste des services en JSON
+   * @index
+   * @summary Récupérer la liste des services
+   * @description Retourne la liste paginée de tous les services avec leurs dépendances et serveurs associés
+   * @operationId getServices
+   * @tag Services
+   * @requestQuery page - Numéro de page - @type(integer) @default(1) @minimum(1)
+   * @requestQuery limit - Nombre d'éléments par page - @type(integer) @default(20) @maximum(100) @minimum(1)
+   * @requestQuery search - Recherche par nom de service - @type(string)
+   * @requestQuery server_id - Filtrer par serveur - @type(integer)
+   * @responseBody 200 - Liste des services avec pagination - application/json
+   * @responseSchema 200.application/json.properties.success.type boolean
+   * @responseSchema 200.application/json.properties.success.example true
+   * @responseSchema 200.application/json.properties.data.type array
+   * @responseSchema 200.application/json.properties.data.items.type object
+   * @responseSchema 200.application/json.properties.data.items.properties.id.type integer
+   * @responseSchema 200.application/json.properties.data.items.properties.nom.type string
+   * @responseSchema 200.application/json.properties.data.items.properties.image.type string
+   * @responseSchema 200.application/json.properties.data.items.properties.port.type integer
+   * @responseSchema 200.application/json.properties.data.items.properties.server.type object
+   * @responseSchema 200.application/json.properties.data.items.properties.dependencies.type array
+   * @responseSchema 200.application/json.properties.meta.type object
    */
   async index({ response, request }: HttpContext) {
     try {
@@ -52,7 +72,24 @@ export default class ServicesApiController {
   }
 
   /**
-   * Détails d'un service en JSON
+   * @show
+   * @summary Récupérer un service spécifique
+   * @description Retourne les détails d'un service par son ID, incluant son serveur, ses dépendances et ses services dépendants
+   * @operationId getService
+   * @tag Services
+   * @paramPath id - ID du service - @type(integer) @required
+   * @responseBody 200 - Détails du service - application/json
+   * @responseSchema 200.application/json.properties.success.type boolean
+   * @responseSchema 200.application/json.properties.success.example true
+   * @responseSchema 200.application/json.properties.data.type object
+   * @responseSchema 200.application/json.properties.data.properties.id.type integer
+   * @responseSchema 200.application/json.properties.data.properties.nom.type string
+   * @responseSchema 200.application/json.properties.data.properties.image.type string
+   * @responseSchema 200.application/json.properties.data.properties.port.type integer
+   * @responseSchema 200.application/json.properties.data.properties.server.type object
+   * @responseSchema 200.application/json.properties.data.properties.dependencies.type array
+   * @responseSchema 200.application/json.properties.data.properties.dependents.type array
+   * @responseBody 404 - Service non trouvé - application/json
    */
   async show({ params, response }: HttpContext) {
     try {
@@ -80,7 +117,20 @@ export default class ServicesApiController {
   }
 
   /**
-   * Services d'un serveur spécifique
+   * @byServer
+   * @summary Récupérer les services d'un serveur
+   * @description Retourne tous les services hébergés sur un serveur spécifique
+   * @operationId getServicesByServer
+   * @tag Services
+   * @paramPath serverId - ID du serveur - @type(integer) @required
+   * @responseBody 200 - Services du serveur - application/json
+   * @responseSchema 200.application/json.properties.success.type boolean
+   * @responseSchema 200.application/json.properties.success.example true
+   * @responseSchema 200.application/json.properties.data.type array
+   * @responseSchema 200.application/json.properties.data.items.type object
+   * @responseSchema 200.application/json.properties.meta.type object
+   * @responseSchema 200.application/json.properties.meta.properties.count.type integer
+   * @responseSchema 200.application/json.properties.meta.properties.serverId.type integer
    */
   async byServer({ params, response }: HttpContext) {
     try {
@@ -106,8 +156,24 @@ export default class ServicesApiController {
   }
 
   /**
-   * Statut temps réel des services (pour NetworkScript)
-   * ✅ NOUVEAU POUR INERTIA
+   * @status
+   * @summary Vérifier le statut des services en temps réel
+   * @description Retourne le statut actuel de tous les services (running/stopped)
+   * @operationId getServicesStatus
+   * @tag Services
+   * @responseBody 200 - Statut des services - application/json
+   * @responseSchema 200.application/json.properties.success.type boolean
+   * @responseSchema 200.application/json.properties.success.example true
+   * @responseSchema 200.application/json.properties.data.type array
+   * @responseSchema 200.application/json.properties.data.items.type object
+   * @responseSchema 200.application/json.properties.data.items.properties.id.type integer
+   * @responseSchema 200.application/json.properties.data.items.properties.name.type string
+   * @responseSchema 200.application/json.properties.data.items.properties.status.type string
+   * @responseSchema 200.application/json.properties.data.items.properties.status.enum ["running", "stopped", "error"]
+   * @responseSchema 200.application/json.properties.data.items.properties.serverId.type integer
+   * @responseSchema 200.application/json.properties.data.items.properties.serverName.type string
+   * @responseSchema 200.application/json.properties.timestamp.type string
+   * @responseSchema 200.application/json.properties.timestamp.format date-time
    */
   async status({ response }: HttpContext) {
     try {
@@ -139,8 +205,26 @@ export default class ServicesApiController {
   }
 
   /**
-   * Toggle start/stop d'un service (pour les actions des cartes)
-   * ✅ NOUVEAU POUR INERTIA
+   * @toggle
+   * @summary Démarrer/Arrêter un service
+   * @description Change l'état d'un service (running/stopped)
+   * @operationId toggleService
+   * @tag Services
+   * @paramPath id - ID du service - @type(integer) @required
+   * @requestBody required - Action à effectuer - application/json
+   * @requestSchema application/json.type object
+   * @requestSchema application/json.properties.action.type string
+   * @requestSchema application/json.properties.action.enum ["start", "stop", "restart"]
+   * @requestSchema application/json.properties.action.example "start"
+   * @responseBody 200 - Résultat de l'action - application/json
+   * @responseSchema 200.application/json.properties.success.type boolean
+   * @responseSchema 200.application/json.properties.success.example true
+   * @responseSchema 200.application/json.properties.data.type object
+   * @responseSchema 200.application/json.properties.data.properties.id.type integer
+   * @responseSchema 200.application/json.properties.data.properties.name.type string
+   * @responseSchema 200.application/json.properties.data.properties.status.type string
+   * @responseSchema 200.application/json.properties.message.type string
+   * @responseBody 404 - Service non trouvé - application/json
    */
   async toggle({ params, response, session }: HttpContext) {
     try {

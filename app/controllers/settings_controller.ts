@@ -1,6 +1,7 @@
 import type { HttpContext } from '@adonisjs/core/http'
 import Hoster from '#models/hoster'
 import ServiceImage from '#models/service_image'
+import ApiKey from '#models/api_key'
 import {
   createHosterValidator,
   updateHosterValidator,
@@ -14,6 +15,7 @@ import {
 import { cuid } from '@adonisjs/core/helpers'
 import app from '@adonisjs/core/services/app'
 import { unlink } from 'node:fs/promises'
+import { DateTime } from 'luxon'
 
 export default class SettingsController {
   /**
@@ -62,6 +64,35 @@ export default class SettingsController {
       console.error('❌ Erreur lors de la récupération des images de service:', error)
       return []
     }
+  }
+
+  /**
+   * ✨ NOUVELLE: Méthode privée pour récupérer les données de sécurité
+   */
+  private async getSecurityData(userId: any, newTokenData: any = null) {
+    const apiKeys = await ApiKey.query()
+      .where('user_id', userId)
+      .orderBy('created_at', 'desc')
+
+    const enrichedApiKeys = apiKeys.map(key => ({
+      ...key.serialize(),
+      usage: key.getUsageStats()
+    }))
+
+    const securityData = {
+      apiKeys: enrichedApiKeys,
+      totalKeys: apiKeys.length,
+      activeKeys: apiKeys.filter(k => k.isActive).length,
+      recentlyUsedKeys: apiKeys.filter(k => k.lastUsedAt &&
+        DateTime.now().diff(k.lastUsedAt, 'days').days < 7).length
+    }
+
+    // ✨ NOUVEAU: Ajouter les données du nouveau token si disponibles
+    if (newTokenData) {
+      securityData.newToken = newTokenData
+    }
+
+    return securityData
   }
 
   /**
@@ -129,19 +160,244 @@ export default class SettingsController {
   }
 
   /**
-   * Section Sécurité
+   * Section Sécurité avec clés API
    */
   async security({ inertia, session }: HttpContext) {
     const user = this.getUserFromSession(session)
     const hosters = await this.getHosters()
+    const security = await this.getSecurityData(user.id)
 
     return inertia.render('Settings/Index', {
       currentSection: 'security',
       user,
       hosters,
-      security: {}, // Ici tu peux ajouter les vraies données de sécurité
+      security,
       currentRoute: 'settings/security',
     })
+  }
+
+  /**
+   * ✨ SOLUTION OPTIMISÉE: Créer une nouvelle clé API avec gestion Inertia correcte
+   */
+  async createApiKey({ request, inertia, session }: HttpContext) {
+    const user = this.getUserFromSession(session)
+
+    try {
+      const { name } = request.only(['name'])
+
+      // Validation améliorée
+      if (!name || name.trim().length === 0) {
+        session.flash('error', 'Le nom de la clé API est requis')
+        return inertia.redirectBack()
+      }
+
+      if (name.trim().length < 3) {
+        session.flash('error', 'Le nom de la clé API doit contenir au moins 3 caractères')
+        return inertia.redirectBack()
+      }
+
+      if (name.trim().length > 50) {
+        session.flash('error', 'Le nom de la clé API ne peut pas dépasser 50 caractères')
+        return inertia.redirectBack()
+      }
+
+      // Vérifier les doublons de nom
+      const existingWithSameName = await ApiKey.query()
+        .where('user_id', user.id)
+        .where('name', name.trim())
+        .where('is_active', true)
+        .first()
+
+      if (existingWithSameName) {
+        session.flash('error', 'Une clé API avec ce nom existe déjà')
+        return inertia.redirectBack()
+      }
+
+      // Vérifier le nombre de clés existantes (limite à 10 par utilisateur)
+      const existingCount = await ApiKey.query()
+        .where('user_id', user.id)
+        .where('is_active', true)
+        .count('* as total')
+
+      if (existingCount[0].$extras.total >= 10) {
+        session.flash('error', 'Limite de 10 clés API atteinte. Supprimez une clé existante pour en créer une nouvelle.')
+        return inertia.redirectBack()
+      }
+
+      // ✨ Créer la clé avec la méthode améliorée
+      const { apiKey, token } = await ApiKey.generate(user.id, name.trim())
+
+      // ✨ NOUVEAU: Passer les données directement dans les props
+      const newTokenData = {
+        token: token,
+        name: name.trim(),
+        id: apiKey.id,
+        prefix: apiKey.prefix,
+        isRegenerated: false
+      }
+
+      // 🎯 SOLUTION OPTIMALE: Re-rendre directement la page avec les nouvelles données
+      const hosters = await this.getHosters()
+      const security = await this.getSecurityData(user.id, newTokenData)
+
+      session.flash('success', 'Clé API créée avec succès ! Copiez-la maintenant, elle ne sera plus jamais affichée.')
+
+      return inertia.render('Settings/Index', {
+        currentSection: 'security',
+        user,
+        hosters,
+        security,
+        currentRoute: 'settings/security',
+        flash: {
+          success: 'Clé API créée avec succès ! Copiez-la maintenant, elle ne sera plus jamais affichée.'
+        }
+      })
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la création de la clé API:', error)
+      session.flash('error', 'Erreur interne lors de la création de la clé API. Veuillez réessayer.')
+      return inertia.redirectBack()
+    }
+  }
+
+  /**
+   * ✨ AMÉLIORATION: Supprimer une clé API avec vérifications
+   */
+  async deleteApiKey({ params, inertia, session }: HttpContext) {
+    const user = this.getUserFromSession(session)
+
+    try {
+      const apiKey = await ApiKey.query()
+        .where('id', params.id)
+        .where('user_id', user.id)
+        .firstOrFail()
+
+      // Log de l'action pour la sécurité
+      console.log(`🗑️ Suppression de la clé API "${apiKey.name}" par l'utilisateur ${user.email}`)
+
+      await apiKey.delete()
+
+      session.flash('success', `Clé API "${apiKey.name}" supprimée avec succès`)
+
+      // Re-rendre la page avec les données mises à jour
+      const hosters = await this.getHosters()
+      const security = await this.getSecurityData(user.id)
+
+      return inertia.render('Settings/Index', {
+        currentSection: 'security',
+        user,
+        hosters,
+        security,
+        currentRoute: 'settings/security',
+        flash: {
+          success: `Clé API "${apiKey.name}" supprimée avec succès`
+        }
+      })
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la suppression de la clé API:', error)
+      session.flash('error', 'Clé API non trouvée ou erreur lors de la suppression')
+      return inertia.redirectBack()
+    }
+  }
+
+  /**
+   * ✨ AMÉLIORATION: Activer/Désactiver une clé API avec logs
+   */
+  async toggleApiKey({ params, inertia, session }: HttpContext) {
+    const user = this.getUserFromSession(session)
+
+    try {
+      const apiKey = await ApiKey.query()
+        .where('id', params.id)
+        .where('user_id', user.id)
+        .firstOrFail()
+
+      const previousStatus = apiKey.isActive
+      apiKey.isActive = !apiKey.isActive
+      await apiKey.save()
+
+      // Log de l'action pour la sécurité
+      const action = apiKey.isActive ? 'activée' : 'désactivée'
+      console.log(`🔄 Clé API "${apiKey.name}" ${action} par l'utilisateur ${user.email}`)
+
+      session.flash('success', `Clé API "${apiKey.name}" ${action} avec succès`)
+
+      // Re-rendre la page avec les données mises à jour
+      const hosters = await this.getHosters()
+      const security = await this.getSecurityData(user.id)
+
+      return inertia.render('Settings/Index', {
+        currentSection: 'security',
+        user,
+        hosters,
+        security,
+        currentRoute: 'settings/security',
+        flash: {
+          success: `Clé API "${apiKey.name}" ${action} avec succès`
+        }
+      })
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la modification de la clé API:', error)
+      session.flash('error', 'Clé API non trouvée ou erreur lors de la modification')
+      return inertia.redirectBack()
+    }
+  }
+
+  /**
+   * ✨ NOUVEAU: Endpoint pour régénérer une clé API (optionnel)
+   */
+  async regenerateApiKey({ params, inertia, session }: HttpContext) {
+    const user = this.getUserFromSession(session)
+
+    try {
+      const oldApiKey = await ApiKey.query()
+        .where('id', params.id)
+        .where('user_id', user.id)
+        .firstOrFail()
+
+      // Sauvegarder les infos de l'ancienne clé
+      const name = oldApiKey.name
+      const permissions = oldApiKey.permissions
+
+      // Supprimer l'ancienne clé
+      await oldApiKey.delete()
+
+      // Créer une nouvelle clé avec le même nom
+      const { apiKey, token } = await ApiKey.generate(user.id, name, permissions)
+
+      // ✨ NOUVEAU: Passer les données directement dans les props
+      const newTokenData = {
+        token: token,
+        name: name,
+        id: apiKey.id,
+        prefix: apiKey.prefix,
+        isRegenerated: true
+      }
+
+      console.log(`🔄 Clé API "${name}" régénérée par l'utilisateur ${user.email}`)
+
+      // Re-rendre la page avec les données mises à jour
+      const hosters = await this.getHosters()
+      const security = await this.getSecurityData(user.id, newTokenData)
+
+      return inertia.render('Settings/Index', {
+        currentSection: 'security',
+        user,
+        hosters,
+        security,
+        currentRoute: 'settings/security',
+        flash: {
+          success: 'Clé API régénérée avec succès ! Copiez la nouvelle clé maintenant.'
+        }
+      })
+
+    } catch (error) {
+      console.error('❌ Erreur lors de la régénération de la clé API:', error)
+      session.flash('error', 'Clé API non trouvée ou erreur lors de la régénération')
+      return inertia.redirectBack()
+    }
   }
 
   /**

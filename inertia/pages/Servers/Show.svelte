@@ -55,10 +55,10 @@
 </script>
 
 <svelte:head>
-  <title>{server.name} - Kalya</title>
+  <title>{server.name} - Risu</title>
 </svelte:head>
 
-<DashboardLayout {user} {flash} title="{server.name} - Kalya" currentRoute="servers">
+<DashboardLayout {user} {flash} title="{server.name} - Risu" currentRoute="servers">
   <!-- En-tête -->
   <div class="flex justify-between items-start mb-6">
     <div>

@@ -5,7 +5,7 @@
   import Alert from '../components/Alert.svelte';
 
   // Props
-  export let title = 'Dashboard - Kalya';
+  export let title = 'Dashboard - Risu';
   export let description = 'Server and Service Management Dashboard';
   export let user = null;
   export let currentRoute = '';
@@ -13,7 +13,7 @@
 
   // Initialiser le thème au chargement de l'app
   onMount(() => {
-    const savedTheme = localStorage.getItem('kalya-theme') || 'light';
+    const savedTheme = localStorage.getItem('Risu-theme') || 'light';
     document.documentElement.setAttribute('data-theme', savedTheme);
   });
 </script>
