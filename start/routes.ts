@@ -35,14 +35,13 @@ router.group(() => {
   router.get('/login', '#controllers/auth_controller.showLogin').as('auth.login.show')
   router.get('/auth/login', '#controllers/auth_controller.login').as('auth.login')
   router.get('/auth/callback', '#controllers/auth_controller.callback').as('auth.callback')
-  // ✅ FIX: Ajouter route POST pour logout (garde GET pour compatibilité)
   router.post('/logout', '#controllers/auth_controller.logout').as('auth.logout.post')
   router.get('/logout', '#controllers/auth_controller.logout').as('auth.logout')
 })
 
 /*
 |--------------------------------------------------------------------------
-| Routes protégées par OAuth
+| Routes Web protégées par OAuth (Interface Inertia)
 |--------------------------------------------------------------------------
 */
 router
@@ -53,24 +52,21 @@ router
       .get('/dashboard/service/:id', '#controllers/dashboard_controller.serviceDetail')
       .as('dashboard.service')
 
-    // CRUD Serveurs - ✅ MIGRÉ VERS INERTIA
+    // Interface Web pour Serveurs
     router.resource('servers', '#controllers/servers_controller').params({
       servers: 'id',
     })
 
-    // CRUD Services - ✅ MIGRÉ VERS INERTIA
+    // Interface Web pour Services
     router.resource('services', '#controllers/services_controller').params({
       services: 'id',
     })
 
-    // ✅ NOUVEAU: Routes pour la gestion des dépendances
+    // Gestion des dépendances de services (Actions spécifiques)
     router.group(() => {
-      // Ajouter une dépendance à un service
       router
         .post('/services/:id/dependencies', '#controllers/services_controller.addDependency')
         .as('services.dependencies.add')
-
-      // Supprimer une dépendance d'un service
       router
         .delete(
           '/services/:id/dependencies/:dependencyId',
@@ -79,144 +75,150 @@ router
         .as('services.dependencies.remove')
     })
 
-    // ✅ NOUVEAU: Routes pour les paramètres
+    // Interface Web pour les paramètres
     router.group(() => {
-      // Redirection par défaut vers hosters
       router.get('/settings', ({ response }) => {
         return response.redirect('/settings/hosters')
       })
 
-      // Routes propres pour chaque section
-      router
-        .get('/settings/hosters', '#controllers/settings_controller.hosters')
-        .as('settings.hosters')
-      router
-        .get('/settings/service-images', '#controllers/settings_controller.images')
-        .as('settings.images')
-      router
-        .get('/settings/general', '#controllers/settings_controller.general')
-        .as('settings.general')
-      router
-        .get('/settings/notifications', '#controllers/settings_controller.notifications')
-        .as('settings.notifications')
-      router
-        .get('/settings/security', '#controllers/settings_controller.security')
-        .as('settings.security')
+      // Pages de paramètres
+      router.get('/settings/hosters', '#controllers/settings_controller.hosters').as('settings.hosters')
+      router.get('/settings/service-images', '#controllers/settings_controller.images').as('settings.images')
+      router.get('/settings/general', '#controllers/settings_controller.general').as('settings.general')
+      router.get('/settings/notifications', '#controllers/settings_controller.notifications').as('settings.notifications')
+      router.get('/settings/security', '#controllers/settings_controller.security').as('settings.security')
 
-      // Actions pour les hébergeurs (API)
-      router
-        .post('/settings/hosters', '#controllers/settings_controller.store')
-        .as('settings.hosters.store')
-      router
-        .post('/settings/hosters/import', '#controllers/settings_controller.import')
-        .as('settings.hosters.import')
-      router
-        .put('/settings/hosters/:id', '#controllers/settings_controller.update')
-        .as('settings.hosters.update')
-      router
-        .delete('/settings/hosters/:id', '#controllers/settings_controller.destroy')
-        .as('settings.hosters.destroy')
-      router
-        .post('/settings/hosters/reorder', '#controllers/settings_controller.reorder')
-        .as('settings.hosters.reorder')
+      // Actions Web pour les hébergeurs
+      router.post('/settings/hosters', '#controllers/settings_controller.store').as('settings.hosters.store')
+      router.post('/settings/hosters/import', '#controllers/settings_controller.import').as('settings.hosters.import')
+      router.put('/settings/hosters/:id', '#controllers/settings_controller.update').as('settings.hosters.update')
+      router.delete('/settings/hosters/:id', '#controllers/settings_controller.destroy').as('settings.hosters.destroy')
+      router.post('/settings/hosters/reorder', '#controllers/settings_controller.reorder').as('settings.hosters.reorder')
 
-      // Actions pour les images de services (API)
-      router
-        .post('/settings/images', '#controllers/settings_controller.storeImage')
-        .as('settings.images.store')
-      router
-        .put('/settings/images/:id', '#controllers/settings_controller.updateImage')
-        .as('settings.images.update')
-      router
-        .delete('/settings/images/:id', '#controllers/settings_controller.destroyImage')
-        .as('settings.images.destroy')
-      router
-        .post('/settings/images/reorder', '#controllers/settings_controller.reorderImages')
-        .as('settings.images.reorder')
+      // Actions Web pour les images
+      router.post('/settings/images', '#controllers/settings_controller.storeImage').as('settings.images.store')
+      router.put('/settings/images/:id', '#controllers/settings_controller.updateImage').as('settings.images.update')
+      router.delete('/settings/images/:id', '#controllers/settings_controller.destroyImage').as('settings.images.destroy')
+      router.post('/settings/images/reorder', '#controllers/settings_controller.reorderImages').as('settings.images.reorder')
 
-      // ✅ NOUVEAU: Actions pour les clés API
-      router
-        .post('/settings/security/api-keys', '#controllers/settings_controller.createApiKey')
-        .as('settings.api-keys.create')
-      router
-        .delete('/settings/security/api-keys/:id', '#controllers/settings_controller.deleteApiKey')
-        .as('settings.api-keys.delete')
-      router
-        .patch('/settings/security/api-keys/:id/toggle', '#controllers/settings_controller.toggleApiKey')
-        .as('settings.api-keys.toggle')
-
-      // ✨ OPTIONNEL: Route pour régénérer une clé API
-      router
-        .patch('/settings/security/api-keys/:id/regenerate', '#controllers/settings_controller.regenerateApiKey')
-        .as('settings.api-keys.regenerate')
+      // Actions Web pour les clés API
+      router.post('/settings/security/api-keys', '#controllers/settings_controller.createApiKey').as('settings.api-keys.create')
+      router.delete('/settings/security/api-keys/:id', '#controllers/settings_controller.deleteApiKey').as('settings.api-keys.delete')
+      router.patch('/settings/security/api-keys/:id/toggle', '#controllers/settings_controller.toggleApiKey').as('settings.api-keys.toggle')
+      router.patch('/settings/security/api-keys/:id/regenerate', '#controllers/settings_controller.regenerateApiKey').as('settings.api-keys.regenerate')
     })
-
-    // Routes API pour les données (conservées pour AJAX/fetch)
-    router
-      .group(() => {
-        router.get('/servers', '#controllers/api/servers_controller.index').as('api.servers.index')
-        router
-          .get('/services', '#controllers/api/services_controller.index')
-          .as('api.services.index')
-        router
-          .get('/network-data', '#controllers/api/dashboard_controller.networkData')
-          .as('api.network.data')
-
-        // Nouveaux endpoints API pour les statuts temps réel
-        router
-          .get('/servers/status', '#controllers/api/servers_controller.status')
-          .as('api.servers.status')
-        router
-          .get('/services/status', '#controllers/api/services_controller.status')
-          .as('api.services.status')
-        router
-          .patch('/services/:id/toggle', '#controllers/api/services_controller.toggle')
-          .as('api.services.toggle')
-
-        // ✅ NOUVEAU: API pour la gestion des dépendances
-        router
-          .get('/services/available', '#controllers/services_controller.getAvailableServicesApi')
-          .as('api.services.available')
-        router
-          .post(
-            '/services/check-circular',
-            '#controllers/services_controller.checkCircularDependencies'
-          )
-          .as('api.services.check-circular')
-      })
-      .prefix('/api')
   })
-  .middleware([
-    // ✅ Middleware OAuth personnalisé
-    middleware.oauth(),
-  ])
+  .middleware([middleware.oauth()])
 
 /*
 |--------------------------------------------------------------------------
-| Routes API protégées par token
+| API Routes - Compatibilité Front-end (OAuth protégé)
 |--------------------------------------------------------------------------
 */
 router
   .group(() => {
-    // Endpoints existants mais maintenant accessibles via API key
-    router.get('/servers', '#controllers/api/servers_controller.index')
-    router.get('/servers/:id', '#controllers/api/servers_controller.show')
-    router.get('/services', '#controllers/api/services_controller.index')
+    // Routes existantes utilisées par le front (compatibilité)
+    router.get('/servers', '#controllers/api/servers_controller.index').as('api.servers.index')
+    router.get('/services', '#controllers/api/services_controller.index').as('api.services.index')
+    router.get('/network-data', '#controllers/api/dashboard_controller.networkData').as('api.network.data')
 
-    // Nouveau endpoint pour info utilisateur (via API key)
-    router.get('/me', ({ response, auth }: any) => {
-      return response.json({
-        success: true,
-        data: {
-          user: auth.user.serialize(),
-          apiKey: {
-            id: auth.apiKey.id,
-            name: auth.apiKey.name,
-            lastUsedAt: auth.apiKey.lastUsedAt,
-          }
-        }
-      })
-    })
+    // Routes de statut temps réel (utilisées par NetworkScript.svelte)
+    router.get('/servers/status', '#controllers/api/servers_controller.status').as('api.servers.status')
+    router.get('/services/status', '#controllers/api/services_controller.status').as('api.services.status')
+    router.patch('/services/:id/toggle', '#controllers/api/services_controller.toggle').as('api.services.toggle')
+
+    // Routes pour la gestion des dépendances (compatibilité)
+    router.get('/services/available', '#controllers/services_controller.getAvailableServicesApi').as('api.services.available')
+    router.post('/services/check-circular', '#controllers/services_controller.checkCircularDependencies').as('api.services.check-circular')
+  })
+  .prefix('/api')
+  .middleware([middleware.oauth()])
+
+/*
+|--------------------------------------------------------------------------
+| API REST v1 - Authentification par token (API publique)
+|--------------------------------------------------------------------------
+*/
+router
+  .group(() => {
+    /*
+    |--------------------------------------------------------------------------
+    | API Authentication
+    |--------------------------------------------------------------------------
+    */
+    router.group(() => {
+      router.get('/me', '#controllers/api/v1/auth_controller.me').as('api.v1.auth.me')
+      router.post('/refresh', '#controllers/api/v1/auth_controller.refresh').as('api.v1.auth.refresh')
+    }).prefix('/auth')
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Servers Resource
+    |--------------------------------------------------------------------------
+    */
+    router.group(() => {
+      router.get('/', '#controllers/api/v1/servers_controller.index').as('api.v1.servers.index')
+      router.post('/', '#controllers/api/v1/servers_controller.store').as('api.v1.servers.store')
+      router.get('/:id', '#controllers/api/v1/servers_controller.show').as('api.v1.servers.show')
+      router.put('/:id', '#controllers/api/v1/servers_controller.update').as('api.v1.servers.update')
+      router.patch('/:id', '#controllers/api/v1/servers_controller.update').as('api.v1.servers.patch')
+      router.delete('/:id', '#controllers/api/v1/servers_controller.destroy').as('api.v1.servers.destroy')
+
+      // Actions spécifiques aux serveurs
+      router.get('/:id/status', '#controllers/api/v1/servers_controller.status').as('api.v1.servers.status')
+
+      // Relations
+      router.get('/:id/services', '#controllers/api/v1/servers_controller.services').as('api.v1.servers.services')
+    }).prefix('/servers')
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Services Resource
+    |--------------------------------------------------------------------------
+    */
+    router.group(() => {
+      router.get('/', '#controllers/api/v1/services_controller.index').as('api.v1.services.index')
+      router.post('/', '#controllers/api/v1/services_controller.store').as('api.v1.services.store')
+      router.get('/:id', '#controllers/api/v1/services_controller.show').as('api.v1.services.show')
+      router.put('/:id', '#controllers/api/v1/services_controller.update').as('api.v1.services.update')
+      router.patch('/:id', '#controllers/api/v1/services_controller.update').as('api.v1.services.patch')
+      router.delete('/:id', '#controllers/api/v1/services_controller.destroy').as('api.v1.services.destroy')
+
+      // Actions spécifiques aux services
+      router.get('/:id/status', '#controllers/api/v1/services_controller.status').as('api.v1.services.status')
+      router.patch('/:id/toggle', '#controllers/api/v1/services_controller.toggle').as('api.v1.services.toggle')
+
+      // Gestion des dépendances
+      router.get('/:id/dependencies', '#controllers/api/v1/services_controller.dependencies').as('api.v1.services.dependencies')
+      router.post('/:id/dependencies', '#controllers/api/v1/services_controller.addDependency').as('api.v1.services.dependencies.add')
+      router.delete('/:id/dependencies/:dependencyId', '#controllers/api/v1/services_controller.removeDependency').as('api.v1.services.dependencies.remove')
+
+      // Services disponibles
+      router.get('/available', '#controllers/api/v1/services_controller.available').as('api.v1.services.available')
+    }).prefix('/services')
+
+    /*
+    |--------------------------------------------------------------------------
+    | API Dashboard & Analytics
+    |--------------------------------------------------------------------------
+    */
+    router.group(() => {
+      router.get('/overview', '#controllers/api/v1/dashboard_controller.overview').as('api.v1.dashboard.overview')
+      router.get('/network-data', '#controllers/api/v1/dashboard_controller.networkData').as('api.v1.dashboard.network-data')
+      router.get('/status', '#controllers/api/v1/dashboard_controller.status').as('api.v1.dashboard.status')
+      router.get('/metrics', '#controllers/api/v1/dashboard_controller.metrics').as('api.v1.dashboard.metrics')
+    }).prefix('/dashboard')
+
+    /*
+    |--------------------------------------------------------------------------
+    | API System & Health
+    |--------------------------------------------------------------------------
+    */
+    router.group(() => {
+      router.get('/health', '#controllers/api/v1/system_controller.health').as('api.v1.system.health')
+      router.get('/version', '#controllers/api/v1/system_controller.version').as('api.v1.system.version')
+      router.get('/info', '#controllers/api/v1/system_controller.info').as('api.v1.system.info')
+    }).prefix('/system')
   })
   .prefix('/api/v1')
   .middleware([middleware.api_auth()])
@@ -227,19 +229,10 @@ router
 |--------------------------------------------------------------------------
 */
 router.group(() => {
-  // Endpoint de découverte MCP
   router.get('/', '#controllers/mcp_controller.index').as('mcp.index')
-
-  // Endpoint principal pour les requêtes MCP
   router.post('/', '#controllers/mcp_controller.handle').as('mcp.handle')
-
-  // WebSocket pour communication temps réel (futur)
   router.get('/ws', '#controllers/mcp_controller.websocket').as('mcp.websocket')
-
-  // Health check
   router.get('/health', '#controllers/mcp_controller.health').as('mcp.health')
-
-  // Documentation des outils
   router.get('/tools', '#controllers/mcp_controller.tools').as('mcp.tools')
 }).prefix('/mcp')
 
@@ -252,7 +245,6 @@ router.get('/swagger', async () => {
   return AutoSwagger.default.docs(router.toJSON(), swagger)
 })
 
-// Interface Swagger UI (avec styling amélioré)
 router.get('/docs', async () => {
   return AutoSwagger.default.ui('/swagger', swagger)
 }).as('swagger.docs')
@@ -279,59 +271,3 @@ router
     })
   })
   .as('errors.server_error')
-
-/*
-|--------------------------------------------------------------------------
-| 🎯 INERTIA + SVELTE : Migration terminée !
-|--------------------------------------------------------------------------
-| ✅ Toutes les pages utilisent maintenant Inertia.render() au lieu de view.render()
-| ✅ Templates Svelte dans inertia/pages/
-| ✅ Composants réutilisables dans inertia/components/
-| ✅ Layouts dynamiques dans inertia/app/
-| ✅ Navigation SPA sans rechargement de page
-| ✅ Hot reload ultra-rapide avec Vite
-| ✅ Props typées et réactivité Svelte
-|--------------------------------------------------------------------------
-| Architecture des composants:
-| 📁 inertia/pages/       → Pages principales (Auth/, Dashboard/, Servers/, Services/, errors/)
-| 📁 inertia/components/  → Composants réutilisables (ActionButton, Alert, Navbar, Cards...)
-| 📁 inertia/app/         → Layouts (BaseLayout, DashboardLayout)
-| 📁 inertia/partials/    → Utilitaires (NetworkScript pour monitoring temps réel)
-|--------------------------------------------------------------------------
-| 🆕 NOUVEAU: Gestion des dépendances entre services
-| ✅ API /api/services/available → Liste des services disponibles pour dépendances
-| ✅ API /api/services/check-circular → Vérification des dépendances circulaires
-| ✅ POST /services/:id/dependencies → Ajouter une dépendance
-| ✅ DELETE /services/:id/dependencies/:dependencyId → Supprimer une dépendance
-|--------------------------------------------------------------------------
-| 🆕 NOUVEAU: Gestion des images de services
-| ✅ GET /settings/service-images → Interface de gestion des images
-| ✅ POST /settings/images → Upload d'une nouvelle image
-| ✅ PUT /settings/images/:id → Modification d'une image
-| ✅ DELETE /settings/images/:id → Suppression d'une image
-| ✅ POST /settings/images/reorder → Réorganisation de l'ordre
-|--------------------------------------------------------------------------
-| 🆕 NOUVEAU: Gestion des clés API
-| ✅ GET /settings/security → Interface de gestion des clés API
-| ✅ POST /settings/security/api-keys → Créer une nouvelle clé API
-| ✅ DELETE /settings/security/api-keys/:id → Supprimer une clé API
-| ✅ PATCH /settings/security/api-keys/:id/toggle → Activer/Désactiver une clé API
-| ✨ PATCH /settings/security/api-keys/:id/regenerate → Régénérer une clé API
-| ✅ API /api/v1/* → Endpoints protégés par clés API (Bearer token)
-|--------------------------------------------------------------------------
-| 🆕 NOUVEAU: Documentation Swagger intégrée
-| ✅ GET /swagger → Spécification OpenAPI JSON
-| ✅ GET /docs → Interface Swagger UI interactive
-| ✅ Sécurité OAuth2 + Bearer Auth configurée
-| ✅ Schémas de réponse et erreurs standardisés
-|--------------------------------------------------------------------------
-| 🤖 NOUVEAU: Serveur MCP (Model Context Protocol)
-| ✅ GET /mcp → Endpoint de découverte MCP
-| ✅ POST /mcp → Endpoint principal pour requêtes MCP
-| ✅ GET /mcp/health → Health check du serveur MCP
-| ✅ GET /mcp/tools → Documentation des outils MCP
-| ✅ Authentification via API keys existantes
-| ✅ Outils: list_servers, manage_service, search_database, etc.
-| ✅ Compatible avec Claude.ai custom integrations
-|--------------------------------------------------------------------------
-*/
