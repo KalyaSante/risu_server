@@ -1,24 +1,30 @@
-import path from 'node:path'
+import path, { join } from 'node:path'
 import url from 'node:url'
+import { readFileSync } from 'node:fs'
 
 // 🔧 FIX: __dirname pour modules ES
 const __filename = url.fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
+const pkg = JSON.parse(
+  readFileSync(join(process.cwd(), 'package.json'), 'utf8')
+)
+
+
 export default {
   // Configuration de base
   path: __dirname,
-  title: 'Kalya API v1 Documentation',
-  version: '1.0.0',
-  description: 'Documentation de l\'API REST v1 Kalya - Gestion de serveurs et services',
+  title: 'Risu Server API v1 Documentation',
+  version: pkg.version,
+  description: 'Documentation de l\'API REST v1 Risu Server - Gestion de serveurs et services',
   tagIndex: 3, // 🔥 FIX: Ignore les tags automatiques, utilise les tags manuels
   info: {
-    title: 'Kalya API v1',
-    version: '1.0.0',
+    title: 'Risu Server API v1',
+    version: pkg.version,
     description: 'API REST pour la gestion centralisée de serveurs et services. Authentification par clé API requise.',
     contact: {
-      name: 'Kalya Team',
-      email: 'contact@kalya.fr',
+      name: 'Kalya',
+      email: 'contact@kalya-sante.com',
     },
     license: {
       name: 'Private',
