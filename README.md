@@ -1,6 +1,6 @@
 <div align="center">
   <img src="public/risu.png" alt="Risu Server Logo" width="150">
-  <h1>Risu Server 🐿️</h1>
+  <h1>🐿️ Risu Server</h1>
   <p>Un panneau de gestion de serveurs et de services auto-hébergé.</p>
 
   <p>
