@@ -223,6 +223,28 @@ router
 
 /*
 |--------------------------------------------------------------------------
+| 🤖 Serveur MCP (Model Context Protocol) pour Claude
+|--------------------------------------------------------------------------
+*/
+router.group(() => {
+  // Endpoint de découverte MCP
+  router.get('/', '#controllers/mcp_controller.index').as('mcp.index')
+
+  // Endpoint principal pour les requêtes MCP
+  router.post('/', '#controllers/mcp_controller.handle').as('mcp.handle')
+
+  // WebSocket pour communication temps réel (futur)
+  router.get('/ws', '#controllers/mcp_controller.websocket').as('mcp.websocket')
+
+  // Health check
+  router.get('/health', '#controllers/mcp_controller.health').as('mcp.health')
+
+  // Documentation des outils
+  router.get('/tools', '#controllers/mcp_controller.tools').as('mcp.tools')
+}).prefix('/mcp')
+
+/*
+|--------------------------------------------------------------------------
 | Documentation Swagger
 |--------------------------------------------------------------------------
 */
@@ -302,5 +324,14 @@ router
 | ✅ GET /docs → Interface Swagger UI interactive
 | ✅ Sécurité OAuth2 + Bearer Auth configurée
 | ✅ Schémas de réponse et erreurs standardisés
+|--------------------------------------------------------------------------
+| 🤖 NOUVEAU: Serveur MCP (Model Context Protocol)
+| ✅ GET /mcp → Endpoint de découverte MCP
+| ✅ POST /mcp → Endpoint principal pour requêtes MCP
+| ✅ GET /mcp/health → Health check du serveur MCP
+| ✅ GET /mcp/tools → Documentation des outils MCP
+| ✅ Authentification via API keys existantes
+| ✅ Outils: list_servers, manage_service, search_database, etc.
+| ✅ Compatible avec Claude.ai custom integrations
 |--------------------------------------------------------------------------
 */
