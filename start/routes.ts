@@ -161,6 +161,9 @@ router
         router
           .get('/network-data', '#controllers/api/dashboard_controller.networkData')
           .as('api.network.data')
+        router.get('/stats', '#controllers/api/dashboard_controller.stats').as('api.stats')
+        router.get('/counts', '#controllers/api/dashboard_controller.counts').as('api.counts')
+        router.get('/activity', '#controllers/api/dashboard_controller.activity').as('api.activity')
 
         // Nouveaux endpoints API pour les statuts temps réel
         router

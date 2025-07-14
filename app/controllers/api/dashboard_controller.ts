@@ -6,7 +6,11 @@ import { getDependencyColor } from '#types/pagination'
 
 export default class DashboardApiController {
   /**
-   * Endpoint pour récupérer les données du réseau en JSON
+   * @networkData
+   * @summary Données pour le graphique réseau
+   * @description Récupère les données complètes sur les serveurs, services et leurs dépendances pour construire une vue graphique du réseau.
+   * @operationId getNetworkData
+   * @tag Dashboard
    */
   async networkData({ response }: HttpContext) {
     try {
@@ -43,7 +47,11 @@ export default class DashboardApiController {
   }
 
   /**
-   * Endpoint pour les statistiques du dashboard
+   * @stats
+   * @summary Statistiques générales
+   * @description Fournit des statistiques clés sur l'infrastructure, comme le nombre total de serveurs, de services et de dépendances.
+   * @operationId getStats
+   * @tag Dashboard
    */
   async stats({ response }: HttpContext) {
     try {
@@ -132,5 +140,63 @@ export default class DashboardApiController {
    */
   private getEdgeColor(type: string): string {
     return getDependencyColor(type)
+  }
+
+  /**
+   * @counts
+   * @summary Compteurs principaux
+   * @description Retourne le nombre total de serveurs et de services.
+   * @operationId getCounts
+   * @tag Dashboard
+   */
+  async counts({ response }: HttpContext) {
+    try {
+      const [serversCount, servicesCount] = await Promise.all([
+        Server.query().count('* as total'),
+        Service.query().count('* as total'),
+      ])
+
+      return response.json({
+        success: true,
+        data: {
+          servers: serversCount[0].$extras.total,
+          services: servicesCount[0].$extras.total,
+        },
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        error: "Erreur lors de la récupération des compteurs",
+      })
+    }
+  }
+
+  /**
+   * @activity
+   * @summary Activité récente
+   * @description Récupère les derniers services et serveurs modifiés pour un aperçu de l'activité récente.
+   * @operationId getActivity
+   * @tag Dashboard
+   */
+  async activity({ response }: HttpContext) {
+    try {
+      const [latestServices, latestServers] = await Promise.all([
+        Service.query().orderBy('updated_at', 'desc').limit(5).preload('server'),
+        Server.query().orderBy('updated_at', 'desc').limit(5),
+      ])
+
+      return response.json({
+        success: true,
+        data: {
+          latestServices,
+          latestServers,
+        },
+      })
+    } catch (error) {
+      return response.status(500).json({
+        success: false,
+        error: "Erreur lors de la récupération de l'activité récente",
+      })
+    }
   }
 }
