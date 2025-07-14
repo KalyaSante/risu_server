@@ -1,12 +1,23 @@
-# Risu Server
+<div align="center">
+  <img src="public/risu.png" alt="Risu Server Logo" width="150">
+  <h1>Risu Server 🐿️</h1>
+  <p>Un panneau de gestion de serveurs et de services auto-hébergé.</p>
+
+  <p>
+    <img src="https://img.shields.io/badge/AdonisJS-v6-5A45FF?style=for-the-badge&logo=adonisjs" alt="AdonisJS">
+    <img src="https://img.shields.io/badge/Svelte-v5-FF3E00?style=for-the-badge&logo=svelte" alt="Svelte">
+    <img src="https://img.shields.io/badge/TypeScript-blue?style=for-the-badge&logo=typescript" alt="TypeScript">
+    <img src="https://img.shields.io/badge/SQLite-blue?style=for-the-badge&logo=sqlite" alt="SQLite">
+  </p>
+</div>
 
 Risu Server est un panneau de gestion de serveurs et de services auto-hébergé, conçu pour offrir une interface centralisée et intuitive pour la gestion de votre infrastructure. Construit avec [AdonisJS](https://adonisjs.com/) et [Svelte](https://svelte.dev/), Risu Server offre une expérience utilisateur réactive et moderne.
 
-## À propos du projet
+## 📝 À propos du projet
 
 Ce projet est né du besoin de disposer d'un outil simple et efficace pour visualiser, gérer et surveiller des serveurs et les services qui y sont hébergés. Que vous soyez un développeur indépendant, une petite équipe ou simplement un passionné de technologie, Risu Server vous aide à garder le contrôle de votre infrastructure.
 
-### Pile technologique
+### 🚀 Pile technologique
 
 *   **Backend:** [AdonisJS](https://adonisjs.com/) v6
 *   **Frontend:** [Svelte](https://svelte.dev/) v5 avec [Inertia.js](https://inertiajs.com/)
@@ -14,7 +25,7 @@ Ce projet est né du besoin de disposer d'un outil simple et efficace pour visua
 *   **Authentification:** OAuth
 *   **Style:** [Tailwind CSS](https://tailwindcss.com/) avec [DaisyUI](https://daisyui.com/)
 
-## Fonctionnalités
+## ✨ Fonctionnalités
 
 *   **Gestion des serveurs et services:** CRUD complet pour les serveurs et les services.
 *   **Visualisation de l'infrastructure:** Un tableau de bord pour visualiser l'état de vos serveurs et services.
@@ -25,7 +36,7 @@ Ce projet est né du besoin de disposer d'un outil simple et efficace pour visua
 *   **Documentation API:** Documentation Swagger générée automatiquement.
 *   **Personnalisation:** Gérez les hébergeurs et d'autres configurations via une interface dédiée.
 
-## Prérequis
+## 🛠️ Prérequis
 
 Avant de commencer, assurez-vous d'avoir les outils suivants installés sur votre machine :
 
@@ -33,7 +44,7 @@ Avant de commencer, assurez-vous d'avoir les outils suivants installés sur votr
 *   [npm](https://www.npmjs.com/) (généralement inclus avec Node.js)
 *   Un client Git
 
-## Installation
+## 📦 Installation
 
 1.  **Clonez le dépôt**
     ```sh
@@ -61,7 +72,7 @@ Avant de commencer, assurez-vous d'avoir les outils suivants installés sur votr
     node ace migration:run
     ```
 
-## Utilisation
+## 🚀 Utilisation
 
 ### Lancement du serveur de développement
 
@@ -89,7 +100,7 @@ Pour démarrer l'application en mode production :
 npm run start
 ```
 
-## Structure du projet
+## 📂 Structure du projet
 
 Voici un aperçu de la structure des dossiers et fichiers importants :
 
@@ -112,14 +123,14 @@ risu_server/
 └── tests/            # Fichiers de test
 ```
 
-## API
+## 📡 API
 
 Risu Server expose une API RESTful pour interagir avec les données. La documentation de l'API est générée automatiquement avec Swagger.
 
 Une fois le serveur lancé, vous pouvez accéder à la documentation de l'API à l'adresse suivante :
 [http://localhost:3333/docs](http://localhost:3333/docs)
 
-## Contribuer
+## 🤝 Contribuer
 
 Les contributions sont les bienvenues ! Si vous souhaitez contribuer à Risu Server, veuillez suivre les étapes suivantes :
 
@@ -129,6 +140,6 @@ Les contributions sont les bienvenues ! Si vous souhaitez contribuer à Risu Ser
 4.  Poussez vers la branche (`git push origin feature/AmazingFeature`)
 5.  Ouvrez une Pull Request
 
-## Licence
+## 📄 Licence
 
 Ce projet est distribué sous la licence MIT. Voir le fichier `LICENSE` pour plus d'informations.
