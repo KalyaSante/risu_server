@@ -13,7 +13,10 @@ const AuthFinder = withAuthFinder(() => hash.use('scrypt'), {
 
 export default class User extends compose(BaseModel, AuthFinder) {
   @column({ isPrimary: true })
-  declare id: string // UUID from OAuth SSO
+  declare id: string // UUID local
+
+  @column()
+  declare providerId: string | null // ✨ NOUVEAU: ID du provider OAuth
 
   @column()
   declare fullName: string | null
