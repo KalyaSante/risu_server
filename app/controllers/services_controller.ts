@@ -194,8 +194,8 @@ export default class ServicesController {
     }))
 
     const user = {
-      email: session.get('user_email') || 'admin@kalya.com',
-      fullName: session.get('user_name') || 'Admin Kalya',
+      email: session.get('user_email'),
+      fullName: session.get('user_name'),
     }
 
     return inertia.render('Services/Index', {

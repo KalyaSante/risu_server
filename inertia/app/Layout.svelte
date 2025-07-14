@@ -29,7 +29,7 @@
 </script>
 
 <svelte:head>
-  <title>{$page.props.title || 'Kalya - Cartographie Services'}</title>
+  <title>{$page.props.title || 'Risu - Cartographie Services'}</title>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="csrf-token" content={$page.props.csrfToken}>
@@ -51,7 +51,7 @@
       </div>
 
       <a href="/" class="btn btn-ghost text-xl font-bold">
-        🗺️ Kalya Services
+        🗺️ Risu Services
       </a>
     </div>
 
@@ -146,8 +146,6 @@
   <footer class="footer footer-center p-4 bg-base-300 text-base-content mt-8">
     <aside>
       <p class="text-sm">
-        © 2025 <strong>Kalya</strong> - Outil interne de cartographie des services
-        <br>
         <span class="opacity-70">Développé avec ❤️ et AdonisJS + Svelte</span>
       </p>
     </aside>

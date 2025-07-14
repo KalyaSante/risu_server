@@ -42,7 +42,7 @@
   // ✅ NOUVEAU: Mapping direct des couleurs DaisyUI
   const daisyUIColors = {
     primary: { bg: '#3b82f6', content: '#ffffff' },
-    secondary: { bg: '#f59e0b', content: '#ffffff' }, 
+    secondary: { bg: '#f59e0b', content: '#ffffff' },
     accent: { bg: '#10b981', content: '#ffffff' },
     neutral: { bg: '#6b7280', content: '#ffffff' },
     info: { bg: '#06b6d4', content: '#ffffff' },
@@ -457,10 +457,10 @@
 </script>
 
 <svelte:head>
-  <title>Dashboard - Kalya</title>
+  <title>Dashboard - Risu</title>
 </svelte:head>
 
-<DashboardLayout {user} {flash} title="Dashboard - Kalya" currentRoute="dashboard">
+<DashboardLayout {user} {flash} title="Dashboard - Risu" currentRoute="dashboard">
   <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
     <!-- Graphique principal -->
     <div class="lg:col-span-2 space-y-6">

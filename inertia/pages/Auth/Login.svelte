@@ -32,8 +32,8 @@
 </script>
 
 <svelte:head>
-  <title>Connexion - Kalya</title>
-  <meta name="description" content="Connectez-vous à votre plateforme de gestion d'infrastructure Kalya">
+  <title>Connexion - Risu</title>
+  <meta name="description" content="Connectez-vous à votre plateforme de gestion d'infrastructure Risu">
 </svelte:head>
 
 <!-- Container principal avec gradient animé -->

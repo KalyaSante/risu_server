@@ -94,10 +94,10 @@
 </script>
 
 <svelte:head>
-  <title>{service.nom} - Kalya</title>
+  <title>{service.nom} - Risu</title>
 </svelte:head>
 
-<DashboardLayout {user} {flash} title="{service.nom} - Kalya" currentRoute="services">
+<DashboardLayout {user} {flash} title="{service.nom} - Risu" currentRoute="services">
 
   <!-- Header -->
   <div class="flex justify-between items-start mb-6">

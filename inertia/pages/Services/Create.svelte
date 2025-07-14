@@ -14,10 +14,10 @@
 </script>
 
 <svelte:head>
-  <title>Nouveau service - Kalya</title>
+  <title>Nouveau service - Risu</title>
 </svelte:head>
 
-<DashboardLayout {user} {flash} title="Nouveau service - Kalya" currentRoute="services">
+<DashboardLayout {user} {flash} title="Nouveau service - Risu" currentRoute="services">
 
   <!-- Header -->
   <div class="mb-6">

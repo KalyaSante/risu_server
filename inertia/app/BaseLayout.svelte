@@ -16,7 +16,7 @@
   <header class="base-layout__header">
     <!-- Public header content -->
     <nav class="base-layout__nav">
-      <a href="/" class="base-layout__logo">Kalya</a>
+      <a href="/" class="base-layout__logo">Risu</a>
 
       <div class="base-layout__nav-links">
         <a href="/login" class="base-layout__nav-link">Login</a>
@@ -29,7 +29,7 @@
   </main>
 
   <footer class="base-layout__footer">
-    <p>&copy; 2024 Kalya. All rights reserved.</p>
+    <p>Risu Server ❤️</p>
   </footer>
 </div>
 

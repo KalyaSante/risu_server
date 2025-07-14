@@ -96,10 +96,10 @@
 </script>
 
 <svelte:head>
-  <title>Services - Kalya</title>
+  <title>Services - Risu</title>
 </svelte:head>
 
-<DashboardLayout {user} {flash} title="Services - Kalya" currentRoute="services">
+<DashboardLayout {user} {flash} title="Services - Risu" currentRoute="services">
 
   <!-- Header -->
   <div class="flex justify-between items-center mb-6">

@@ -70,10 +70,10 @@
 </script>
 
 <svelte:head>
-  <title>{isEdit ? 'Modifier' : 'Nouveau'} serveur - Kalya</title>
+  <title>{isEdit ? 'Modifier' : 'Nouveau'} serveur - Risu</title>
 </svelte:head>
 
-<DashboardLayout {user} {flash} title="{isEdit ? 'Modifier' : 'Nouveau'} serveur - Kalya" currentRoute="servers">
+<DashboardLayout {user} {flash} title="{isEdit ? 'Modifier' : 'Nouveau'} serveur - Risu" currentRoute="servers">
   <!-- En-tête -->
   <div class="mb-6">
     <div class="breadcrumbs text-sm">
@@ -175,7 +175,7 @@
                   type="text"
                   id="server_localisation"
                   bind:value={form.localisation}
-                  placeholder="ex: Strasbourg, France ou Bureau Kalya"
+                  placeholder="ex: Strasbourg, France ou Bureau Risu"
                   class="input input-bordered {errors.localisation ? 'input-error' : ''}"
                   required
                 >
@@ -222,8 +222,8 @@
                         value={colorOption}
                         class="radio radio-{colorOption} radio-sm"
                       />
-                      <span class="badge badge-sm capitalize text-white" 
-                            style="background-color: {colorOption === 'primary' ? '#3b82f6' : 
+                      <span class="badge badge-sm capitalize text-white"
+                            style="background-color: {colorOption === 'primary' ? '#3b82f6' :
                                                    colorOption === 'secondary' ? '#f59e0b' :
                                                    colorOption === 'accent' ? '#10b981' :
                                                    colorOption === 'neutral' ? '#6b7280' :
