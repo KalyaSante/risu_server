@@ -1,6 +1,5 @@
 import type User from '#models/user'
 import type ApiKey from '#models/api_key'
-import type { Authenticators } from '@adonisjs/auth/types'
 import { ApiKeyGuard } from '../auth/guards/api_key.js'
 
 declare module '@adonisjs/auth/types' {
@@ -14,12 +13,10 @@ declare module '@adonisjs/auth/types' {
   }
 }
 
-declare module '@adonisjs/core/http' {
-  interface HttpContext {
-    auth: Omit<HttpContext['auth'], 'user'> & {
-      user: User | undefined
-      apiKey?: ApiKey
-      isApiAuthenticated: boolean
-    }
+declare module '@adonisjs/auth/types' {
+  interface Authenticator<UserContract> {
+    user: UserContract | undefined
+    apiKey?: ApiKey
+    isApiAuthenticated: boolean
   }
 }

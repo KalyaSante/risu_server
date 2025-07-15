@@ -9,4 +9,3 @@ declare module '@adonisjs/core/http' {
   }
 }
 
-export const swagger = Symbol('swagger')
