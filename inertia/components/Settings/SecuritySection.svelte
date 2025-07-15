@@ -243,7 +243,7 @@
 
             <div class="space-y-3">
               <div>
-                <label class="label">
+                <label class="label" for="apiKeyName">
                   <span class="label-text font-semibold">Nom de la clé</span>
                 </label>
                 <div class="bg-base-100 text-base-content p-3 rounded-lg font-medium">
@@ -252,7 +252,7 @@
               </div>
 
               <div>
-                <label class="label">
+                <label class_ for="apiToken">
                   <span class="label-text font-semibold">Token API</span>
                 </label>
                 <div class="join w-full">

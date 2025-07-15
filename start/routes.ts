@@ -221,20 +221,7 @@ router
     }).prefix('/system')
   })
   .prefix('/api/v1')
-  .middleware([middleware.api_auth()])
-
-/*
-|--------------------------------------------------------------------------
-| 🤖 Serveur MCP (Model Context Protocol) pour Claude
-|--------------------------------------------------------------------------
-*/
-router.group(() => {
-  router.get('/', '#controllers/mcp_controller.index').as('mcp.index')
-  router.post('/', '#controllers/mcp_controller.handle').as('mcp.handle')
-  router.get('/ws', '#controllers/mcp_controller.websocket').as('mcp.websocket')
-  router.get('/health', '#controllers/mcp_controller.health').as('mcp.health')
-  router.get('/tools', '#controllers/mcp_controller.tools').as('mcp.tools')
-}).prefix('/mcp')
+  .middleware([middleware.api_auth({})])
 
 /*
 |--------------------------------------------------------------------------

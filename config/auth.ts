@@ -1,6 +1,7 @@
 import { defineConfig } from '@adonisjs/auth'
 import { sessionGuard, sessionUserProvider } from '@adonisjs/auth/session'
 import type { InferAuthenticators, InferAuthEvents, Authenticators } from '@adonisjs/auth/types'
+import { ApiKeyGuard } from '../app/auth/guards/api_key.js'
 
 const authConfig = defineConfig({
   default: 'web',
@@ -11,6 +12,9 @@ const authConfig = defineConfig({
         model: () => import('#models/user'),
       }),
     }),
+    api: (ctx) => {
+      return new ApiKeyGuard(ctx, {}, sessionUserProvider({ model: () => import('#models/user') }))
+    },
   },
 })
 

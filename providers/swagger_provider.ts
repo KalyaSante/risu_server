@@ -17,7 +17,7 @@ export default class SwaggerProvider {
         enabled: true,
         autoGenerate: true,
         path: '/swagger',
-        ui: '/docs'
+        ui: '/docs',
       }
     })
   }

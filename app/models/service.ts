@@ -42,6 +42,9 @@ export default class Service extends BaseModel {
   @column()
   declare color: string
 
+  @column()
+  declare healthCheckUrl: string | null
+
   // ✅ SIMPLE: Ports multiples en JSON avec juste port + label
   @column({
     serialize: (value: ServicePort[] | null) => value,
