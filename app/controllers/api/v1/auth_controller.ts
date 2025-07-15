@@ -77,18 +77,10 @@ export default class AuthV1Controller {
         })
       }
 
-      const apiKey = auth.apiKey!
-
       return response.json({
         success: true,
         data: {
           user: auth.user.serialize(),
-          apiKey: {
-            id: apiKey.id,
-            name: apiKey.name,
-            lastUsedAt: apiKey.lastUsedAt,
-            createdAt: apiKey.createdAt,
-          },
         },
       })
     } catch (error) {
