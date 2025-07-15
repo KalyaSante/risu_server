@@ -221,7 +221,7 @@ router
     }).prefix('/system')
   })
   .prefix('/api/v1')
-  .middleware([middleware.api_auth()])
+  .middleware([middleware.api_auth({})])
 
 /*
 |--------------------------------------------------------------------------
