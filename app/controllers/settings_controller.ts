@@ -79,7 +79,7 @@ export default class SettingsController {
       usage: key.getUsageStats()
     }))
 
-    const securityData = {
+    const securityData: any = {
       apiKeys: enrichedApiKeys,
       totalKeys: apiKeys.length,
       activeKeys: apiKeys.filter(k => k.isActive).length,
@@ -179,7 +179,7 @@ export default class SettingsController {
   /**
    * ✨ SOLUTION OPTIMISÉE: Créer une nouvelle clé API avec gestion Inertia correcte
    */
-  async createApiKey({ request, inertia, session }: HttpContext) {
+  async createApiKey({ request, response, inertia, session }: HttpContext) {
     const user = this.getUserFromSession(session)
 
     try {
@@ -188,17 +188,17 @@ export default class SettingsController {
       // Validation améliorée
       if (!name || name.trim().length === 0) {
         session.flash('error', 'Le nom de la clé API est requis')
-        return inertia.redirectBack()
+        return response.redirect().back()
       }
 
       if (name.trim().length < 3) {
         session.flash('error', 'Le nom de la clé API doit contenir au moins 3 caractères')
-        return inertia.redirectBack()
+        return response.redirect().back()
       }
 
       if (name.trim().length > 50) {
         session.flash('error', 'Le nom de la clé API ne peut pas dépasser 50 caractères')
-        return inertia.redirectBack()
+        return response.redirect().back()
       }
 
       // Vérifier les doublons de nom
@@ -210,7 +210,7 @@ export default class SettingsController {
 
       if (existingWithSameName) {
         session.flash('error', 'Une clé API avec ce nom existe déjà')
-        return inertia.redirectBack()
+        return response.redirect().back()
       }
 
       // Vérifier le nombre de clés existantes (limite à 10 par utilisateur)
@@ -221,7 +221,7 @@ export default class SettingsController {
 
       if (existingCount[0].$extras.total >= 10) {
         session.flash('error', 'Limite de 10 clés API atteinte. Supprimez une clé existante pour en créer une nouvelle.')
-        return inertia.redirectBack()
+        return response.redirect().back()
       }
 
       // ✨ Créer la clé avec la méthode améliorée
@@ -256,14 +256,14 @@ export default class SettingsController {
     } catch (error) {
       console.error('❌ Erreur lors de la création de la clé API:', error)
       session.flash('error', 'Erreur interne lors de la création de la clé API. Veuillez réessayer.')
-      return inertia.redirectBack()
+      return response.redirect().back()
     }
   }
 
   /**
    * ✨ AMÉLIORATION: Supprimer une clé API avec vérifications
    */
-  async deleteApiKey({ params, inertia, session }: HttpContext) {
+  async deleteApiKey({ params, response, inertia, session }: HttpContext) {
     const user = this.getUserFromSession(session)
 
     try {
@@ -297,14 +297,14 @@ export default class SettingsController {
     } catch (error) {
       console.error('❌ Erreur lors de la suppression de la clé API:', error)
       session.flash('error', 'Clé API non trouvée ou erreur lors de la suppression')
-      return inertia.redirectBack()
+      return response.redirect().back()
     }
   }
 
   /**
    * ✨ AMÉLIORATION: Activer/Désactiver une clé API avec logs
    */
-  async toggleApiKey({ params, inertia, session }: HttpContext) {
+  async toggleApiKey({ params, response, inertia, session }: HttpContext) {
     const user = this.getUserFromSession(session)
 
     try {
@@ -313,7 +313,6 @@ export default class SettingsController {
         .where('user_id', user.id)
         .firstOrFail()
 
-      const previousStatus = apiKey.isActive
       apiKey.isActive = !apiKey.isActive
       await apiKey.save()
 
@@ -341,14 +340,14 @@ export default class SettingsController {
     } catch (error) {
       console.error('❌ Erreur lors de la modification de la clé API:', error)
       session.flash('error', 'Clé API non trouvée ou erreur lors de la modification')
-      return inertia.redirectBack()
+      return response.redirect().back()
     }
   }
 
   /**
    * ✨ NOUVEAU: Endpoint pour régénérer une clé API (optionnel)
    */
-  async regenerateApiKey({ params, inertia, session }: HttpContext) {
+  async regenerateApiKey({ params, response, inertia, session }: HttpContext) {
     const user = this.getUserFromSession(session)
 
     try {
@@ -396,7 +395,7 @@ export default class SettingsController {
     } catch (error) {
       console.error('❌ Erreur lors de la régénération de la clé API:', error)
       session.flash('error', 'Clé API non trouvée ou erreur lors de la régénération')
-      return inertia.redirectBack()
+      return response.redirect().back()
     }
   }
 

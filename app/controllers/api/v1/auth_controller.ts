@@ -70,15 +70,22 @@ export default class AuthV1Controller {
    */
   async me({ response, auth }: HttpContext) {
     try {
+      if (!auth.user) {
+        return response.status(401).json({
+          success: false,
+          error: 'Utilisateur non authentifié'
+        })
+      }
+      const apiKey = (auth as any).apiKey
       return response.json({
         success: true,
         data: {
           user: auth.user.serialize(),
           apiKey: {
-            id: auth.apiKey.id,
-            name: auth.apiKey.name,
-            lastUsedAt: auth.apiKey.lastUsedAt,
-            createdAt: auth.apiKey.createdAt
+            id: apiKey.id,
+            name: apiKey.name,
+            lastUsedAt: apiKey.lastUsedAt,
+            createdAt: apiKey.createdAt
           }
         }
       })

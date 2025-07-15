@@ -170,7 +170,7 @@ export default class McpController {
    * 📡 WebSocket pour communication temps réel (optionnel)
    * WS /mcp/ws - Connexion WebSocket pour MCP
    */
-  async websocket({ request, response, ...context }: HttpContext) {
+  async websocket({ request, response }: HttpContext) {
     // TODO: Implémenter WebSocket pour MCP si nécessaire
     // Pour l'instant, on retourne une erreur 501
     return response.status(501).json({

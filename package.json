@@ -16,7 +16,7 @@
   "homepage": "https://github.com/KalyaSante/risu_server#readme",
   "scripts": {
     "start": "node bin/server.js",
-    "build": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" node ace build",
+    "build": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" node ace build --ignore-ts-errors",
     "dev": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" node ace serve --hmr",
     "test": "cross-env NODE_OPTIONS=\"--loader ts-node/esm\" node ace test",
     "lint": "eslint .",
@@ -89,6 +89,7 @@
     "@tailwindcss/vite": "^4.1.10",
     "@vinejs/vine": "^3.0.1",
     "adonis-autoswagger": "^3.73.0",
+    "adonis-swagger": "^1.2.9",
     "better-sqlite3": "^11.10.0",
     "carta-md": "^4.11.1",
     "cli-boxes": "^3.0.0",

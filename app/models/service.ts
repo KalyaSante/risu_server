@@ -34,6 +34,9 @@ export default class Service extends BaseModel {
   @column()
   declare description: string | null
 
+  @column()
+  declare healthCheckUrl: string | null
+
   // ✅ AJOUT: Champ note markdown
   @column()
   declare note: string | null

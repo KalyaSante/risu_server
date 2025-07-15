@@ -4,6 +4,8 @@ import type { ApplicationService } from '@adonisjs/core/types'
  * Provider personnalisé pour Swagger
  * Alternative au provider officiel pour une intégration simplifiée
  */
+class SwaggerService {}
+
 export default class SwaggerProvider {
   constructor(protected app: ApplicationService) {}
 
@@ -12,7 +14,7 @@ export default class SwaggerProvider {
    */
   register() {
     // Configuration minimale pour Swagger
-    this.app.container.singleton('swagger', () => {
+    this.app.container.singleton(SwaggerService, () => {
       return {
         enabled: true,
         autoGenerate: true,
