@@ -34,9 +34,6 @@ export default class Service extends BaseModel {
   @column()
   declare description: string | null
 
-  @column()
-  declare healthCheckUrl: string | null
-
   // ✅ AJOUT: Champ note markdown
   @column()
   declare note: string | null
@@ -44,6 +41,9 @@ export default class Service extends BaseModel {
   // ✅ AJOUT: Couleur du service (DaisyUI)
   @column()
   declare color: string
+
+  @column()
+  declare healthCheckUrl: string | null
 
   // ✅ SIMPLE: Ports multiples en JSON avec juste port + label
   @column({

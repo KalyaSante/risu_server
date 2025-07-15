@@ -285,7 +285,8 @@ export default class DashboardV1Controller {
 
       // Calculs statistiques
       const totalServices = servers.reduce((sum, server: any) => sum + server.services.length, 0)
-      const avgServicesPerServer = servers.length > 0 ? (totalServices / servers.length) : 0
+      const avgServicesPerServer =
+        servers.length > 0 ? (totalServices / servers.length).toFixed(1) : '0'
 
       // Top serveurs par nombre de services
       const topServers = servers

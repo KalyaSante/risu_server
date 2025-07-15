@@ -73,10 +73,12 @@ export default class AuthV1Controller {
       if (!auth.user) {
         return response.status(401).json({
           success: false,
-          error: 'Utilisateur non authentifié'
+          error: 'Utilisateur non authentifié',
         })
       }
-      const apiKey = (auth as any).apiKey
+
+      const apiKey = auth.apiKey!
+
       return response.json({
         success: true,
         data: {
@@ -85,14 +87,14 @@ export default class AuthV1Controller {
             id: apiKey.id,
             name: apiKey.name,
             lastUsedAt: apiKey.lastUsedAt,
-            createdAt: apiKey.createdAt
-          }
-        }
+            createdAt: apiKey.createdAt,
+          },
+        },
       })
     } catch (error) {
       return response.status(401).json({
         success: false,
-        error: 'Utilisateur non authentifié'
+        error: 'Utilisateur non authentifié',
       })
     }
   }

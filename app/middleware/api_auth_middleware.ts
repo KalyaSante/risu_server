@@ -37,11 +37,9 @@ export default class ApiAuthMiddleware {
       await apiKey.markAsUsed(request.ip())
 
       // Ajouter l'utilisateur et la clé API au contexte
-      ctx.auth = {
-        user: apiKey.user,
-        apiKey: apiKey,
-        isApiAuthenticated: true
-      }
+      ctx.auth.user = apiKey.user
+      ctx.auth.apiKey = apiKey
+      ctx.auth.isApiAuthenticated = true
 
       await next()
     } catch (error) {

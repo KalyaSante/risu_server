@@ -57,7 +57,7 @@
       <!-- Header avec logo animé -->
       <div class="text-center mb-8">
         <h1 class="text-4xl font-bold text-orange-600 flex items-center justify-center gap-2">
-          <img src="/risu_512.png" alt="Risu Server Logo" class="h-20">
+          <img src="/risu_512.png" class="h-20">
           <span>Risu Server</span>
         </h1>
         <div class="w-16 h-1 bg-gradient-to-r from-primary to-secondary mx-auto mt-3 rounded-full"></div>
@@ -147,6 +147,10 @@
     -webkit-backdrop-filter: blur(16px);
   }
 
+  /* Hover effects pour les liens */
+  .hover\:text-base-content:hover {
+    transition: color 0.3s ease;
+  }
 
   /* Animation d'entrée pour les messages flash */
   .alert {
