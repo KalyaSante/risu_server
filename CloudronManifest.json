@@ -1,0 +1,28 @@
+{
+  "id": "io.kalyasante.risuserver",
+  "title": "Risu Server",
+  "author": "KalyaSante <contact@kalyasante.com>",
+  "description": "A self-hosted server and service management panel",
+  "tagline": "Manage your servers and services with ease",
+  "version": "1.0.1",
+  "healthCheckPath": "/",
+  "httpPort": 3333,
+  "addons": {
+    "localstorage": {},
+    "oauth": {}
+  },
+  "manifestVersion": 2,
+  "website": "https://github.com/KalyaSante/risu_server",
+  "contactEmail": "support@kalyasante.com",
+  "icon": "file://icon.png",
+  "tags": [
+    "hosting",
+    "project",
+    "admin"
+  ],
+  "mediaLinks": [],
+  "memoryLimit": 512000000,
+  "minBoxVersion": "7.0.0",
+  "postInstallMessage": "Welcome to Risu Server! Your server management panel is ready to use.\n\n**Getting Started:**\n1. The application uses Cloudron authentication - no additional setup required\n2. Start adding your servers and services through the dashboard\n3. Configure your service monitoring and deployment settings\n\n**Important:** All data is stored locally and will persist across updates.",
+  "optionalSso": false
+}

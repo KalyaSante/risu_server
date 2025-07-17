@@ -19,12 +19,17 @@ COPY . .
 RUN npm run build
 
 # ===================================
-# Stage 2: Production stage
+# Stage 2: Production stage for Cloudron
 # ===================================
-FROM node:20-alpine AS production
+FROM cloudron/base:4.2.0
 
 # Set the working directory
-WORKDIR /app
+WORKDIR /app/code
+
+# Install Node.js and npm
+RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - && \
+    apt-get install -y nodejs && \
+    npm install -g npm@latest
 
 # Copy package files
 COPY package.json package-lock.json ./
@@ -38,24 +43,19 @@ COPY --from=builder /app/build ./build
 # Copy other necessary files
 COPY --from=builder /app/public ./public
 
-# Copy the start script
-COPY start.sh ./
-RUN chmod +x start.sh
-
 # Create necessary directories with proper permissions
-RUN mkdir -p /app/data /app/logs && \
-    chown -R node:node /app/data /app/logs && \
-    chmod 755 /app/data /app/logs
+RUN mkdir -p /app/data /run/app && \
+    chown -R cloudron:cloudron /app/data /run/app
 
-# Set environment variables
-ENV NODE_ENV=production
-ENV DOCKER_ENV=true
+# Copy the start script
+COPY start.sh /app/code/
+RUN chmod +x /app/code/start.sh
 
 # Expose the port
 EXPOSE 3333
 
-# Change user to non-root for security
-USER node
+# Switch to cloudron user
+USER cloudron
 
 # Define the command to run the application
-CMD ["./start.sh"]
+CMD [ "/app/code/start.sh" ]
