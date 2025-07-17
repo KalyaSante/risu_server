@@ -1,4 +1,4 @@
-name: Build and Push Docker Image to GHCR
+name: Build and Push Docker Images
 
 on:
   push:
@@ -7,15 +7,24 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  # IMAGE_NAME will be dynamically constructed, e.g., ghcr.io/your-username/your-repo-name
-  IMAGE_NAME: ${{ github.repository_owner }}/${{ github.event.repository.name }}
+  IMAGE_NAME_BASE: ${{ github.repository_owner }}/${{ github.event.repository.name }}
 
 jobs:
-  build-and-push-image:
+  build-and-push-images:
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write # Required to push to GHCR
+
+    strategy:
+      matrix:
+        variant:
+          - name: "risu_server"
+            dockerfile: "Dockerfile"
+            suffix: ""
+          - name: "risu_server_cloudron"
+            dockerfile: "Dockerfile.cloudron"
+            suffix: "_cloudron"
 
     steps:
       - name: Checkout repository
@@ -32,15 +41,16 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }} # Construct full image path here
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BASE }}${{ matrix.variant.suffix }}
           tags: |
             type=sha # Creates a tag with the commit SHA
             type=raw,value=latest,enable={{is_default_branch}} # Tags 'latest' on default branch
 
-      - name: Build and push Docker image
+      - name: Build and push Docker image (${{ matrix.variant.name }})
         uses: docker/build-push-action@v6
         with:
           context: .
+          file: ${{ matrix.variant.dockerfile }}
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
