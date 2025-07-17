@@ -26,15 +26,23 @@ FROM cloudron/base:4.2.0
 # Set the working directory
 WORKDIR /app/code
 
-# Install Node.js and npm
+# Install Node.js and npm (direct binary download)
 RUN apt-get update && \
-    apt-get install -y curl gnupg && \
-    mkdir -p /etc/apt/keyrings && \
-    curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg && \
-    echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_20.x nodistro main" | tee /etc/apt/sources.list.d/nodesource.list && \
-    apt-get update && \
-    apt-get install -y nodejs && \
+    apt-get install -y curl xz-utils && \
+    NODE_VERSION="20.18.1" && \
+    ARCH="$(dpkg --print-architecture)" && \
+    case "${ARCH}" in \
+        amd64) TARGETARCH='x64';; \
+        arm64) TARGETARCH='arm64';; \
+        *) echo "Unsupported architecture: ${ARCH}" && exit 1;; \
+    esac && \
+    curl -fsSLO "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${TARGETARCH}.tar.xz" && \
+    tar -xJf "node-v${NODE_VERSION}-linux-${TARGETARCH}.tar.xz" -C /usr/local --strip-components=1 && \
+    rm "node-v${NODE_VERSION}-linux-${TARGETARCH}.tar.xz" && \
+    ln -s /usr/local/bin/node /usr/local/bin/nodejs && \
     npm install -g npm@latest && \
+    apt-get remove -y xz-utils && \
+    apt-get autoremove -y && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
