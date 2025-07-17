@@ -1,6 +1,6 @@
 {
   "name": "risu_server",
-  "version": "1.0.1",
+  "version": "1.1.0",
   "private": false,
   "description": "A self-hosted server and service management panel",
   "type": "module",
