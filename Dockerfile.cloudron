@@ -19,32 +19,28 @@ COPY . .
 RUN npm run build
 
 # ===================================
-# Stage 2: Production stage for Cloudron
+# Stage 2: Node.js binaries stage
+# ===================================
+FROM node:20-alpine AS node_binaries
+
+# ===================================
+# Stage 3: Production stage for Cloudron
 # ===================================
 FROM cloudron/base:4.2.0
 
 # Set the working directory
 WORKDIR /app/code
 
-# Install Node.js and npm (direct binary download)
-RUN apt-get update && \
-    apt-get install -y curl xz-utils && \
-    NODE_VERSION="20.18.1" && \
-    ARCH="$(dpkg --print-architecture)" && \
-    case "${ARCH}" in \
-        amd64) TARGETARCH='x64';; \
-        arm64) TARGETARCH='arm64';; \
-        *) echo "Unsupported architecture: ${ARCH}" && exit 1;; \
-    esac && \
-    curl -fsSLO "https://nodejs.org/dist/v${NODE_VERSION}/node-v${NODE_VERSION}-linux-${TARGETARCH}.tar.xz" && \
-    tar -xJf "node-v${NODE_VERSION}-linux-${TARGETARCH}.tar.xz" -C /usr/local --strip-components=1 && \
-    rm "node-v${NODE_VERSION}-linux-${TARGETARCH}.tar.xz" && \
-    ln -s /usr/local/bin/node /usr/local/bin/nodejs && \
-    npm install -g npm@latest && \
-    apt-get remove -y xz-utils && \
-    apt-get autoremove -y && \
-    apt-get clean && \
-    rm -rf /var/lib/apt/lists/*
+# Copy Node.js binaries from official image
+COPY --from=node_binaries /usr/local/bin/node /usr/local/bin/node
+COPY --from=node_binaries /usr/local/bin/npm /usr/local/bin/npm
+COPY --from=node_binaries /usr/local/bin/npx /usr/local/bin/npx
+COPY --from=node_binaries /usr/local/lib/node_modules /usr/local/lib/node_modules
+
+# Create symlinks for compatibility
+RUN ln -sf /usr/local/bin/node /usr/bin/node && \
+    ln -sf /usr/local/bin/npm /usr/bin/npm && \
+    ln -sf /usr/local/bin/npx /usr/bin/npx
 
 # Copy package files
 COPY package.json package-lock.json ./
