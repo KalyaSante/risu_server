@@ -54,12 +54,138 @@ COPY --from=builder /app/build ./build
 # Copy other necessary files
 COPY --from=builder /app/public ./public
 
-# Create necessary directories with proper permissions
-RUN mkdir -p /app/data /run/app && \
-    chown -R cloudron:cloudron /app/data /run/app
+# Create the Cloudron manifest
+COPY CloudronManifest.json /app/code/
 
-# Copy the start script
-COPY start.sh /app/code/
+# Create necessary directories with proper permissions
+# CORRECTION : Ne pas créer de sous-dossiers dans /app/data
+RUN mkdir -p /run/app && \
+    chown -R cloudron:cloudron /run/app
+
+# Create the corrected start script directly in the image
+RUN cat > /app/code/start.sh << 'EOF'
+#!/bin/bash
+
+set -euo pipefail
+
+echo "Starting Risu Server..."
+
+# ===================================
+# Détection automatique d'environnement
+# ===================================
+if [ -n "${CLOUDRON_APP_ORIGIN:-}" ]; then
+    ENVIRONMENT="cloudron"
+    echo "🌩️  Cloudron environment detected"
+elif [ -n "${DOCKER_ENV:-}" ] || [ -f /.dockerenv ]; then
+    ENVIRONMENT="docker"
+    echo "🐳 Docker classic environment detected"
+else
+    ENVIRONMENT="local"
+    echo "💻 Local development environment detected"
+fi
+
+# ===================================
+# Configuration selon l'environnement
+# ===================================
+
+# Variables communes
+export NODE_ENV=${NODE_ENV:-production}
+export PORT=${PORT:-3333}
+export HOST=${HOST:-0.0.0.0}
+export LOG_LEVEL=${LOG_LEVEL:-info}
+export SESSION_DRIVER=${SESSION_DRIVER:-cookie}
+export TZ=${TZ:-UTC}
+
+# Configuration spécifique par environnement
+case $ENVIRONMENT in
+    "cloudron")
+        echo "🔧 Configuring for Cloudron..."
+
+        # APP_KEY pour Cloudron
+        if [ ! -f /app/data/app.key ]; then
+            echo "Generating application key for Cloudron..."
+            node -e "console.log(require('crypto').randomBytes(32).toString('base64'))" > /app/data/app.key
+        fi
+        APP_KEY=$(cat /app/data/app.key)
+
+        # Base de données Cloudron - utiliser directement /app/data
+        export DB_CONNECTION=sqlite
+        export DB_DATABASE=/app/data/app.sqlite
+
+        # OAuth Cloudron
+        if [ -n "${OAUTH_CLIENT_ID:-}" ]; then
+            export OAUTH_BASE_URL="https://${CLOUDRON_API_ORIGIN}"
+            export OAUTH_CLIENT_ID="${OAUTH_CLIENT_ID}"
+            export OAUTH_CLIENT_SECRET="${OAUTH_CLIENT_SECRET}"
+            export OAUTH_REDIRECT_URI="https://${CLOUDRON_APP_ORIGIN}/auth/callback"
+            export OAUTH_SCOPES="profile,email"
+            export OAUTH_ENDPOINT_AUTHORIZE="/api/v1/oauth/authorize"
+            export OAUTH_ENDPOINT_TOKEN="/api/v1/oauth/token"
+            export OAUTH_ENDPOINT_USER_INFO="/api/v1/profile"
+            export OAUTH_USER_FIELD_ID="id"
+            export OAUTH_USER_FIELD_EMAIL="email"
+            export OAUTH_USER_FIELD_NAME="displayName"
+        fi
+
+        # Chemins de stockage Cloudron - utiliser directement /app/data
+        export UPLOAD_PATH=/app/data
+        export LOG_PATH=/run/app
+        ;;
+
+    *)
+        echo "⚠️  Non-Cloudron environment, using defaults..."
+
+        # Configuration par défaut pour autres environnements
+        mkdir -p /app/data/database /app/data/uploads /app/logs
+
+        if [ ! -f /app/data/app.key ]; then
+            echo "Generating application key..."
+            node -e "console.log(require('crypto').randomBytes(32).toString('base64'))" > /app/data/app.key
+        fi
+        APP_KEY=$(cat /app/data/app.key)
+
+        export DB_CONNECTION=${DB_CONNECTION:-sqlite}
+        export DB_DATABASE=${DB_DATABASE:-/app/data/database/app.sqlite}
+        export UPLOAD_PATH=${UPLOAD_PATH:-/app/data/uploads}
+        export LOG_PATH=${LOG_PATH:-/app/logs}
+        ;;
+esac
+
+# Variables d'environnement finales
+export APP_KEY="$APP_KEY"
+
+# ===================================
+# Initialisation base de données
+# ===================================
+
+# Créer la base si elle n'existe pas (SQLite)
+if [ "$DB_CONNECTION" = "sqlite" ] && [ ! -f "$DB_DATABASE" ]; then
+    echo "Creating SQLite database: $DB_DATABASE"
+    mkdir -p "$(dirname "$DB_DATABASE")"
+    touch "$DB_DATABASE"
+    chmod 640 "$DB_DATABASE"
+fi
+
+# ===================================
+# Migrations et démarrage
+# ===================================
+
+echo "Running database migrations..."
+
+# CORRECTION CRITIQUE : Assurer le bon répertoire de travail
+cd /app/code
+
+# CORRECTION : Migration non-interactive pour la production
+echo "Running migrations in non-interactive mode..."
+echo "y" | node build/bin/console.js migration:run || {
+    echo "Migrations failed, but continuing..."
+}
+
+echo "Starting Risu Server on $HOST:$PORT in $ENVIRONMENT mode..."
+exec node build/bin/server.js
+EOF
+
+# Make the start script executable
 RUN chmod +x /app/code/start.sh
 
 # Expose the port

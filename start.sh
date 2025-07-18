@@ -35,8 +35,8 @@ case $ENVIRONMENT in
     "cloudron")
         echo "🔧 Configuring for Cloudron..."
 
-        # Dossiers Cloudron
-        mkdir -p /app/data/database /app/data/uploads /run/app
+        # CORRECTION : Utiliser directement /app/data sans sous-dossiers
+        # Cloudron gère déjà les permissions pour /app/data
 
         # APP_KEY pour Cloudron
         if [ ! -f /app/data/app.key ]; then
@@ -45,9 +45,9 @@ case $ENVIRONMENT in
         fi
         APP_KEY=$(cat /app/data/app.key)
 
-        # Base de données Cloudron
+        # Base de données Cloudron - utiliser directement /app/data
         export DB_CONNECTION=sqlite
-        export DB_DATABASE=/app/data/database/app.sqlite
+        export DB_DATABASE=/app/data/app.sqlite
 
         # OAuth Cloudron
         if [ -n "${OAUTH_CLIENT_ID:-}" ]; then
@@ -64,8 +64,8 @@ case $ENVIRONMENT in
             export OAUTH_USER_FIELD_NAME="displayName"
         fi
 
-        # Chemins de stockage Cloudron
-        export UPLOAD_PATH=/app/data/uploads
+        # Chemins de stockage Cloudron - utiliser directement /app/data
+        export UPLOAD_PATH=/app/data
         export LOG_PATH=/run/app
         ;;
 
@@ -150,14 +150,13 @@ fi
 # ===================================
 
 echo "Running database migrations..."
-# Adapter le chemin selon l'environnement
-if [ "$ENVIRONMENT" = "cloudron" ]; then
-    cd /app/code
-else
-    cd /app
-fi
 
-node build/bin/console.js migration:run || {
+# CORRECTION CRITIQUE : Assurer le bon répertoire de travail
+cd /app/code
+
+# CORRECTION : Migration non-interactive pour la production
+echo "Running migrations in non-interactive mode..."
+echo "y" | node build/bin/console.js migration:run || {
     echo "Migrations failed, but continuing..."
 }
 

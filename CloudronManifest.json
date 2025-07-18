@@ -1,28 +1,44 @@
 {
-  "id": "io.kalyasante.risuserver",
+  "id": "dev.kalyasante.risuserver",
+  "author": "KalyaSante",
   "title": "Risu Server",
-  "author": "KalyaSante <contact@kalyasante.com>",
-  "description": "A self-hosted server and service management panel",
-  "tagline": "Manage your servers and services with ease",
-  "version": "1.0.1",
+  "tagline": "Self-hosted server and service management panel",
+  "version": "1.1.0",
+  "description": "A modern, self-hosted server and service management panel built with AdonisJS and Svelte. Manage your servers, services, and infrastructure from a beautiful web interface.",
+  "changelog": "file://CHANGELOG.md",
+  "website": "https://github.com/KalyaSante/risu_server",
+  "contactEmail": "support@kalyasante.dev",
+  "icon": "file://public/risu_512.png",
+  "screenshot": "file://docs/screenshot.png",
+  "tags": [
+    "server-management",
+    "infrastructure",
+    "monitoring",
+    "dashboard",
+    "self-hosted"
+  ],
+  "repository": "https://github.com/KalyaSante/risu_server.git",
+  "upstreamVersion": "1.1.0",
   "healthCheckPath": "/",
   "httpPort": 3333,
   "addons": {
-    "localstorage": {},
-    "oauth": {}
+    "oauth": {
+      "scopes": ["profile", "email"]
+    }
   },
   "manifestVersion": 2,
   "website": "https://github.com/KalyaSante/risu_server",
-  "contactEmail": "support@kalyasante.com",
-  "icon": "file://icon.png",
-  "tags": [
-    "hosting",
-    "project",
-    "admin"
-  ],
-  "mediaLinks": [],
-  "memoryLimit": 512000000,
+  "contactEmail": "support@kalyasante.dev",
   "minBoxVersion": "7.0.0",
-  "postInstallMessage": "Welcome to Risu Server! Your server management panel is ready to use.\n\n**Getting Started:**\n1. The application uses Cloudron authentication - no additional setup required\n2. Start adding your servers and services through the dashboard\n3. Configure your service monitoring and deployment settings\n\n**Important:** All data is stored locally and will persist across updates.",
-  "optionalSso": false
+  "dockerImage": "ghcr.io/kalyasante/risu_server_cloudron:latest",
+  "mediaLinks": [
+    {
+      "type": "website",
+      "url": "https://github.com/KalyaSante/risu_server"
+    },
+    {
+      "type": "documentation",
+      "url": "https://github.com/KalyaSante/risu_server#readme"
+    }
+  ]
 }
