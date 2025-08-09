@@ -26,6 +26,7 @@
       "scopes": ["profile", "email"]
     }
   },
+  "optionalSso": true,
   "manifestVersion": 2,
   "website": "https://github.com/KalyaSante/risu_server",
   "contactEmail": "support@kalyasante.dev",
